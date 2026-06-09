@@ -1,0 +1,18 @@
+# Input loading
+pymupdf
+easyocr
+openai-whisper
+
+
+# Dataset & EDA
+datasets
+pandas
+matplotlib
+seaborn
+
+# RAG pipeline
+numpy
+torch
+transformers
+sentence-transformers
+faiss-cpu

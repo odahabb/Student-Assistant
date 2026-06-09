@@ -1,0 +1,11 @@
+.vscode/
+__pycache__/
+*.pyc
+.env
+data/raw/
+data/processed/index.faiss
+data/processed/chunks.json
+*.egg-info/
+.ipynb_checkpoints/
+.claude/
+Claude.md
