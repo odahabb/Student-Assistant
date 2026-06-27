@@ -10,18 +10,8 @@ Embeds a query and retrieves the top-k most similar chunks from the FAISS index.
 from typing import List
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "all-MiniLM-L6-v2"
-
-_model = None
-
-
-def _get_model() -> SentenceTransformer:
-    global _model
-    if _model is None:
-        _model = SentenceTransformer(MODEL_NAME, device="cpu")
-    return _model
+from backend.pipeline.embedder import _get_model
 
 
 def retrieve(query: str, index, chunks: List[str], k: int = 3) -> List[str]:

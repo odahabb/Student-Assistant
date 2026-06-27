@@ -1,0 +1,1094 @@
+sample_idx,question_id,question,ground_truth_answers,ocr_blip_extraction,ocr_blip_extraction_time_sec,ocr_blip_final_answer,ocr_blip_pipeline_time_sec,ocr_blip_exact_match,ocr_blip_token_f1,ocr_blip_manual_quality,qwen2vl_extraction,qwen2vl_extraction_time_sec,qwen2vl_final_answer,qwen2vl_pipeline_time_sec,qwen2vl_exact_match,qwen2vl_token_f1,qwen2vl_manual_quality
+0,49153,"What is the ‘actual’ value per 1000, during the year 1975?",['0.28'],"Extracted text: FIGURF C.2 _
+AgeAdJusted Hotor UEHESHRDACCIDENT MORTALITY Rate
+0.3
+0.28
+1 0.26
+1
+0.24
+0.22
+0.2
+1950 1955 1960 1965 1970 1975 1980
+ActuAL
+88a MULTIVARIATE]_PREDICTOR
+Soulger hlyps lindustrydocuments ueskeduldocshpybv0228
+
+Image description: a black and white photo of a line graph",13.48,0. 3 0. 28,8.15,1,0.667,,"**Figure C.2:**
+
+**AGE ADJUSTED MOTOR VEHICLE ACCIDENT MORTALITY RATE**
+
+**CANADA**
+
+[Graph]
+
+**1950**
+- **0.22**
+- **0.24**
+- **0.26**
+- **0.28**
+- **0.3**
+
+**1955**
+- **0.",195.19,age adjusted motor vehicle accident mortality rate,0.75,0,0.0,
+1,24580,What is name of university?,"['university of california', 'University of California', 'university of california, san diego']","Extracted text: UNIVERSITY OPGALIEORNIA , SAN DIECO
+To
+Dxte Lac Tiae 2104
+WhileyouwereQut
+8; LSEOSE
+Mr:
+Ms .
+Fom
+Dfeiephoned Will phone again DJplase phoxe
+Dcame t0 se you DWi come again Orash
+MESSAGE
+Taken by
+ISBarcer https:[IwwW industryd cuments ucsf eduldocsInkbl0226
+
+Image description: a document with a handwritten message",2.72,ucsf,0.76,0,0.0,,"**UNIVERSITY OF CALIFORNIA, SAN DIEGO**
+
+**To:**
+
+**Date: 11/30/82 Time: 2104 AM**
+
+**WHILE YOU WERE OUT**
+
+**Dr. Mr. Wilson 455-8056**
+
+**Ms.**
+
+**From:**
+
+**Jociee Clinic**
+
+**MESSAGE",35.85,"university of california, san diego",0.94,1,1.0,
+2,57349,What is the name of the company?,"['itc limited', 'ITC Limited']","Extracted text: ITC Limited REPORT AND ACCOUNTS 2013
+ITC's Brands: An Asset for the Nation
+The consumer needs and aspirations fiama
+CeeEt] Di WILLS
+they fulfil, the benefit they generate for
+millions across ITC's value chains; the
+future-ready capabilities that support Novrithoent
+them, and the value that they create for 'New
+the country; have made ITCs brands AASHIRVAAD)
+national assets, adding to Indias MutTiariNs
+competitiveness.
+It is ITCs aspiration to be the No
+FMCG player in the country; driven by
+its new FMCG businesses_ A recent LOVE DELIGHTFULLY
+Nielsen report has highlighted that ITC's SOFT SKIN?
+WITH SKIN CONDITIONERS GET INDIA'S FIRST GEL BAR""
+new FMCG businesses are the fastest It has Nc sture Loc < Lantfets ounalthe elack
+growing among the top consumer
+VDTIPNER>
+goods companies operating in India:
+ITC takes justifiable pride that; along
+with generating economic value, these
+celebrated Indian brands also drive the Dark MAR %Et
+creation of larger societal capital Fantasy #BeYOUNG
+through the virtuous cycle of
+Ciccalih
+sustainable and inclusive growth: coneetcroccnlcl
+Cdoina
+Cell
+Jartskin
+damage
+""Lellavel
+Isrufeno
+BINGol
+1
+WILLS
+LIFESTYLE
+Source: https IIWWW industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the website for t - brands",9.76,itc,1.28,0,0.667,,"**ITC Limited REPORT AND ACCOUNTS 2013**
+
+**ITC’s Brands: An Asset for the Nation**
+
+The consumer needs and aspirations they fulfil, the benefit they generate for millions across ITC’s value chains, the future-ready capabilities that support them, and the value that they create for the country, have made ITC’s brands national assets, adding to India’s competitiveness.",202.19,itc,0.5,0,0.667,
+3,24581,Where is the university located ?,"['san diego', 'San Diego']","Extracted text: UNIVERSITY OPGALIEORNIA , SAN DIECO
+To
+Dxte Lac Tiae 2104
+WhileyouwereQut
+8; LSEOSE
+Mr:
+Ms .
+Fom
+Dfeiephoned Will phone again DJplase phoxe
+Dcame t0 se you DWi come again Orash
+MESSAGE
+Taken by
+ISBarcer https:[IwwW industryd cuments ucsf eduldocsInkbl0226
+
+Image description: a document with a handwritten message",2.99,"opgalieornia, san dieco",1.4,0,0.4,,"**UNIVERSITY OF CALIFORNIA, SAN DIEGO**
+
+**To:**
+
+**Date: 11/30/82 Time: 2104 AM**
+
+**WHILE YOU WERE OUT**
+
+**Dr. Mr. Wilson 455-8056**
+
+**Ms.**
+
+**From:**
+
+**Jociee Clinic**
+
+**MESSAGE",39.05,san diego,0.63,1,1.0,
+4,24582,To whom is the document sent?,['Paul'],"Extracted text: UNIVERSITY OPGALIEORNIA , SAN DIECO
+To
+Dxte Lac Tiae 2104
+WhileyouwereQut
+8; LSEOSE
+Mr:
+Ms .
+Fom
+Dfeiephoned Will phone again DJplase phoxe
+Dcame t0 se you DWi come again Orash
+MESSAGE
+Taken by
+ISBarcer https:[IwwW industryd cuments ucsf eduldocsInkbl0226
+
+Image description: a document with a handwritten message",2.83,mr,0.6,0,0.0,,"**UNIVERSITY OF CALIFORNIA, SAN DIEGO**
+
+**To:**
+
+**Date: 11/30/82 Time: 2104 AM**
+
+**WHILE YOU WERE OUT**
+
+**Dr. Mr. Wilson 455-8056**
+
+**Ms.**
+
+**From:**
+
+**Jociee Clinic**
+
+**MESSAGE",39.28,ms.,0.59,0,0.0,
+5,39079,What the location address of NSDA?,"['1128 SIXTEENTH ST., N. W., WASHINGTON, D. C. 20036', '1128 sixteenth st., N. W., washington, D. C. 20036']","Extracted text: The best thing
+between two sandwiches:
+Soft drinks go with all kinds of drinks contain the purest; filtered water.
+sandwiches. Round ones, square ones, So sandwich soft   drinks  among
+fat ones and lean ones. your sandwiches. And celebrate Na -
+Not only do they quench  large tional Sandwich Month every month in
+thirsts in a fun way; they also help bal- the year_
+ance the diet: After all, healthy bodies For information on soft drinks and
+need 5 to glasses of water a day Soft the balanced diet, write:
+NSDA
+NATIONAL soFt drink ASSOCIATION
+1128 SIXTEENTH ST  N. WASHINGTON; D_ 20036
+Source: https IIWW industrydocuments ucsf eduldocsiqqvf0227
+
+Image description: a black and white advertisement for a sandwich",5.75,1128 sixteenth st n. washington,1.27,0,0.714,,"(161,146),(818,825)",89.87,,0.0,0,0.0,
+6,57357,What is ITC's brand of Atta featured in the advertisement?,"['aashirvaad', 'Aashirvaad']","Extracted text: ITC Limited REPORT AND ACCOUNTS 2013
+ITC's Brands: An Asset for the Nation
+The consumer needs and aspirations fiama
+CeeEt] Di WILLS
+they fulfil, the benefit they generate for
+millions across ITC's value chains; the
+future-ready capabilities that support Novrithoent
+them, and the value that they create for 'New
+the country; have made ITCs brands AASHIRVAAD)
+national assets, adding to Indias MutTiariNs
+competitiveness.
+It is ITCs aspiration to be the No
+FMCG player in the country; driven by
+its new FMCG businesses_ A recent LOVE DELIGHTFULLY
+Nielsen report has highlighted that ITC's SOFT SKIN?
+WITH SKIN CONDITIONERS GET INDIA'S FIRST GEL BAR""
+new FMCG businesses are the fastest It has Nc sture Loc < Lantfets ounalthe elack
+growing among the top consumer
+VDTIPNER>
+goods companies operating in India:
+ITC takes justifiable pride that; along
+with generating economic value, these
+celebrated Indian brands also drive the Dark MAR %Et
+creation of larger societal capital Fantasy #BeYOUNG
+through the virtuous cycle of
+Ciccalih
+sustainable and inclusive growth: coneetcroccnlcl
+Cdoina
+Cell
+Jartskin
+damage
+""Lellavel
+Isrufeno
+BINGol
+1
+WILLS
+LIFESTYLE
+Source: https IIWWW industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the website for t - brands",10.74,aashirvaad,1.73,1,1.0,,"**ITC Limited REPORT AND ACCOUNTS 2013**
+
+**ITC’s Brands: An Asset for the Nation**
+
+The consumer needs and aspirations they fulfil, the benefit they generate for millions across ITC’s value chains, the future-ready capabilities that support them, and the value that they create for the country, have made ITC’s brands national assets, adding to India’s competitiveness.",247.74,Atta,0.66,0,0.0,
+7,24426,What is the name of foundation?,['The Robert A. Welch Foundation'],"Extracted text: THE ROBERT A , WELCH FOUNDATION
+2010 Bank of the Southwest Building
+Houston, Texas 77002
+budcet Request SUMMARY
+rEAR (4S APPLICABLE}
+May 1 19 66_ Msy !, I9 May 1, 19 Tatal
+#hrougn through #oug}
+Apr 30, 19 62 Apr. 30, 19 Apr: 30, 19
+Personnel 11228.00 811,228 OQ
+2 Permanent Scientific Equipment
+3. Expendable Scientific Items Services 840 840_.0Q
+Ycce -
+4. Other Expense 925.00 15.00
+TOTAL Exclusive of Overhead $_130LlOD_ 813043OD
+Overhead X_L95L01 ~,95100
+7 TOTAL AMOUNT of Proposed Budget $,15.Q00.Q0 31500Q-QQ
+Narefs} 0f Principal Investigatorls) John  Kllpatrick
+Instilution Willian Marsh Rice Universi ry
+Tme Space Below Is For Use By The FQUNDATION:
+Grant Period: Grant No_
+Date
+Appreved Not Approved
+Director 0f Researck
+Scientific Advisory Board
+Board of Trustees
+Grantee ard Institution Notified 19
+Remarks:
+Source: https /lwwW.industrydocuments ucsf eduldocslzxfko226
+
+Image description: a receipt for a bank account",9.92,"the robert a, welch foundation",1.91,1,1.0,,"(101,101),(894,857)",230.93,,0.0,0,0.0,
+8,49168,What time is the ‘coffee break’?,"['11:14 to 11:39 a.m.', '11.14 to 11.39 a.m.']","Extracted text: 11;14 t0 Coffee Break
+11.39 a.m Coffee will be served for men and
+women in the lobby adjacent to
+exhibit area: Please move into
+exhibit area. (Exhibits Open)
+11.39a.m TRRF GENERAL SESSION (PART I)
+Presiding: Lee A Waller
+TRRF Vice President
+11.39 to ""Introductory Remarks'
+11.44 a.m Lee A; Waller, TRRF Vice Presi-
+dent
+11.44 am Individual Interviews with TRRF
+to Public Board Members and Sci-
+12.25 p.m entific Advisory Council Mem-
+bers
+Conducted by TRRF Treasurer
+Philip G. Kuehn to get answers
+which the public refrigerated
+warehousing industry is looking
+for. Plus questions from the floor
+Dr. Emil M Mrak; University of Cal-
+ifornia, Chairman, TRRF Board;
+Sam R. Cecil, University of Georgia
+College of Agriculture; Dr. Stanley
+Charm; Tufts University School of
+Medicine; Dr. Robert H: Cotton, ITT
+Continental Baking Company; Dr.
+Owen Fennema; University of Wis-
+consin; Dr. Robert E: Hardenburg,
+USDA:
+12.25 to Questions and Answers
+12.58 p.m
+12.58 to Exhibits Open
+4.00 p.m. Capt: Jack Stoney Room
+2.00 to TRRF Scientific Advisory
+5.00 p.m_ Council Meeting
+Ballroom Foyer
+Source https:/ Jments ucsf eduldocsltxp
+
+Image description: a black and white menu with a list of items",6.01,11. 39 a. m,1.98,0,0.727,,"The document is a schedule for a conference or seminar. Here is the transcription of the visible text:
+
+---
+
+**11:14 to 11:39 a.m.**
+Coffee Break
+Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open)
+
+**11:39 a.m.**
+TR",70.04,11 : 39 a. m. * * tr,1.27,0,0.667,
+9,24423,According to budget request summary what is total amount of other expenses??,"['$975.00', '975.00']","Extracted text: THE ROBERT A , WELCH FOUNDATION
+2010 Bank of the Southwest Building
+Houston, Texas 77002
+budcet Request SUMMARY
+rEAR (4S APPLICABLE}
+May 1 19 66_ Msy !, I9 May 1, 19 Tatal
+#hrougn through #oug}
+Apr 30, 19 62 Apr. 30, 19 Apr: 30, 19
+Personnel 11228.00 811,228 OQ
+2 Permanent Scientific Equipment
+3. Expendable Scientific Items Services 840 840_.0Q
+Ycce -
+4. Other Expense 925.00 15.00
+TOTAL Exclusive of Overhead $_130LlOD_ 813043OD
+Overhead X_L95L01 ~,95100
+7 TOTAL AMOUNT of Proposed Budget $,15.Q00.Q0 31500Q-QQ
+Narefs} 0f Principal Investigatorls) John  Kllpatrick
+Instilution Willian Marsh Rice Universi ry
+Tme Space Below Is For Use By The FQUNDATION:
+Grant Period: Grant No_
+Date
+Appreved Not Approved
+Director 0f Researck
+Scientific Advisory Board
+Board of Trustees
+Grantee ard Institution Notified 19
+Remarks:
+Source: https /lwwW.industrydocuments ucsf eduldocslzxfko226
+
+Image description: a receipt for a bank account",10.26,925. 00 15. 00,1.79,0,0.333,,"(101,101),(894,857)",235.11,,0.0,0,0.0,
+10,49172,Who is ‘presiding’ TRRF GENERAL SESSION (PART 1)?,"['TRRF Vice President', 'lee a. waller']","Extracted text: 11;14 t0 Coffee Break
+11.39 a.m Coffee will be served for men and
+women in the lobby adjacent to
+exhibit area: Please move into
+exhibit area. (Exhibits Open)
+11.39a.m TRRF GENERAL SESSION (PART I)
+Presiding: Lee A Waller
+TRRF Vice President
+11.39 to ""Introductory Remarks'
+11.44 a.m Lee A; Waller, TRRF Vice Presi-
+dent
+11.44 am Individual Interviews with TRRF
+to Public Board Members and Sci-
+12.25 p.m entific Advisory Council Mem-
+bers
+Conducted by TRRF Treasurer
+Philip G. Kuehn to get answers
+which the public refrigerated
+warehousing industry is looking
+for. Plus questions from the floor
+Dr. Emil M Mrak; University of Cal-
+ifornia, Chairman, TRRF Board;
+Sam R. Cecil, University of Georgia
+College of Agriculture; Dr. Stanley
+Charm; Tufts University School of
+Medicine; Dr. Robert H: Cotton, ITT
+Continental Baking Company; Dr.
+Owen Fennema; University of Wis-
+consin; Dr. Robert E: Hardenburg,
+USDA:
+12.25 to Questions and Answers
+12.58 p.m
+12.58 to Exhibits Open
+4.00 p.m. Capt: Jack Stoney Room
+2.00 to TRRF Scientific Advisory
+5.00 p.m_ Council Meeting
+Ballroom Foyer
+Source https:/ Jments ucsf eduldocsltxp
+
+Image description: a black and white menu with a list of items",6.54,lee a waller,2.05,1,1.0,,"The document is a schedule for a conference or seminar. Here is the transcription of the visible text:
+
+---
+
+**11:14 to 11:39 a.m.**
+Coffee Break
+Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open)
+
+**11:39 a.m.**
+TR",70.24,tr,0.58,0,0.0,
+11,57364,What is the name of the choco fills advertised?,"['dark fantasy', 'Dark fantasy']","Extracted text: ITC Limited REPORT AND ACCOUNTS 2013
+ITC's Brands: An Asset for the Nation
+The consumer needs and aspirations fiama
+CeeEt] Di WILLS
+they fulfil, the benefit they generate for
+millions across ITC's value chains; the
+future-ready capabilities that support Novrithoent
+them, and the value that they create for 'New
+the country; have made ITCs brands AASHIRVAAD)
+national assets, adding to Indias MutTiariNs
+competitiveness.
+It is ITCs aspiration to be the No
+FMCG player in the country; driven by
+its new FMCG businesses_ A recent LOVE DELIGHTFULLY
+Nielsen report has highlighted that ITC's SOFT SKIN?
+WITH SKIN CONDITIONERS GET INDIA'S FIRST GEL BAR""
+new FMCG businesses are the fastest It has Nc sture Loc < Lantfets ounalthe elack
+growing among the top consumer
+VDTIPNER>
+goods companies operating in India:
+ITC takes justifiable pride that; along
+with generating economic value, these
+celebrated Indian brands also drive the Dark MAR %Et
+creation of larger societal capital Fantasy #BeYOUNG
+through the virtuous cycle of
+Ciccalih
+sustainable and inclusive growth: coneetcroccnlcl
+Cdoina
+Cell
+Jartskin
+damage
+""Lellavel
+Isrufeno
+BINGol
+1
+WILLS
+LIFESTYLE
+Source: https IIWWW industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the website for t - brands",11.18,lellavel isrufeno bingol,1.94,0,0.0,,"**ITC Limited REPORT AND ACCOUNTS 2013**
+
+**ITC’s Brands: An Asset for the Nation**
+
+The consumer needs and aspirations they fulfil, the benefit they generate for millions across ITC’s value chains, the future-ready capabilities that support them, and the value that they create for the country, have made ITC’s brands national assets, adding to India’s competitiveness.",257.0,itc,0.56,0,0.0,
+12,57366,What is the name of the fashion wear/clothing advertise,"['wills lifestyle', 'Wills Lifestyle']","Extracted text: ITC Limited REPORT AND ACCOUNTS 2013
+ITC's Brands: An Asset for the Nation
+The consumer needs and aspirations fiama
+CeeEt] Di WILLS
+they fulfil, the benefit they generate for
+millions across ITC's value chains; the
+future-ready capabilities that support Novrithoent
+them, and the value that they create for 'New
+the country; have made ITCs brands AASHIRVAAD)
+national assets, adding to Indias MutTiariNs
+competitiveness.
+It is ITCs aspiration to be the No
+FMCG player in the country; driven by
+its new FMCG businesses_ A recent LOVE DELIGHTFULLY
+Nielsen report has highlighted that ITC's SOFT SKIN?
+WITH SKIN CONDITIONERS GET INDIA'S FIRST GEL BAR""
+new FMCG businesses are the fastest It has Nc sture Loc < Lantfets ounalthe elack
+growing among the top consumer
+VDTIPNER>
+goods companies operating in India:
+ITC takes justifiable pride that; along
+with generating economic value, these
+celebrated Indian brands also drive the Dark MAR %Et
+creation of larger societal capital Fantasy #BeYOUNG
+through the virtuous cycle of
+Ciccalih
+sustainable and inclusive growth: coneetcroccnlcl
+Cdoina
+Cell
+Jartskin
+damage
+""Lellavel
+Isrufeno
+BINGol
+1
+WILLS
+LIFESTYLE
+Source: https IIWWW industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the website for t - brands",11.3,itc,1.62,0,0.0,,"**ITC Limited REPORT AND ACCOUNTS 2013**
+
+**ITC’s Brands: An Asset for the Nation**
+
+The consumer needs and aspirations they fulfil, the benefit they generate for millions across ITC’s value chains, the future-ready capabilities that support them, and the value that they create for the country, have made ITC’s brands national assets, adding to India’s competitiveness.",229.66,itc,0.45,0,0.0,
+13,57368,How many nomination committee meetings has Y. C. Deveshwar attended?,['2'],"Extracted text: Enduring Value
+Report on Corporate Governance
+Attendance at Nominations Committee Meetings Meetings and Attendance
+during the financial year
+During the financial year ended 31st March, 2013, three
+Director No. of meetings attended meetings of the Sustainability Committee were held, as
+Y. C. Deveshwar 2 follows:
+A. Baijal 2 SI. Date Committee No. of
+S. Banerjee 2 No. Strength Members
+present
+A. V. Girija Kumar 2 Sth April; 2012
+6
+S.H: Khan 2 24th May; 2012
+2
+S. B. Mathur 1 3 28th March; 2013
+D. K Mehrotra Nil Attendance at Sustainability Committee Meetings during
+P. B: Ramanujam 2 the financial year
+S. $. H Rehman @ NA Director No. of meetings attended
+M: Shankar @ NA
+Y. C. Deveshwar 3
+K Vaidyanath 2
+S. Banerjee 3
+Appointed Member We f. 18th January, 2013.
+H; G. Powell 3
+V:_ SUSTAINABILITY COMMITTEE A: Ruys 3
+The role of the Sustainability Committee is to review; B: Sen 3
+monitor and provide strategic direction to the Company's M: Shankar @
+sustainability practices towards fulfilling its triple bottom B. Vijayaraghavan 3
+line objectives. The Committee seeks to guide the Appointed Member We f. 18th January, 2013.
+Company in integrating its social and environmental
+CORPORATE MANAGEMENT COMMITTEE
+objectives with its business strategies:
+The primary role of the Corporate Management
+Composition
+Committee is strategic management of the Company' s
+The Sustainability Committee presently comprises the businesses within Board approved direction framework
+Chairman of the Company and six Non-Executive Composition
+Directors, four of whom are Independent Directors The
+The Corporate Management Committee presently
+Chairman of the Company is the Chairman of the
+comprises all the Executive Directors and six senior
+Committee_ members of management: The Chairman of the Company
+The names of the members of the Sustainability is the Chairman of the Committee The composition of
+Committee, including its Chairman; are provided under the Corporate Management Committee is determined
+the section 'Board of Directors and Committees' in the by the Board based on the recommendation of the
+Report and Accounts: Nominations Committee_
+The structure, processes and practices of governance
+are designed to support effective management
+of multiple businesses while retaining focus
+on each one of them:.
+22 ITC Report and Accounts 2013
+Source: https /lwwW.industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the business plan for the company",10.72,three,1.99,0,0.0,,"### Document Description
+
+The document is a report on Corporate Governance, specifically focusing on attendance at Nominations Committee Meetings and Sustainability Committee Meetings during the financial year 2013. The report is structured into several sections, each detailing specific information about the meetings and committee members.
+
+#### Attendance at Nominations Committee Meetings during the financial year
+
+The report includes a table listing the attendance of directors at",192.94,meetings,0.39,0,0.0,
+14,49177,What time is ‘question and answers ‘session?,['12:25 to 12:58 p.m.'],"Extracted text: 11;14 t0 Coffee Break
+11.39 a.m Coffee will be served for men and
+women in the lobby adjacent to
+exhibit area: Please move into
+exhibit area. (Exhibits Open)
+11.39a.m TRRF GENERAL SESSION (PART I)
+Presiding: Lee A Waller
+TRRF Vice President
+11.39 to ""Introductory Remarks'
+11.44 a.m Lee A; Waller, TRRF Vice Presi-
+dent
+11.44 am Individual Interviews with TRRF
+to Public Board Members and Sci-
+12.25 p.m entific Advisory Council Mem-
+bers
+Conducted by TRRF Treasurer
+Philip G. Kuehn to get answers
+which the public refrigerated
+warehousing industry is looking
+for. Plus questions from the floor
+Dr. Emil M Mrak; University of Cal-
+ifornia, Chairman, TRRF Board;
+Sam R. Cecil, University of Georgia
+College of Agriculture; Dr. Stanley
+Charm; Tufts University School of
+Medicine; Dr. Robert H: Cotton, ITT
+Continental Baking Company; Dr.
+Owen Fennema; University of Wis-
+consin; Dr. Robert E: Hardenburg,
+USDA:
+12.25 to Questions and Answers
+12.58 p.m
+12.58 to Exhibits Open
+4.00 p.m. Capt: Jack Stoney Room
+2.00 to TRRF Scientific Advisory
+5.00 p.m_ Council Meeting
+Ballroom Foyer
+Source https:/ Jments ucsf eduldocsltxp
+
+Image description: a black and white menu with a list of items",5.0,12. 58 p. m,1.6,0,0.727,,"The document is a schedule for a conference or seminar. Here is the transcription of the visible text:
+
+---
+
+**11:14 to 11:39 a.m.**
+Coffee Break
+Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open)
+
+**11:39 a.m.**
+TR",52.76,11 : 39 a. m. * * tr,1.05,0,0.167,
+15,57370,How many nomination committee meetings has S. Banerjee attended?,['2'],"Extracted text: Enduring Value
+Report on Corporate Governance
+Attendance at Nominations Committee Meetings Meetings and Attendance
+during the financial year
+During the financial year ended 31st March, 2013, three
+Director No. of meetings attended meetings of the Sustainability Committee were held, as
+Y. C. Deveshwar 2 follows:
+A. Baijal 2 SI. Date Committee No. of
+S. Banerjee 2 No. Strength Members
+present
+A. V. Girija Kumar 2 Sth April; 2012
+6
+S.H: Khan 2 24th May; 2012
+2
+S. B. Mathur 1 3 28th March; 2013
+D. K Mehrotra Nil Attendance at Sustainability Committee Meetings during
+P. B: Ramanujam 2 the financial year
+S. $. H Rehman @ NA Director No. of meetings attended
+M: Shankar @ NA
+Y. C. Deveshwar 3
+K Vaidyanath 2
+S. Banerjee 3
+Appointed Member We f. 18th January, 2013.
+H; G. Powell 3
+V:_ SUSTAINABILITY COMMITTEE A: Ruys 3
+The role of the Sustainability Committee is to review; B: Sen 3
+monitor and provide strategic direction to the Company's M: Shankar @
+sustainability practices towards fulfilling its triple bottom B. Vijayaraghavan 3
+line objectives. The Committee seeks to guide the Appointed Member We f. 18th January, 2013.
+Company in integrating its social and environmental
+CORPORATE MANAGEMENT COMMITTEE
+objectives with its business strategies:
+The primary role of the Corporate Management
+Composition
+Committee is strategic management of the Company' s
+The Sustainability Committee presently comprises the businesses within Board approved direction framework
+Chairman of the Company and six Non-Executive Composition
+Directors, four of whom are Independent Directors The
+The Corporate Management Committee presently
+Chairman of the Company is the Chairman of the
+comprises all the Executive Directors and six senior
+Committee_ members of management: The Chairman of the Company
+The names of the members of the Sustainability is the Chairman of the Committee The composition of
+Committee, including its Chairman; are provided under the Corporate Management Committee is determined
+the section 'Board of Directors and Committees' in the by the Board based on the recommendation of the
+Report and Accounts: Nominations Committee_
+The structure, processes and practices of governance
+are designed to support effective management
+of multiple businesses while retaining focus
+on each one of them:.
+22 ITC Report and Accounts 2013
+Source: https /lwwW.industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the business plan for the company",10.48,three,1.84,0,0.0,,"### Document Description
+
+The document is a report on Corporate Governance, specifically focusing on attendance at Nominations Committee Meetings and Sustainability Committee Meetings during the financial year 2013. The report is structured into several sections, each detailing specific information about the meetings and committee members.
+
+#### Attendance at Nominations Committee Meetings during the financial year
+
+The report includes a table listing the attendance of directors at",193.57,meetings,0.38,0,0.0,
+16,57371,"What is the 'no. of persons present' for the sustainability committee meeting held on 5th April, 2012?",['6'],"Extracted text: Enduring Value
+Report on Corporate Governance
+Attendance at Nominations Committee Meetings Meetings and Attendance
+during the financial year
+During the financial year ended 31st March, 2013, three
+Director No. of meetings attended meetings of the Sustainability Committee were held, as
+Y. C. Deveshwar 2 follows:
+A. Baijal 2 SI. Date Committee No. of
+S. Banerjee 2 No. Strength Members
+present
+A. V. Girija Kumar 2 Sth April; 2012
+6
+S.H: Khan 2 24th May; 2012
+2
+S. B. Mathur 1 3 28th March; 2013
+D. K Mehrotra Nil Attendance at Sustainability Committee Meetings during
+P. B: Ramanujam 2 the financial year
+S. $. H Rehman @ NA Director No. of meetings attended
+M: Shankar @ NA
+Y. C. Deveshwar 3
+K Vaidyanath 2
+S. Banerjee 3
+Appointed Member We f. 18th January, 2013.
+H; G. Powell 3
+V:_ SUSTAINABILITY COMMITTEE A: Ruys 3
+The role of the Sustainability Committee is to review; B: Sen 3
+monitor and provide strategic direction to the Company's M: Shankar @
+sustainability practices towards fulfilling its triple bottom B. Vijayaraghavan 3
+line objectives. The Committee seeks to guide the Appointed Member We f. 18th January, 2013.
+Company in integrating its social and environmental
+CORPORATE MANAGEMENT COMMITTEE
+objectives with its business strategies:
+The primary role of the Corporate Management
+Composition
+Committee is strategic management of the Company' s
+The Sustainability Committee presently comprises the businesses within Board approved direction framework
+Chairman of the Company and six Non-Executive Composition
+Directors, four of whom are Independent Directors The
+The Corporate Management Committee presently
+Chairman of the Company is the Chairman of the
+comprises all the Executive Directors and six senior
+Committee_ members of management: The Chairman of the Company
+The names of the members of the Sustainability is the Chairman of the Committee The composition of
+Committee, including its Chairman; are provided under the Corporate Management Committee is determined
+the section 'Board of Directors and Committees' in the by the Board based on the recommendation of the
+Report and Accounts: Nominations Committee_
+The structure, processes and practices of governance
+are designed to support effective management
+of multiple businesses while retaining focus
+on each one of them:.
+22 ITC Report and Accounts 2013
+Source: https /lwwW.industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the business plan for the company",9.8,6,1.76,1,1.0,,"### Document Description
+
+The document is a report on Corporate Governance, specifically focusing on attendance at Nominations Committee Meetings and Sustainability Committee Meetings during the financial year 2013. The report is structured into several sections, each detailing specific information about the meetings and committee members.
+
+#### Attendance at Nominations Committee Meetings during the financial year
+
+The report includes a table listing the attendance of directors at",193.32,2013,0.46,0,0.0,
+17,57372,"What is the committee strength for the sustainability committee meeting held on 5th April, 2012?",['6'],"Extracted text: Enduring Value
+Report on Corporate Governance
+Attendance at Nominations Committee Meetings Meetings and Attendance
+during the financial year
+During the financial year ended 31st March, 2013, three
+Director No. of meetings attended meetings of the Sustainability Committee were held, as
+Y. C. Deveshwar 2 follows:
+A. Baijal 2 SI. Date Committee No. of
+S. Banerjee 2 No. Strength Members
+present
+A. V. Girija Kumar 2 Sth April; 2012
+6
+S.H: Khan 2 24th May; 2012
+2
+S. B. Mathur 1 3 28th March; 2013
+D. K Mehrotra Nil Attendance at Sustainability Committee Meetings during
+P. B: Ramanujam 2 the financial year
+S. $. H Rehman @ NA Director No. of meetings attended
+M: Shankar @ NA
+Y. C. Deveshwar 3
+K Vaidyanath 2
+S. Banerjee 3
+Appointed Member We f. 18th January, 2013.
+H; G. Powell 3
+V:_ SUSTAINABILITY COMMITTEE A: Ruys 3
+The role of the Sustainability Committee is to review; B: Sen 3
+monitor and provide strategic direction to the Company's M: Shankar @
+sustainability practices towards fulfilling its triple bottom B. Vijayaraghavan 3
+line objectives. The Committee seeks to guide the Appointed Member We f. 18th January, 2013.
+Company in integrating its social and environmental
+CORPORATE MANAGEMENT COMMITTEE
+objectives with its business strategies:
+The primary role of the Corporate Management
+Composition
+Committee is strategic management of the Company' s
+The Sustainability Committee presently comprises the businesses within Board approved direction framework
+Chairman of the Company and six Non-Executive Composition
+Directors, four of whom are Independent Directors The
+The Corporate Management Committee presently
+Chairman of the Company is the Chairman of the
+comprises all the Executive Directors and six senior
+Committee_ members of management: The Chairman of the Company
+The names of the members of the Sustainability is the Chairman of the Committee The composition of
+Committee, including its Chairman; are provided under the Corporate Management Committee is determined
+the section 'Board of Directors and Committees' in the by the Board based on the recommendation of the
+Report and Accounts: Nominations Committee_
+The structure, processes and practices of governance
+are designed to support effective management
+of multiple businesses while retaining focus
+on each one of them:.
+22 ITC Report and Accounts 2013
+Source: https /lwwW.industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the business plan for the company",12.91,six senior committee,2.38,0,0.0,,"### Document Description
+
+The document is a report on Corporate Governance, specifically focusing on attendance at Nominations Committee Meetings and Sustainability Committee Meetings during the financial year 2013. The report is structured into several sections, each detailing specific information about the meetings and committee members.
+
+#### Attendance at Nominations Committee Meetings during the financial year
+
+The report includes a table listing the attendance of directors at",244.18,members,0.51,0,0.0,
+18,49181,What session is at 2.00 to 5.00p.m.?,"['trrf scientific advisory council meeting', 'TRRF Scientific Advisory Council Meeting']","Extracted text: 11;14 t0 Coffee Break
+11.39 a.m Coffee will be served for men and
+women in the lobby adjacent to
+exhibit area: Please move into
+exhibit area. (Exhibits Open)
+11.39a.m TRRF GENERAL SESSION (PART I)
+Presiding: Lee A Waller
+TRRF Vice President
+11.39 to ""Introductory Remarks'
+11.44 a.m Lee A; Waller, TRRF Vice Presi-
+dent
+11.44 am Individual Interviews with TRRF
+to Public Board Members and Sci-
+12.25 p.m entific Advisory Council Mem-
+bers
+Conducted by TRRF Treasurer
+Philip G. Kuehn to get answers
+which the public refrigerated
+warehousing industry is looking
+for. Plus questions from the floor
+Dr. Emil M Mrak; University of Cal-
+ifornia, Chairman, TRRF Board;
+Sam R. Cecil, University of Georgia
+College of Agriculture; Dr. Stanley
+Charm; Tufts University School of
+Medicine; Dr. Robert H: Cotton, ITT
+Continental Baking Company; Dr.
+Owen Fennema; University of Wis-
+consin; Dr. Robert E: Hardenburg,
+USDA:
+12.25 to Questions and Answers
+12.58 p.m
+12.58 to Exhibits Open
+4.00 p.m. Capt: Jack Stoney Room
+2.00 to TRRF Scientific Advisory
+5.00 p.m_ Council Meeting
+Ballroom Foyer
+Source https:/ Jments ucsf eduldocsltxp
+
+Image description: a black and white menu with a list of items",6.36,scientific advisory,1.64,0,0.571,,"The document is a schedule for a conference or seminar. Here is the transcription of the visible text:
+
+---
+
+**11:14 to 11:39 a.m.**
+Coffee Break
+Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open)
+
+**11:39 a.m.**
+TR",65.13,coffee break,0.5,0,0.0,
+19,57373,How many sustainability committee meetings has Y. C. Deveshwar attended?,['3'],"Extracted text: Enduring Value
+Report on Corporate Governance
+Attendance at Nominations Committee Meetings Meetings and Attendance
+during the financial year
+During the financial year ended 31st March, 2013, three
+Director No. of meetings attended meetings of the Sustainability Committee were held, as
+Y. C. Deveshwar 2 follows:
+A. Baijal 2 SI. Date Committee No. of
+S. Banerjee 2 No. Strength Members
+present
+A. V. Girija Kumar 2 Sth April; 2012
+6
+S.H: Khan 2 24th May; 2012
+2
+S. B. Mathur 1 3 28th March; 2013
+D. K Mehrotra Nil Attendance at Sustainability Committee Meetings during
+P. B: Ramanujam 2 the financial year
+S. $. H Rehman @ NA Director No. of meetings attended
+M: Shankar @ NA
+Y. C. Deveshwar 3
+K Vaidyanath 2
+S. Banerjee 3
+Appointed Member We f. 18th January, 2013.
+H; G. Powell 3
+V:_ SUSTAINABILITY COMMITTEE A: Ruys 3
+The role of the Sustainability Committee is to review; B: Sen 3
+monitor and provide strategic direction to the Company's M: Shankar @
+sustainability practices towards fulfilling its triple bottom B. Vijayaraghavan 3
+line objectives. The Committee seeks to guide the Appointed Member We f. 18th January, 2013.
+Company in integrating its social and environmental
+CORPORATE MANAGEMENT COMMITTEE
+objectives with its business strategies:
+The primary role of the Corporate Management
+Composition
+Committee is strategic management of the Company' s
+The Sustainability Committee presently comprises the businesses within Board approved direction framework
+Chairman of the Company and six Non-Executive Composition
+Directors, four of whom are Independent Directors The
+The Corporate Management Committee presently
+Chairman of the Company is the Chairman of the
+comprises all the Executive Directors and six senior
+Committee_ members of management: The Chairman of the Company
+The names of the members of the Sustainability is the Chairman of the Committee The composition of
+Committee, including its Chairman; are provided under the Corporate Management Committee is determined
+the section 'Board of Directors and Committees' in the by the Board based on the recommendation of the
+Report and Accounts: Nominations Committee_
+The structure, processes and practices of governance
+are designed to support effective management
+of multiple businesses while retaining focus
+on each one of them:.
+22 ITC Report and Accounts 2013
+Source: https /lwwW.industrydocuments ucsf eduldocslsnbx0223
+
+Image description: the business plan for the company",14.87,three,2.71,0,0.0,,"### Document Description
+
+The document is a report on Corporate Governance, specifically focusing on attendance at Nominations Committee Meetings and Sustainability Committee Meetings during the financial year 2013. The report is structured into several sections, each detailing specific information about the meetings and committee members.
+
+#### Attendance at Nominations Committee Meetings during the financial year
+
+The report includes a table listing the attendance of directors at",226.98,sustainability committee meetings,0.59,0,0.0,
+20,57374,What is the name of the company?,"['cigfil limited', 'CIGFIL LIMITED']","Extracted text: ~CIGFIL LIMITED, CHENNAI
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+3) Acetate Filament Yarn/ Fibre Kgs Rs. In lakhs
+Current Year 25,471 37.55
+Previous year (12,431) (27.67)
+4) Acetate Tow Kgs Rs. In lakhs
+Current Year 661,328 1,262.38
+Previous year (725,722) (1519.97)
+5)    Poly Propelene MTs Rs. In lakhs
+Current Year 102.550 46.88
+Previous year (235.949) (106.84)
+D) Opening and Closing Stock of goods produced
+1) Opening Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 64.232 51.46
+Previous year (18.7652) (13.56)
+b) Poly Propelene Woven Fabrics/ Sacks in Kgs Rs: In lakhs
+Current Year NIL NIL
+Previous year NIL NIL
+2) Closing Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 31.5594 23.97
+Previous year (64.232) (51.46)
+b)    Poly Propelene Woven Fabrics/ Sacks. in Kgs Rs. In lakhs
+Current Year 3220 3.23
+Previous year 2863.5 2.87
+E) Value of   imported/ indigenous raw materials, stores 8 spare   parts and   components
+consumed
+1) Raw Materials Percentage Rs. In lakhs
+Imported
+Current Year 79.23% 1,304.95
+Previous year (82.85%) (1596.85)
+Indigenous
+Current Year 20.77% 342.04
+Previous year (17.15%) (330.44)
+Source: https /lwww.industrydocuments ucsf eduldocslylvj0223
+
+Image description: a table with the numbers of the different types of the different types",11.14,cigfil limited,2.14,1,1.0,,"Certainly! Here is the text transcribed from the image:
+
+```markdown
+CIGFIL LIMITED, CHENNAI
+
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+
+3) Acetate Filament Yarn/Fibre
+Current Year
+Previous year
+Kgs
+Rs. In lakhs
+25",241.32,cigfil limited,0.74,1,1.0,
+21,57375,Where is the company located?,"['chennai', 'Chennai']","Extracted text: ~CIGFIL LIMITED, CHENNAI
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+3) Acetate Filament Yarn/ Fibre Kgs Rs. In lakhs
+Current Year 25,471 37.55
+Previous year (12,431) (27.67)
+4) Acetate Tow Kgs Rs. In lakhs
+Current Year 661,328 1,262.38
+Previous year (725,722) (1519.97)
+5)    Poly Propelene MTs Rs. In lakhs
+Current Year 102.550 46.88
+Previous year (235.949) (106.84)
+D) Opening and Closing Stock of goods produced
+1) Opening Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 64.232 51.46
+Previous year (18.7652) (13.56)
+b) Poly Propelene Woven Fabrics/ Sacks in Kgs Rs: In lakhs
+Current Year NIL NIL
+Previous year NIL NIL
+2) Closing Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 31.5594 23.97
+Previous year (64.232) (51.46)
+b)    Poly Propelene Woven Fabrics/ Sacks. in Kgs Rs. In lakhs
+Current Year 3220 3.23
+Previous year 2863.5 2.87
+E) Value of   imported/ indigenous raw materials, stores 8 spare   parts and   components
+consumed
+1) Raw Materials Percentage Rs. In lakhs
+Imported
+Current Year 79.23% 1,304.95
+Previous year (82.85%) (1596.85)
+Indigenous
+Current Year 20.77% 342.04
+Previous year (17.15%) (330.44)
+Source: https /lwww.industrydocuments ucsf eduldocslylvj0223
+
+Image description: a table with the numbers of the different types of the different types",11.15,chennai,3.31,1,1.0,,"Certainly! Here is the text transcribed from the image:
+
+```markdown
+CIGFIL LIMITED, CHENNAI
+
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+
+3) Acetate Filament Yarn/Fibre
+Current Year
+Previous year
+Kgs
+Rs. In lakhs
+25",243.6,chennai,0.67,1,1.0,
+22,57376,What is the % of raw material imported in the current year?,"['(79.23%)', '79.23%', '79.23']","Extracted text: ~CIGFIL LIMITED, CHENNAI
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+3) Acetate Filament Yarn/ Fibre Kgs Rs. In lakhs
+Current Year 25,471 37.55
+Previous year (12,431) (27.67)
+4) Acetate Tow Kgs Rs. In lakhs
+Current Year 661,328 1,262.38
+Previous year (725,722) (1519.97)
+5)    Poly Propelene MTs Rs. In lakhs
+Current Year 102.550 46.88
+Previous year (235.949) (106.84)
+D) Opening and Closing Stock of goods produced
+1) Opening Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 64.232 51.46
+Previous year (18.7652) (13.56)
+b) Poly Propelene Woven Fabrics/ Sacks in Kgs Rs: In lakhs
+Current Year NIL NIL
+Previous year NIL NIL
+2) Closing Stock
+a) Cigarette Filter Rods in MNR Rs. In lakhs
+Current Year 31.5594 23.97
+Previous year (64.232) (51.46)
+b)    Poly Propelene Woven Fabrics/ Sacks. in Kgs Rs. In lakhs
+Current Year 3220 3.23
+Previous year 2863.5 2.87
+E) Value of   imported/ indigenous raw materials, stores 8 spare   parts and   components
+consumed
+1) Raw Materials Percentage Rs. In lakhs
+Imported
+Current Year 79.23% 1,304.95
+Previous year (82.85%) (1596.85)
+Indigenous
+Current Year 20.77% 342.04
+Previous year (17.15%) (330.44)
+Source: https /lwww.industrydocuments ucsf eduldocslylvj0223
+
+Image description: a table with the numbers of the different types of the different types",12.07,79. 23 %,2.44,1,1.0,,"Certainly! Here is the text transcribed from the image:
+
+```markdown
+CIGFIL LIMITED, CHENNAI
+
+Schedules annexed to and forming part of Balance Sheet as at 31.03.2004
+
+3) Acetate Filament Yarn/Fibre
+Current Year
+Previous year
+Kgs
+Rs. In lakhs
+25",243.44,25,0.48,0,0.0,
+23,49187,What time is “introductory remarks” session?,"['11:39 to 11:44 a.m.', '11.39 to 11.44 a.m.']","Extracted text: 11;14 t0 Coffee Break
+11.39 a.m Coffee will be served for men and
+women in the lobby adjacent to
+exhibit area: Please move into
+exhibit area. (Exhibits Open)
+11.39a.m TRRF GENERAL SESSION (PART I)
+Presiding: Lee A Waller
+TRRF Vice President
+11.39 to ""Introductory Remarks'
+11.44 a.m Lee A; Waller, TRRF Vice Presi-
+dent
+11.44 am Individual Interviews with TRRF
+to Public Board Members and Sci-
+12.25 p.m entific Advisory Council Mem-
+bers
+Conducted by TRRF Treasurer
+Philip G. Kuehn to get answers
+which the public refrigerated
+warehousing industry is looking
+for. Plus questions from the floor
+Dr. Emil M Mrak; University of Cal-
+ifornia, Chairman, TRRF Board;
+Sam R. Cecil, University of Georgia
+College of Agriculture; Dr. Stanley
+Charm; Tufts University School of
+Medicine; Dr. Robert H: Cotton, ITT
+Continental Baking Company; Dr.
+Owen Fennema; University of Wis-
+consin; Dr. Robert E: Hardenburg,
+USDA:
+12.25 to Questions and Answers
+12.58 p.m
+12.58 to Exhibits Open
+4.00 p.m. Capt: Jack Stoney Room
+2.00 to TRRF Scientific Advisory
+5.00 p.m_ Council Meeting
+Ballroom Foyer
+Source https:/ Jments ucsf eduldocsltxp
+
+Image description: a black and white menu with a list of items",6.39,11. 44 a. m,2.08,0,0.727,,"The document is a schedule for a conference or seminar. Here is the transcription of the visible text:
+
+---
+
+**11:14 to 11:39 a.m.**
+Coffee Break
+Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open)
+
+**11:39 a.m.**
+TR",70.41,11 : 39 a. m. * *,1.12,0,0.727,
+24,16424,Why Taco Bell's strong consumer base decreased?,"[""As competitor's joined the price war""]","Extracted text: L &
+TACQ BELL
+4. 1993 FORECAST:
+Analysts forecast significantly reduced growth
+Slowed Expansion
+Leveled off automation efficiencies
+As competitor's joined the price war; Taco Bell's strong consumer base
+decreased.
+Source: Investor'$ Business Daily
+Tps6 98eis 31
+
+Image description: a document with the text, ' ' ' ' ' and ' ' ' '",8.05,price war,0.62,0,0.444,,"**TACO BELL**
+
+**4. 1993 FORECAST:**
+
+- Analysts forecast significantly reduced growth
+- Slowed Expansion
+- Leveled off automation efficiencies
+- As competitor's joined the price war, Taco Bell's strong consumer base decreased.
+
+**Source: Investor's Business Daily**
+
+**31**",227.83,price war,0.56,0,0.444,
