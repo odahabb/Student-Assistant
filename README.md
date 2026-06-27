@@ -1,63 +1,63 @@
 # Multimodal RAG Student Assistant
 **Student:** Omar Dahab — 23100704
 
+## What this is
+
+A study assistant that answers questions about a student's own course material —
+lecture PDFs, slide images, recorded audio — using retrieval-augmented generation
+(RAG) instead of a model's general knowledge. The goal is to ground every answer
+in the material the student actually provides, across whichever modality it's in.
+
+## How it works
+
+The pipeline turns raw input into a small, queryable knowledge base, then answers
+questions against it:
+
+1. **Load** (`loader.py`) — Pull text out of whatever modality came in:
+   PyMuPDF for PDFs, Qwen2-VL-2B-Instruct for images (transcription + chart/table
+   description, falling back to EasyOCR + BLIP if Qwen2-VL fails to load/run),
+   Whisper for audio, plain passthrough for text.
+2. **Preprocess** (`preprocessor.py`) — Clean the extracted text and split it into
+   overlapping chunks sized for the embedding model.
+3. **Embed** (`embedder.py`) — Encode each chunk into a dense vector with
+   all-MiniLM-L6-v2.
+4. **Store** (`vector_store.py`) — Build/save/load a FAISS `IndexFlatL2` index of
+   chunk vectors plus the chunk texts themselves.
+5. **Retrieve** (`retriever.py`) — Embed the user's question and pull the top-k
+   most similar chunks from the FAISS index.
+6. **Generate** (`generator.py`) — Feed the question and retrieved chunks to
+   google/flan-t5-large to produce a grounded answer.
+
+Steps 1–6 are implemented and demonstrated end-to-end in
+`notebooks/rag_pipeline_demo.ipynb`. What's left is wrapping the pipeline in a
+FastAPI service and building the frontend on top of it — there's no app to run
+yet, just the pipeline.
+
 ## Project Structure
 
-multimodal_rag/
+```
+Student Assistant/
 ├── backend/
-│   ├── main.py                  ← FastAPI app (TODO)
+│   ├── main.py                       ← TODO — FastAPI app, not started
 │   └── pipeline/
-│       ├── loader.py            ←  DONE — input gathering (PDF/image/audio/text)
-│       ├── preprocessor.py      ← TODO
-│       ├── embedder.py          ← TODO
-│       ├── vector_store.py      ← TODO
-│       ├── retriever.py         ← TODO
-│       └── generator.py         ← TODO
-├── frontend/                    ← TODO (React)
+│       ├── loader.py                 ← DONE — input gathering (PDF/image/audio/text)
+│       ├── device.py                 ← DONE — torch device selection (xpu/cpu/npu)
+│       ├── preprocessor.py           ← DONE — text cleaning + chunking
+│       ├── embedder.py               ← DONE — MiniLM embeddings
+│       ├── vector_store.py           ← DONE — FAISS index build/save/load
+│       ├── retriever.py              ← DONE — top-k chunk retrieval
+│       └── generator.py              ← DONE — flan-t5-large answer generation
+├── Frontend/                         ← TODO — not started
 ├── data/
-│   ├── eda/                     ← Saved PNGs from Notebook
-│   └── sample/                  ← Has Sample Data for Demo
+│   ├── eda/                          ← Saved PNGs/CSV from the DocVQA EDA notebook
+│   ├── eval/                         ← EasyOCR+BLIP vs Qwen2-VL eval results
+│   ├── raw/docvqa_eval25/            ← 25-sample DocVQA eval set used for that comparison
+│   └── Prototype/                    ← Sample PDF/image/audio for manual pipeline testing
 ├── notebooks/
-│   └── docvqa_eda.ipynb         ←  DONE
+│   ├── docvqa_eda.ipynb              ← DONE — DocVQA dataset exploration
+│   ├── easyocr_blip_vs_qwen2vl_eval.ipynb  ← DONE — image-extraction method comparison
+│   ├── rag_pipeline_demo.ipynb       ← DONE — full pipeline walkthrough
+│   └── data/processed/               ← FAISS index + chunks produced by the demo notebook
 └── requirements.txt
-
-## Intel Arc GPU / NPU acceleration
-
-The pipeline uses the Intel Arc GPU (torch `xpu` backend) **by default**, controlled by
-the `SA_DEVICE` env var (`gpu` | `cpu` | `npu`, default `gpu`). If the XPU torch wheel
-isn't installed or no Arc driver is present, it silently falls back to CPU — never hard-fails.
-
-Covers: embedder/retriever (MiniLM), generator (flan-t5-large), loader (Qwen2-VL,
-falling back to EasyOCR + BLIP if Qwen2-VL fails to load/run), and the eval notebook/scripts.
-
-### Arc GPU setup (one-time)
-
-The XPU torch wheel is **not** installed by `pip install -r requirements.txt` — it
-replaces the default CPU-only torch wheel and pulls from a different package index:
-
-    pip uninstall torch
-    pip install torch --index-url https://download.pytorch.org/whl/xpu
-
-Once installed, GPU is used automatically — no env var needed. To force CPU instead
-(e.g. for debugging or on a machine without an Arc GPU):
-
-    SA_DEVICE=cpu python ...
-
-**Gotcha:** `requirements.txt` lists plain `torch` (needed so a fresh clone gets a working
-CPU install with zero extra steps). Re-running `pip install -r requirements.txt` after
-installing the XPU wheel will silently reinstall the CPU-only build, undoing GPU support
-with no error. If that happens, just reinstall the XPU wheel again with the command above.
-
-### NPU (OpenVINO — generator + embedder/retriever only, opt-in)
-
-    pip install "optimum[openvino]" openvino
-
-Then run with:
-
-    SA_DEVICE=npu python ...
-
-NPU support via OpenVINO/optimum-intel is solid for `flan-t5-large` and
-`all-MiniLM-L6-v2`, but unreliable for BLIP/EasyOCR/Qwen2-VL — those stay GPU/CPU-only
-regardless of `SA_DEVICE=npu`. First run exports each model to OpenVINO IR format
-(one-time delay); subsequent runs use the cached export from the HuggingFace cache dir.
+```
 
