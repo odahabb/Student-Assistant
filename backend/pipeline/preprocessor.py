@@ -5,19 +5,18 @@ Student: Omar Dahab — 23100704
 
 Step 2 of pipeline: PREPROCESSING
 Cleans raw text and splits it into overlapping chunks for embedding.
-"""
+""" 
 
 import re
 from typing import List
 
-CHUNK_SIZE = 400
-CHUNK_OVERLAP = 50
+from backend.pipeline.embedder import _get_model
 
 
-def preprocess(text: str) -> List[str]:
+def preprocess(text: str, chunk_tokens: int = 220, overlap: int = 40) -> List[str]:
     """
-    Clean raw text and split it into overlapping chunks (~400 tokens, 50 token overlap).
-    Tokens are approximated by whitespace-separated words.
+    Clean raw text and split it into overlapping chunks sized to fit the
+    embedder's 256-token limit (220-token windows, 40-token overlap by default).
     """
     if not isinstance(text, str):
         raise TypeError(f"Expected string, got {type(text)}")
@@ -25,21 +24,23 @@ def preprocess(text: str) -> List[str]:
     if len(text.strip()) < 20:
         raise ValueError("Input text is too short — OCR likely failed")
 
-    # Remove non-ASCII characters
-    cleaned = re.sub(r'[^\x00-\x7F]+', '', text)
-    # Collapse extra whitespace
-    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    # Collapse extra whitespace 
+    cleaned = re.sub(r'\s+', ' ', text).strip()
 
-    tokens = cleaned.split(' ')
+    tokenizer = _get_model().tokenizer
+    token_ids = tokenizer.encode(cleaned, add_special_tokens=False)
 
+    if not token_ids:
+        return []
+
+    step = chunk_tokens - overlap
     chunks = []
-    step = CHUNK_SIZE - CHUNK_OVERLAP
-    for start in range(0, len(tokens), step):
-        chunk_tokens = tokens[start:start + CHUNK_SIZE]
-        if not chunk_tokens:
+    start = 0
+    while start < len(token_ids):
+        window = token_ids[start:start + chunk_tokens]
+        chunks.append(tokenizer.decode(window))
+        if start + chunk_tokens >= len(token_ids):
             break
-        chunks.append(' '.join(chunk_tokens))
-        if start + CHUNK_SIZE >= len(tokens):
-            break
+        start += step
 
     return chunks

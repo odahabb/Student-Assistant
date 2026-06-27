@@ -12,7 +12,13 @@ seaborn
 
 # RAG pipeline
 numpy
-torch
+torch              # `pip install -r requirements.txt` installs the CPU-only build.
+                   # WARNING: if you've installed the Intel Arc GPU (XPU) build per
+                   # README.md, re-running this file will silently downgrade torch
+                   # back to CPU-only. Reinstall the XPU wheel afterward if that happens.
 transformers
 sentence-transformers
 faiss-cpu
+
+# Optional acceleration (Intel Arc GPU / NPU) — NOT installed by `pip install -r requirements.txt`.
+# See install instructions in README.md.
