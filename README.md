@@ -18,11 +18,13 @@ questions against it:
    description, falling back to EasyOCR + BLIP if Qwen2-VL fails to load/run),
    Whisper for audio, plain passthrough for text.
 2. **Preprocess** (`preprocessor.py`) — Clean the extracted text and split it into
-   overlapping chunks sized for the embedding model.
+   overlapping chunks sized for the embedding model. For PDFs each page is chunked
+   independently, so no chunk spans a page boundary and every chunk records the
+   file and page it came from.
 3. **Embed** (`embedder.py`) — Encode each chunk into a dense vector with
    all-MiniLM-L6-v2.
 4. **Store** (`vector_store.py`) — Build/save/load a FAISS `IndexFlatL2` index of
-   chunk vectors plus the chunk texts themselves.
+   chunk vectors plus the chunks themselves, including their source file and page.
 5. **Retrieve** (`retriever.py`) — Embed the user's question and pull the top-k
    most similar chunks from the FAISS index.
 6. **Generate** (`generator.py`) — Feed the question and retrieved chunks to
@@ -42,7 +44,8 @@ Student Assistant/
 │   └── pipeline/
 │       ├── loader.py                 ← DONE — input gathering (PDF/image/audio/text)
 │       ├── device.py                 ← DONE — torch device selection (xpu/cpu/npu)
-│       ├── preprocessor.py           ← DONE — text cleaning + chunking
+│       ├── chunk.py                  ← DONE — Chunk type (text + source_file + page)
+│       ├── preprocessor.py           ← DONE — text cleaning + page-bounded chunking
 │       ├── embedder.py               ← DONE — MiniLM embeddings
 │       ├── vector_store.py           ← DONE — FAISS index build/save/load
 │       ├── retriever.py              ← DONE — top-k chunk retrieval
@@ -53,6 +56,9 @@ Student Assistant/
 │   ├── eval/                         ← EasyOCR+BLIP vs Qwen2-VL eval results
 │   ├── raw/docvqa_eval25/            ← 25-sample DocVQA eval set used for that comparison
 │   └── Prototype/                    ← Sample PDF/image/audio for manual pipeline testing
+│       ├── sample_document.pdf       ← 1-page PDF
+│       └── sample_lecture_notes.pdf  ← 6-page PDF, for page-bounded chunking
+│                                       (regenerate with make_sample_lecture_notes.py)
 ├── notebooks/
 │   ├── docvqa_eda.ipynb              ← DONE — DocVQA dataset exploration
 │   ├── easyocr_blip_vs_qwen2vl_eval.ipynb  ← DONE — image-extraction method comparison

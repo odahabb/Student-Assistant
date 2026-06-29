@@ -16,6 +16,7 @@ import os
 import re
 import logging
 import warnings
+from typing import List, Union
 
 from backend.pipeline.device import get_torch_device, get_easyocr_device
 
@@ -172,9 +173,18 @@ def _get_blip_model():
 
 # Individual loaders
 
-def load_pdf(path: str) -> str:
+def load_pdf(path: str) -> List[dict]:
     """
-    Extract all text from a PDF file page by page using PyMuPDF.
+    Extract text from a PDF file page by page using PyMuPDF.
+
+    Returns one dict per page that had extractable text:
+
+        [{"source_file": "lecture_notes.pdf", "page": 1, "text": "..."}, ...]
+
+    Page boundaries are deliberately preserved instead of being concatenated
+    into a single string, so that preprocessor.preprocess() can chunk *within*
+    a page (no chunk spanning two pages) and tag every chunk with the file and
+    page it came from. Pages with no extractable text are skipped, as before.
     """
     try:
         import fitz
@@ -186,19 +196,27 @@ def load_pdf(path: str) -> str:
 
     log.info(f"Loading PDF → {path}")
     doc = fitz.open(path)
-    text_parts = []
+    source_file = os.path.basename(path)
+    pages = []
 
     for i, page in enumerate(doc):
         page_text = page.get_text()
         if page_text.strip():
-            text_parts.append(page_text)
+            pages.append({
+                "source_file": source_file,
+                "page": i + 1,
+                "text": page_text,
+            })
         else:
             log.warning(f"  Page {i+1}/{len(doc)} had no extractable text")
 
-    full_text = "\n\n".join(text_parts)
-    log.info(f"PDF loaded — {len(doc)} pages, {len(full_text)} characters")
+    total_chars = sum(len(p["text"]) for p in pages)
+    log.info(
+        f"PDF loaded — {len(doc)} pages ({len(pages)} with text), "
+        f"{total_chars} characters"
+    )
     doc.close()
-    return full_text
+    return pages
 
 
 def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
@@ -369,7 +387,7 @@ def load_text(raw: str) -> str:
 
 SUPPORTED_TYPES = ("pdf", "image", "audio", "text")
 
-def load_input(source: str, input_type: str) -> str:
+def load_input(source: str, input_type: str) -> Union[str, List[dict]]:
     """
     Unified input loader for all modalities.
 
@@ -378,7 +396,10 @@ def load_input(source: str, input_type: str) -> str:
         input_type  : One of 'pdf' | 'image' | 'audio' | 'text'
 
     Returns:
-        Extracted text as a single string, ready for preprocessing.
+        For 'pdf'  : a list of per-page dicts (see load_pdf) — page boundaries
+                     are preserved so chunking can stay inside a page.
+        Otherwise  : extracted text as a single string.
+        Both shapes are accepted directly by preprocessor.preprocess().
 
     Raises:
         ValueError        : If input_type is not supported
@@ -417,13 +438,13 @@ EXTENSION_MAP = {
     ".txt"  : "text",
 }
 
-def load_file(path: str) -> str:
+def load_file(path: str) -> Union[str, List[dict]]:
     """
     Convenience wrapper — detects input type from file extension automatically.
 
     Example:
-        text = load_file("lecture_notes.pdf")   # auto-detected as pdf
-        text = load_file("scanned_doc.png")      # auto-detected as image
+        pages = load_file("lecture_notes.pdf")   # auto-detected as pdf → per-page list
+        text  = load_file("scanned_doc.png")     # auto-detected as image → string
     """
     _, ext = os.path.splitext(path.lower())
     input_type = EXTENSION_MAP.get(ext)
