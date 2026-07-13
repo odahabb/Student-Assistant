@@ -6,6 +6,7 @@ data/raw/
 data/sample/
 data/processed/index.faiss
 data/processed/chunks.json
+notebooks/data/processed/
 *.egg-info/
 .ipynb_checkpoints/
 .claude/
