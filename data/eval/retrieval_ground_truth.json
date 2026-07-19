@@ -1,0 +1,10 @@
+[
+  {"question": "What is the size of the synthetic dataset used to fine-tune the embedding models?", "answer": "3,197 sentence pairs", "source_file": "embedding.pdf", "page": 1},
+  {"question": "What concerns do proprietary embedding models like OpenAI's raise, according to the paper's introduction?", "answer": "transparency, cost, vendor lock-in, and data governance", "source_file": "embedding.pdf", "page": 2},
+  {"question": "How many hours of multilingual and multitask supervision data was Whisper trained on?", "answer": "680,000 hours", "source_file": "Whisper.pdf", "page": 1},
+  {"question": "What sample rate is audio resampled to before computing the mel spectrogram in Whisper's architecture?", "answer": "16,000 Hz", "source_file": "Whisper.pdf", "page": 3},
+  {"question": "How many chain-of-thought (CoT) datasets were added into the Flan-PaLM finetuning mixture?", "answer": "nine CoT datasets", "source_file": "Flant5pdf.pdf", "page": 2},
+  {"question": "In Figure 3 of the FLAN paper, what four combinations of finetuning data formats are compared?", "answer": "with/without exemplars, crossed with with/without chain-of-thought", "source_file": "Flant5pdf.pdf", "page": 4},
+  {"question": "According to the Hallucinations in LLMs paper, what happens when an LLM hallucinates?", "answer": "it generates information that sounds believable but is actually wrong or inaccurate", "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf", "page": 1},
+  {"question": "What three vectors are used to compute self-attention scores in a transformer, per the hallucinations paper's explanation?", "answer": "key (K), query (Q), and value (V)", "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf", "page": 3}
+]
