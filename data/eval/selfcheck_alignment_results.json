@@ -1,0 +1,121 @@
+{
+  "vector_metadata_order_intact": true,
+  "self_retrieval": [
+    {
+      "expected_file": "embedding.pdf",
+      "expected_page": 1,
+      "position": 1,
+      "how_selected": "contains the expected answer text",
+      "chunks_on_page": 4,
+      "question": "What is the size of the synthetic dataset used to fine-tune the embedding models?",
+      "full_text": {
+        "top1_file": "embedding.pdf",
+        "top1_page": 1,
+        "top1_is_same_chunk": true,
+        "hit_at_1": true,
+        "first_correct_rank": 1
+      },
+      "substring_midchunk": {
+        "top1_file": "embedding.pdf",
+        "top1_page": 10,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": null
+      },
+      "substring_answer_window": {
+        "top1_file": "embedding.pdf",
+        "top1_page": 4,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": 2
+      }
+    },
+    {
+      "expected_file": "Whisper.pdf",
+      "expected_page": 1,
+      "position": 67,
+      "how_selected": "contains the expected answer text",
+      "chunks_on_page": 6,
+      "question": "How many hours of multilingual and multitask supervision data was Whisper trained on?",
+      "full_text": {
+        "top1_file": "Whisper.pdf",
+        "top1_page": 1,
+        "top1_is_same_chunk": true,
+        "hit_at_1": true,
+        "first_correct_rank": 1
+      },
+      "substring_midchunk": {
+        "top1_file": "Whisper.pdf",
+        "top1_page": 8,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": null
+      },
+      "substring_answer_window": {
+        "top1_file": "Whisper.pdf",
+        "top1_page": 19,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": 3
+      }
+    },
+    {
+      "expected_file": "Flant5pdf.pdf",
+      "expected_page": 2,
+      "position": 264,
+      "how_selected": "contains the expected answer text",
+      "chunks_on_page": 6,
+      "question": "How many chain-of-thought (CoT) datasets were added into the Flan-PaLM finetuning mixture?",
+      "full_text": {
+        "top1_file": "Flant5pdf.pdf",
+        "top1_page": 2,
+        "top1_is_same_chunk": true,
+        "hit_at_1": true,
+        "first_correct_rank": 1
+      },
+      "substring_midchunk": {
+        "top1_file": "Flant5pdf.pdf",
+        "top1_page": 8,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": null
+      },
+      "substring_answer_window": {
+        "top1_file": "Flant5pdf.pdf",
+        "top1_page": 8,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": null
+      }
+    },
+    {
+      "expected_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "expected_page": 1,
+      "position": 550,
+      "how_selected": "first chunk on the page (answer text not found verbatim)",
+      "chunks_on_page": 7,
+      "question": "According to the Hallucinations in LLMs paper, what happens when an LLM hallucinates?",
+      "full_text": {
+        "top1_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "top1_page": 1,
+        "top1_is_same_chunk": true,
+        "hit_at_1": true,
+        "first_correct_rank": 1
+      },
+      "substring_midchunk": {
+        "top1_file": "Flant5pdf.pdf",
+        "top1_page": 19,
+        "top1_is_same_chunk": false,
+        "hit_at_1": false,
+        "first_correct_rank": null
+      },
+      "substring_answer_window": {
+        "top1_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "top1_page": 1,
+        "top1_is_same_chunk": true,
+        "hit_at_1": true,
+        "first_correct_rank": 1
+      }
+    }
+  ]
+}
