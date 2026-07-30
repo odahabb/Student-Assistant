@@ -1,0 +1,289 @@
+{
+  "status": "DRAFT - candidate pairs for review. NOT official ground truth.",
+  "note": "Generated from the four PDFs already in data/raw/, from pages not used by the current 8-question set. Questions and answers are authored; supporting quotes and page numbers are extracted and verified verbatim from the source page. Not merged into retrieval_ground_truth.json and not run through eval_recall.py.",
+  "pages_excluded_as_already_in_use": [
+    {
+      "source_file": "Flant5pdf.pdf",
+      "page": 2
+    },
+    {
+      "source_file": "Flant5pdf.pdf",
+      "page": 4
+    },
+    {
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 1
+    },
+    {
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 3
+    },
+    {
+      "source_file": "Whisper.pdf",
+      "page": 1
+    },
+    {
+      "source_file": "Whisper.pdf",
+      "page": 3
+    },
+    {
+      "source_file": "embedding.pdf",
+      "page": 1
+    },
+    {
+      "source_file": "embedding.pdf",
+      "page": 2
+    }
+  ],
+  "candidate_count": 20,
+  "candidates": [
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "Which base model architecture are the fine-tuned embedding models built on?",
+      "answer": "all-MiniLM-L6-v2",
+      "source_file": "embedding.pdf",
+      "page": 4,
+      "supporting_quote": "Base Architecture Selection All fine-tuned models in this study are built upon the all-MiniLM-L6-v2 architecture, an open- source sentence embedding model released by the Sentence-Transformers project (Reimers& Gurevych, 2019).",
+      "quote_context": "performance in real-world academic applications such as syllabus-based question answering and course bots. 2.1. Base Architecture Selection All fine-tuned models in this study are built upon the all-MiniLM-L6-v2 architecture, an open- source sentence embedding model released by the Sentence-Transformers project (Reimers& Gurevych, 2019). This model was selected due to its competitive performance on mu",
+      "anchor_used": "built upon the all-MiniLM-L6-v2 architecture",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many positive sentence pairs were included in the fine-tuning dataset?",
+      "answer": "2,710 pairs",
+      "source_file": "embedding.pdf",
+      "page": 4,
+      "supporting_quote": "The positive examples, totaling 2,710 pairs, were designed to include a diverse array of semantic phenomena.",
+      "quote_context": ", both positive and negative sentence pairs were developed, capturing a broad range of expression patterns and meaning relationships relevant to common academic information needs. The positive examples, totaling 2,710 pairs, were designed to include a diverse array of semantic phenomena. These encompassed synonymous terminology such as “TA” and “Teaching Assistant” or “Instructor” and “Professor,” as",
+      "anchor_used": "The positive examples, totaling 2,710 pairs",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What learning rate was used for the MNRL-only fine-tuning run?",
+      "answer": "2e-5",
+      "source_file": "embedding.pdf",
+      "page": 6,
+      "supporting_quote": "The AdamW optimizer was applied with a learning rate of 2e-5, alongside a WarmupCosine learning rate scheduler.",
+      "quote_context": "trained for 25 epochs using the MultipleNegativesRankingLoss objective. A batch size of 64 was used, with 15% of total steps allocated for warmup. The AdamW optimizer was applied with a learning rate of 2e-5, alongside a WarmupCosine learning rate scheduler. Weight decay was set to 0.01 to regularize the model and mitigate overfitting. Mixed-precision (AMP) was disabled, as all traini",
+      "anchor_used": "with a learning rate of 2e-5",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What learning rate was used for the dual-loss (MNRL + CosineSimilarityLoss) run?",
+      "answer": "1e-5",
+      "source_file": "embedding.pdf",
+      "page": 6,
+      "supporting_quote": "For the dual-loss approach, which jointly optimized both MNRL and CosineSimilarityLoss, the model was similarly trained for 25 epochs, but with a lower learning rate of 1e-5 and a slightly reduced warmup proportion of 10%.",
+      "quote_context": "ll training was conducted on CPU. For the dual-loss approach, which jointly optimized both MNRL and CosineSimilarityLoss, the model was similarly trained for 25 epochs, but with a lower learning rate of 1e-5 and a slightly reduced warmup proportion of 10%. The batch size was maintained at 64, with the same WarmupCosine scheduler and AdamW optimizer configuration. Weight decay remained",
+      "anchor_used": "lower learning rate of 1e-5",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many university syllabus files make up the retrieval evaluation corpus?",
+      "answer": "28 syllabus files",
+      "source_file": "embedding.pdf",
+      "page": 7,
+      "supporting_quote": "The evaluation is performed over 28 diverse university syllabus files, spanning multiple institutions and a range of departments including computer science, anthropology, psychology, biology, education, and engineering.",
+      "quote_context": "ed-size text chunks of approximately 300 words or fewer, and embeddings are precomputed for each chunk using the embedding model under evaluation. The evaluation is performed over 28 diverse university syllabus files, spanning multiple institutions and a range of departments including computer science, anthropology, psychology, biology, education, and engineering. This corpus reflects a",
+      "anchor_used": "28 diverse university syllabus",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What three categories are the evaluation questions grouped into?",
+      "answer": "Course Information, Faculty Information, and Teaching Assistant Information",
+      "source_file": "embedding.pdf",
+      "page": 7,
+      "supporting_quote": "A fixed set of natural language questions is used to test retrieval performance, grouped into three categories: Course Information, Faculty Information, and Teaching Assistant Information.",
+      "quote_context": "ic variety in structure, terminology, and writing style found in real-world educational materials. A fixed set of natural language questions is used to test retrieval performance, grouped into three categories: Course Information, Faculty Information, and Teaching Assistant Information. Each category includes multiple phrasings to assess model robustness to linguistic variation, as show",
+      "anchor_used": "grouped into three categories",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": [
+        12
+      ]
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many of Whisper's 680,000 training hours are non-English, and how many languages do they cover?",
+      "answer": "117,000 hours covering 96 other languages",
+      "source_file": "Whisper.pdf",
+      "page": 2,
+      "supporting_quote": "Of those 680,000 hours of audio, 117,000 hours cover 96 other languages.",
+      "quote_context": "focuses on broaden- ing the scope of weakly supervised pre-training beyond English-only speech recognition to be both multilingual and multitask. Of those 680,000 hours of audio, 117,000 hours cover 96 other languages. The dataset also includes 125,000 hours of X→en translation data. We ﬁnd that for sufﬁciently large models there is no drawback and even beneﬁts to joint multilingual and multita",
+      "anchor_used": "117,000 hours cover 96 other languages",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many hours of speech translation data does the Whisper training set include?",
+      "answer": "125,000 hours of X-to-English translation data",
+      "source_file": "Whisper.pdf",
+      "page": 2,
+      "supporting_quote": "The dataset also includes 125,000 hours of X→en translation data.",
+      "quote_context": "ng beyond English-only speech recognition to be both multilingual and multitask. Of those 680,000 hours of audio, 117,000 hours cover 96 other languages. The dataset also includes 125,000 hours of X→en translation data. We ﬁnd that for sufﬁciently large models there is no drawback and even beneﬁts to joint multilingual and multitask training. Our work suggests that simple sca",
+      "anchor_used": "125,000 hours of X",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many parameters does the Whisper Large model have, per the architecture table?",
+      "answer": "1550M parameters",
+      "source_file": "Whisper.pdf",
+      "page": 5,
+      "supporting_quote": "h Recognition via Large-Scale Weak Supervision 5 Model Layers Width Heads Parameters Tiny 4 384 6 39M Base 6 512 8 74M Small 12 768 12 244M Medium 24 1024 16 769M Large 32 1280 20 1550M Table 1. Architecture details of the Whisper model family. seconds of audio context. To avoid this, we ﬁne-tune Whis- per models brieﬂy on the subset of transcripts that do not in",
+      "quote_context": "h Recognition via Large-Scale Weak Supervision 5 Model Layers Width Heads Parameters Tiny 4 384 6 39M Base 6 512 8 74M Small 12 768 12 244M Medium 24 1024 16 769M Large 32 1280 20 1550M Table 1. Architecture details of the Whisper model family. seconds of audio context. To avoid this, we ﬁne-tune Whis- per models brieﬂy on the subset of transcripts that do not in",
+      "anchor_used": "1550M",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What LibriSpeech clean-test WER does the best zero-shot Whisper model achieve?",
+      "answer": "2.5",
+      "source_file": "Whisper.pdf",
+      "page": 6,
+      "supporting_quote": "Although the best zero-shot Whisper model has a relatively unremarkable LibriSpeech clean-test WER of 2.5, which is roughly the performance of modern supervised baseline or the mid-2019 state of the art, zero-shot Whisper models have very different robustness properties than supervised LibriSpeech models and out-perform all benchmarked Lib- riSpeech models by large amounts on other datasets.",
+      "quote_context": "e datasets can be found in Appendix A. Our main ﬁndings are summarized in Figure 2 and Table 2. Although the best zero-shot Whisper model has a relatively unremarkable LibriSpeech clean-test WER of 2.5, which is roughly the performance of modern supervised baseline or the mid-2019 state of the art, zero-shot Whisper models have very different robustness properties than supervise",
+      "anchor_used": "clean-test WER of 2.5",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many additional academic speech recognition datasets are used to study out-of-distribution behaviour?",
+      "answer": "12 datasets",
+      "source_file": "Whisper.pdf",
+      "page": 6,
+      "supporting_quote": "We use a suite of 12 other academic speech recognition datasets to study out-of-distribution behaviors.",
+      "quote_context": "tral role in modern speech recognition research and the availability of many released models trained on it, which allows for characterizing robustness behaviors. We use a suite of 12 other academic speech recognition datasets to study out-of-distribution behaviors. Full details about these datasets can be found in Appendix A. Our main ﬁndings are summarized in Figure 2 and Table 2. Although the best ze",
+      "anchor_used": "12 other academic speech recognition datasets",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What five-shot MMLU score does Flan-PaLM 540B achieve?",
+      "answer": "75.2%",
+      "source_file": "Flant5pdf.pdf",
+      "page": 1,
+      "supporting_quote": "Flan-PaLM 540B achieves state-of-the-art performance on several benchmarks, such as 75.2% on ﬁve-shot MMLU.",
+      "quote_context": "instruction-ﬁnetuned on 1.8K tasks outperforms PaLM 540B by a large margin (+9.4% on average). Flan-PaLM 540B achieves state-of-the-art performance on several benchmarks, such as 75.2% on ﬁve-shot MMLU. We also publicly release Flan-T5 checkpoints,1 which achieve strong few-shot performance even compared to much larger models, such as PaLM 62B. Overall, instruct",
+      "anchor_used": "75.2%",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": [
+        2,
+        7,
+        15
+      ]
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many datasets, task categories and total tasks make up the Flan finetuning data?",
+      "answer": "473 datasets, 146 task categories, and 1,836 total tasks",
+      "source_file": "Flant5pdf.pdf",
+      "page": 3,
+      "supporting_quote": "query generation on the SQuAD dataset.) Finetuning tasks Held-out tasks MMLU Abstract algebra Sociology College medicine Philosophy Professional law … 57 tasks BBH Boolean expressions Navigate Tracking shuffled objects Word sorting Dyck languages … 27 tasks TyDiQA Information seeking QA 8 languages MGSM Grade school math problems 10 languages Figure 2: Our ﬁnetuning data comprises 473 datasets, 146 task categories, and 1,836 total tasks.",
+      "quote_context": "uffled objects Word sorting Dyck languages … 27 tasks TyDiQA Information seeking QA 8 languages MGSM Grade school math problems 10 languages Figure 2: Our ﬁnetuning data comprises 473 datasets, 146 task categories, and 1,836 total tasks. Details for the tasks used in this paper is given in Appendix F. 2 Flan Finetuning We instruction-ﬁnetune on a collection of data sources (Figure 2) with a",
+      "anchor_used": "473 datasets, 146 task categories",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many parameters does Flan-T5-Large have, per Table 2?",
+      "answer": "780M",
+      "source_file": "Flant5pdf.pdf",
+      "page": 5,
+      "supporting_quote": "OPs Finetune FLOPs % Finetune Compute 80M Flan-T5-Small encoder-decoder span corruption 1.8E+20 2.9E+18 1.6% 250M Flan-T5-Base encoder-decoder span corruption 6.6E+20 9.1E+18 1.4% 780M Flan-T5-Large encoder-decoder span corruption 2.3E+21 2.4E+19 1.1% 3B Flan-T5-XL encoder-decoder span corruption 9.0E+21 5.6E+19 0.6% 11B Flan-T5-XXL encoder-decoder span corruption 3.3E+22 7.6",
+      "quote_context": "OPs Finetune FLOPs % Finetune Compute 80M Flan-T5-Small encoder-decoder span corruption 1.8E+20 2.9E+18 1.6% 250M Flan-T5-Base encoder-decoder span corruption 6.6E+20 9.1E+18 1.4% 780M Flan-T5-Large encoder-decoder span corruption 2.3E+21 2.4E+19 1.1% 3B Flan-T5-XL encoder-decoder span corruption 9.0E+21 5.6E+19 0.6% 11B Flan-T5-XXL encoder-decoder span corruption 3.3E+22 7.6",
+      "anchor_used": "780M Flan-T5-Large",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": [
+        46
+      ]
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "Beyond how many finetuning tasks does the majority of the performance improvement stop accruing?",
+      "answer": "282 tasks",
+      "source_file": "Flant5pdf.pdf",
+      "page": 6,
+      "supporting_quote": "Second, increasing the number of ﬁnetuning tasks improves performance, although the majority of the improvement comes from using up to 282 tasks.",
+      "quote_context": "g. The performance gain ranges from 9.4% to 15.5%. Second, increasing the number of ﬁnetuning tasks improves performance, although the majority of the improvement comes from using up to 282 tasks. There are two potential explanations for the small gain after 282 tasks. One is that the additional tasks are not particularly diverse, and so they are not providing the model wi",
+      "anchor_used": "up to 282 tasks",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How many tokens are in PaLM's pre-training data compared with instruction finetuning?",
+      "answer": "780B pre-training tokens vs 1.4B finetuning tokens (0.2%)",
+      "source_file": "Flant5pdf.pdf",
+      "page": 6,
+      "supporting_quote": "This second explanation could make sense since the pre-training data consists of 780B tokens, while instruction ﬁnetuning only uses 1.4B tokens (0.2% of the pre-training tokens).",
+      "quote_context": "knowledge that it already knows from pretraining, and more than 282 tasks does not help too much. This second explanation could make sense since the pre-training data consists of 780B tokens, while instruction ﬁnetuning only uses 1.4B tokens (0.2% of the pre-training tokens). Finally, we see that increasing model scale by an order of magnitude (i.e., 8B →62B or 62B →5",
+      "anchor_used": "780B tokens",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",
+      "answer": "530 billion parameters, Microsoft and NVIDIA",
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 2,
+      "supporting_quote": "COMPARISON OF VARIOUS LLMS Model Parameters (billion) Parent Company Generative Pre-trained Transformer 3 (GPT-3) 175 OpenAI Large Language Model Meta AI (LLaMA) 65 Meta AI Language Model for Dialogue Applications (LaMDA) 137 Google Chinchilla 70 DeepMind Megatron-Turing Natural Language Generation (MT-NLG) 530 Microsoft and NVIDIA Gopher 280 DeepMind Pathways Language Model (PaLM) 540 Google Books Articles Internet LLM Pretrained LLM Finetuned LLM Finetuning (task-specific data) Prompt Response Websites Fig.",
+      "quote_context": "e Language Model Meta AI (LLaMA) 65 Meta AI Language Model for Dialogue Applications (LaMDA) 137 Google Chinchilla 70 DeepMind Megatron-Turing Natural Language Generation (MT-NLG) 530 Microsoft and NVIDIA Gopher 280 DeepMind Pathways Language Model (PaLM) 540 Google Books Articles Internet LLM Pretrained LLM Finetuned LLM Finetuning (task-specific data) Prompt Response Websites Fig",
+      "anchor_used": "530 Microsoft and NVIDIA",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "What two major parts make up the transformer architecture?",
+      "answer": "the encoder and the decoder",
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 2,
+      "supporting_quote": "It includes two major parts: the decoder and the encoder.",
+      "quote_context": "the application of transformer architecture in diverse domains (e.g. vision transformers) [17]. Fig. 4 illustrates the high-level view of the transformer architecture. It includes two major parts: the decoder and the encoder. The encoder takes the input sequence and processes it to create a sequence of representations. The decoder takes these representations from the encoder and generates an output se",
+      "anchor_used": "two major parts: the decoder and the encoder",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "How does the paper define overfitting as a cause of hallucinations?",
+      "answer": "the model learns the training data too well and cannot generalize to new data",
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 4,
+      "supporting_quote": "§ Overfitting: This occurs when the model learns the training data too well and is incapable of generalizing the new data.",
+      "quote_context": "the model’s behavior, revealing weaknesses and spotlighting areas where the model’s understanding and reasoning capabilities are lacking. § Overfitting: This occurs when the model learns the training data too well and is incapable of generalizing the new data. This can lead to the model making predictions that are accurate for the training data but are inaccurate for new data. It's essentia",
+      "anchor_used": "learns the training data too well",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    },
+    {
+      "status": "DRAFT - unverified, needs human review",
+      "question": "Which regularization technique is given as an example for reducing hallucinations?",
+      "answer": "dropout",
+      "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+      "page": 5,
+      "supporting_quote": "Techniques such as dropout encourage the model to generalize rather than memorize the training data.",
+      "quote_context": "tting or memorization of training data by LLMs. Overfitting happens when a model learns the training data very closely, and as an outcome, it is unable to generalize the new data. Techniques such as dropout encourage the model to generalize rather than memorize the training data. This reduces the risk of the model generating erroneous output based on memorized information. VI. SUMMAR",
+      "anchor_used": "Techniques such as dropout",
+      "quote_verified_verbatim_on_page": true,
+      "anchor_also_appears_on_pages": []
+    }
+  ]
+}
