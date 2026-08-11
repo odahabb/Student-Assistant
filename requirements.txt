@@ -12,8 +12,11 @@ seaborn
 
 # RAG pipeline
 numpy
-torch              
+torch
 transformers
 sentence-transformers
 faiss-cpu
+
+# UI (app.py)
+streamlit
 
