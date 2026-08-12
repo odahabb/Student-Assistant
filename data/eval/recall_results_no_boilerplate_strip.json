@@ -1,36 +1,36 @@
 {
-  "generated": "2026-08-06 17:11:30",
+  "generated": "2026-08-06 16:51:44",
   "documents": [
     {
       "source_file": "embedding.pdf",
       "pages_with_text": 17,
       "max_page": 17,
-      "chunks": 66,
-      "load_preprocess_sec": 0.71
+      "chunks": 67,
+      "load_preprocess_sec": 1.56
     },
     {
       "source_file": "Whisper.pdf",
       "pages_with_text": 28,
       "max_page": 28,
       "chunks": 190,
-      "load_preprocess_sec": 0.36
+      "load_preprocess_sec": 0.32
     },
     {
       "source_file": "Flant5pdf.pdf",
       "pages_with_text": 54,
       "max_page": 54,
-      "chunks": 292,
-      "load_preprocess_sec": 0.31
+      "chunks": 293,
+      "load_preprocess_sec": 0.45
     },
     {
       "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
       "pages_with_text": 6,
       "max_page": 6,
-      "chunks": 33,
-      "load_preprocess_sec": 0.07
+      "chunks": 34,
+      "load_preprocess_sec": 0.16
     }
   ],
-  "total_chunks": 581,
+  "total_chunks": 584,
   "total_questions": 25,
   "k_values": [
     1,
@@ -55,7 +55,7 @@
         "source_file": "embedding.pdf",
         "page": 1
       },
-      "chunks_available_for_expected_page": 3,
+      "chunks_available_for_expected_page": 4,
       "hit_at_1": false,
       "hit_at_3": false,
       "hit_at_5": false,
@@ -81,16 +81,16 @@
           {
             "rank": 2,
             "source_file": "Whisper.pdf",
-            "page": 10,
+            "page": 1,
             "match": false,
-            "text_preview": "- nition. exactly how important is the raw dataset size to whisper ’ s performance? to study this, we trained a series of medium - sized models on subsampled versions of the dataset which are 0. 5 %, 1 %, 2 %, 4 %, and 8 % of the full datas"
+            "text_preview": "- tion datasets as possible. however, there is still only a moderate amount of this data easily available. speechstew ( chan et al., 2021 ) mixes together 7 pre - existing datasets totalling 5, 140 hours of supervision. while not insigniﬁ -"
           },
           {
             "rank": 3,
-            "source_file": "embedding.pdf",
-            "page": 15,
+            "source_file": "Whisper.pdf",
+            "page": 10,
             "match": false,
-            "text_preview": "harris, n., butani, a., & hashmy, s. ( 2024 ). enhancing embedding performance through large language model - based text enrichment and rewriting. advances in artificial intelligence and machine learning, 04 ( 02 ), 2358 – 2368. https : / /"
+            "text_preview": "- nition. exactly how important is the raw dataset size to whisper ’ s performance? to study this, we trained a series of medium - sized models on subsampled versions of the dataset which are 0. 5 %, 1 %, 2 %, 4 %, and 8 % of the full datas"
           }
         ],
         "k=5": [
@@ -104,30 +104,30 @@
           {
             "rank": 2,
             "source_file": "Whisper.pdf",
+            "page": 1,
+            "match": false,
+            "text_preview": "- tion datasets as possible. however, there is still only a moderate amount of this data easily available. speechstew ( chan et al., 2021 ) mixes together 7 pre - existing datasets totalling 5, 140 hours of supervision. while not insigniﬁ -"
+          },
+          {
+            "rank": 3,
+            "source_file": "Whisper.pdf",
             "page": 10,
             "match": false,
             "text_preview": "- nition. exactly how important is the raw dataset size to whisper ’ s performance? to study this, we trained a series of medium - sized models on subsampled versions of the dataset which are 0. 5 %, 1 %, 2 %, 4 %, and 8 % of the full datas"
           },
           {
-            "rank": 3,
+            "rank": 4,
             "source_file": "embedding.pdf",
             "page": 15,
             "match": false,
             "text_preview": "harris, n., butani, a., & hashmy, s. ( 2024 ). enhancing embedding performance through large language model - based text enrichment and rewriting. advances in artificial intelligence and machine learning, 04 ( 02 ), 2358 – 2368. https : / /"
           },
           {
-            "rank": 4,
+            "rank": 5,
             "source_file": "Whisper.pdf",
             "page": 10,
             "match": false,
             "text_preview": "aggregate wer over the 25 recordings are annotated on each box. idiosyncrasies of the dataset, and their ability to generalize robustly to out - of - distribution data could even degrade. to check whether this is the case, we study the zero"
-          },
-          {
-            "rank": 5,
-            "source_file": "Whisper.pdf",
-            "page": 1,
-            "match": false,
-            "text_preview": "##t, this is still tiny compared to the previously mentioned 1, 000, 000 hours of unlabeled speech data utilized in zhang et al. ( 2021 ). recognizing the limiting size of existing high - quality super - vised datasets, recent efforts have "
           }
         ]
       }
@@ -559,7 +559,7 @@
         "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
         "page": 1
       },
-      "chunks_available_for_expected_page": 6,
+      "chunks_available_for_expected_page": 7,
       "hit_at_1": false,
       "hit_at_3": false,
       "hit_at_5": false,
@@ -1518,7 +1518,7 @@
             "source_file": "Whisper.pdf",
             "page": 1,
             "match": false,
-            "text_preview": "##t, this is still tiny compared to the previously mentioned 1, 000, 000 hours of unlabeled speech data utilized in zhang et al. ( 2021 ). recognizing the limiting size of existing high - quality super - vised datasets, recent efforts have "
+            "text_preview": "- tion datasets as possible. however, there is still only a moderate amount of this data easily available. speechstew ( chan et al., 2021 ) mixes together 7 pre - existing datasets totalling 5, 140 hours of supervision. while not insigniﬁ -"
           }
         ],
         "k=5": [
@@ -1541,21 +1541,21 @@
             "source_file": "Whisper.pdf",
             "page": 1,
             "match": false,
-            "text_preview": "##t, this is still tiny compared to the previously mentioned 1, 000, 000 hours of unlabeled speech data utilized in zhang et al. ( 2021 ). recognizing the limiting size of existing high - quality super - vised datasets, recent efforts have "
+            "text_preview": "- tion datasets as possible. however, there is still only a moderate amount of this data easily available. speechstew ( chan et al., 2021 ) mixes together 7 pre - existing datasets totalling 5, 140 hours of supervision. while not insigniﬁ -"
           },
           {
             "rank": 4,
             "source_file": "Whisper.pdf",
-            "page": 19,
+            "page": 1,
             "match": false,
-            "text_preview": "robust speech recognition via large - scale weak supervision 19 a. evaluation datasets. a. 1. short - form english - only datasets • librispeech ( panayotov et al., 2015 ) : we used the test - clean and test - other splits from the librispe"
+            "text_preview": "in order to actually perform a task such as speech recognition1. this unfortunately limits their use - fulness and impact as ﬁne - tuning can still be a complex process requiring a skilled practitioner. there is an addi - tional risk with r"
           },
           {
             "rank": 5,
             "source_file": "Whisper.pdf",
-            "page": 1,
+            "page": 19,
             "match": false,
-            "text_preview": "box ” in a broad range of environments without requiring supervised ﬁne - tuning of a decoder for every deployment distribution. as demonstrated by narayanan et al. ( 2018 ), likhomanenko et al. ( 2020 ), and chan et al. ( 2021 ) speech rec"
+            "text_preview": "robust speech recognition via large - scale weak supervision 19 a. evaluation datasets. a. 1. short - form english - only datasets • librispeech ( panayotov et al., 2015 ) : we used the test - clean and test - other splits from the librispe"
           }
         ]
       }
@@ -1831,7 +1831,7 @@
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
             "page": 1,
             "match": false,
-            "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps involved in the llmops are shown in fig. 2. the data used to train llms is massi"
+            "text_preview": "##ps are shown in fig. 2. the data used to train llms is massive and collected from various internet sources, including books, articles, websites, etc. [ 14 ]. the simplified representation of the entire process is shown in fig. 3. llms can"
           }
         ],
         "k=3": [
@@ -1840,7 +1840,7 @@
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
             "page": 1,
             "match": false,
-            "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps involved in the llmops are shown in fig. 2. the data used to train llms is massi"
+            "text_preview": "##ps are shown in fig. 2. the data used to train llms is massive and collected from various internet sources, including books, articles, websites, etc. [ 14 ]. the simplified representation of the entire process is shown in fig. 3. llms can"
           },
           {
             "rank": 2,
@@ -1863,7 +1863,7 @@
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
             "page": 1,
             "match": false,
-            "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps involved in the llmops are shown in fig. 2. the data used to train llms is massi"
+            "text_preview": "##ps are shown in fig. 2. the data used to train llms is massive and collected from various internet sources, including books, articles, websites, etc. [ 14 ]. the simplified representation of the entire process is shown in fig. 3. llms can"
           },
           {
             "rank": 2,
@@ -1966,16 +1966,16 @@
           {
             "rank": 4,
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
-            "page": 1,
+            "page": 3,
             "match": false,
-            "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps involved in the llmops are shown in fig. 2. the data used to train llms is massi"
+            "text_preview": "o = c ÷ c ÷ e ø ( 1 ) the add & norm operation is applied after each sub - layer in the transformer stack, including attention and feed - forward layers. the addition operation is used to add the output of the multi - head attention mechani"
           },
           {
             "rank": 5,
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
-            "page": 3,
-            "match": false,
-            "text_preview": "o = c ÷ c ÷ e ø ( 1 ) the add & norm operation is applied after each sub - layer in the transformer stack, including attention and feed - forward layers. the addition operation is used to add the output of the multi - head attention mechani"
+            "page": 2,
+            "match": true,
+            "text_preview": "but rather stacked on top of each other, creating a deeper neural network. each layer refines the representation of the input or output based on the previous layers. \" nx \" in fig. 4 signifies that the transformer architecture utilizes n re"
           }
         ]
       }
@@ -2106,7 +2106,7 @@
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
             "page": 1,
             "match": false,
-            "text_preview": "data, resulting in inaccurate output. these hallucinatory responses appear to be authentic but lack grounding in reality. such hallucinations can include fabrications such as facts, events, or statements that lack support from real - world "
+            "text_preview": "or statements that lack support from real - world data. addressing this issue is important to enhance the reliability of ai - generated content. hallucinations can be a significant challenge in critical applications such as healthcare, law,"
           }
         ],
         "k=5": [
@@ -2129,7 +2129,7 @@
             "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
             "page": 1,
             "match": false,
-            "text_preview": "data, resulting in inaccurate output. these hallucinatory responses appear to be authentic but lack grounding in reality. such hallucinations can include fabrications such as facts, events, or statements that lack support from real - world "
+            "text_preview": "or statements that lack support from real - world data. addressing this issue is important to enhance the reliability of ai - generated content. hallucinations can be a significant challenge in critical applications such as healthcare, law,"
           },
           {
             "rank": 4,

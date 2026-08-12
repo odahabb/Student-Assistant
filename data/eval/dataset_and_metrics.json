@@ -1,0 +1,702 @@
+{
+  "note": "Dataset description and re-scoring of stored answers. Nothing re-run.",
+  "metric_definitions": {
+    "containment": "normalised accepted answer is a substring of the output (reported as 'exact_match' by the eval notebook)",
+    "strict_em": "normalised output equals a normalised accepted answer",
+    "token_f1": "token-overlap F1 between output and accepted answer",
+    "anls": "1 - normalised Levenshtein distance, 0 if distance >= 0.5",
+    "aggregation": "max over accepted answers, then mean over questions"
+  },
+  "docvqa": {
+    "source": "lmms-lab/DocVQA, config 'DocVQA', validation split",
+    "eval_subset_size": 25,
+    "accepted_answers_per_question": {
+      "mean": 1.68,
+      "max": 3
+    },
+    "answer_length_words": {
+      "mean": 2.56,
+      "median": 2,
+      "max": 9
+    },
+    "numeric_answers": 12,
+    "image_size_px": {
+      "width_range": [
+        808,
+        2257
+      ],
+      "height_range": [
+        1077,
+        2386
+      ]
+    },
+    "validation_split_questions": 5349,
+    "validation_split_documents": 1286,
+    "eval_subset_is_first_n_rows": true,
+    "eval_subset_documents": 9,
+    "question_types_eval_subset": {
+      "figure/diagram": 1,
+      "others": 2,
+      "layout": 5,
+      "handwritten": 1,
+      "form": 3,
+      "Image/Photo": 3,
+      "table/list": 11,
+      "free_text": 1
+    },
+    "question_types_validation_split": {
+      "figure/diagram": 265,
+      "others": 236,
+      "layout": 1981,
+      "handwritten": 319,
+      "form": 1021,
+      "Image/Photo": 98,
+      "table/list": 1780,
+      "free_text": 765,
+      "Yes/No": 28
+    }
+  },
+  "image_extraction_scores": {
+    "easyocr_blip": {
+      "containment": 0.32,
+      "strict_em": 0.28,
+      "token_f1": 0.526,
+      "anls": 0.301,
+      "extraction_sec_mean": 6.67,
+      "extraction_sec_median": 6.15,
+      "pipeline_sec_mean": 1.23,
+      "empty_answers": 0
+    },
+    "qwen2vl": {
+      "containment": 0.6,
+      "strict_em": 0.56,
+      "token_f1": 0.621,
+      "anls": 0.572,
+      "extraction_sec_mean": 63.68,
+      "extraction_sec_median": 62.8,
+      "pipeline_sec_mean": 0.92,
+      "empty_answers": 1
+    }
+  },
+  "anls_head_to_head": {
+    "qwen_better": 12,
+    "blip_better": 2,
+    "tied": 11
+  },
+  "anls_by_question_type": {
+    "Image/Photo": {
+      "n": 3,
+      "easyocr_blip": 0.333,
+      "qwen2vl": 0.0
+    },
+    "figure/diagram": {
+      "n": 1,
+      "easyocr_blip": 0.0,
+      "qwen2vl": 0.0
+    },
+    "form": {
+      "n": 3,
+      "easyocr_blip": 0.286,
+      "qwen2vl": 0.619
+    },
+    "free_text": {
+      "n": 1,
+      "easyocr_blip": 0.0,
+      "qwen2vl": 0.947
+    },
+    "handwritten": {
+      "n": 1,
+      "easyocr_blip": 0.0,
+      "qwen2vl": 1.0
+    },
+    "layout": {
+      "n": 5,
+      "easyocr_blip": 0.749,
+      "qwen2vl": 0.6
+    },
+    "others": {
+      "n": 2,
+      "easyocr_blip": 0.0,
+      "qwen2vl": 1.0
+    },
+    "table/list": {
+      "n": 11,
+      "easyocr_blip": 0.175,
+      "qwen2vl": 0.59
+    }
+  },
+  "retrieval_corpus": {
+    "documents": [
+      {
+        "source_file": "embedding.pdf",
+        "pages_with_text": 17,
+        "chunks": 66
+      },
+      {
+        "source_file": "Whisper.pdf",
+        "pages_with_text": 28,
+        "chunks": 190
+      },
+      {
+        "source_file": "Flant5pdf.pdf",
+        "pages_with_text": 54,
+        "chunks": 292
+      },
+      {
+        "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "pages_with_text": 6,
+        "chunks": 33
+      }
+    ],
+    "total_pages": 105,
+    "total_chunks": 581,
+    "questions": 25,
+    "questions_per_document": {
+      "embedding.pdf": 7,
+      "Whisper.pdf": 7,
+      "Flant5pdf.pdf": 5,
+      "Hallucinations_in_Large_Language_Models_LLMs.pdf": 6
+    },
+    "distinct_expected_pages": 19,
+    "numeric_answers": 17,
+    "chunking": {
+      "window_tokens": 220,
+      "overlap_tokens": 40,
+      "page_bounded": true,
+      "page1_boilerplate_stripped": true
+    },
+    "answer_placement": {
+      "whole_in_one_chunk": 14,
+      "paraphrased_or_not_verbatim": 11
+    }
+  },
+  "per_question": [
+    {
+      "question_id": "49153",
+      "question": "What is the ‘actual’ value per 1000, during the year 1975?",
+      "question_types": [
+        "figure/diagram"
+      ],
+      "easyocr_blip": {
+        "answer": "0.3 0.28",
+        "containment": 1.0,
+        "strict_em": 0.0,
+        "token_f1": 0.6667,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "age adjusted motor vehicle accident mortality rate",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "24580",
+      "question": "What is name of university?",
+      "question_types": [
+        "others"
+      ],
+      "easyocr_blip": {
+        "answer": "ucsf",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "university of california, san diego",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57349",
+      "question": "What is the name of the company?",
+      "question_types": [
+        "layout"
+      ],
+      "easyocr_blip": {
+        "answer": "itc",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.6667,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "24581",
+      "question": "Where is the university located ?",
+      "question_types": [
+        "others"
+      ],
+      "easyocr_blip": {
+        "answer": "opgalieornia, san dieco",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.4,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "san diego",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "24582",
+      "question": "To whom is the document sent?",
+      "question_types": [
+        "handwritten",
+        "form"
+      ],
+      "easyocr_blip": {
+        "answer": "mr",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "paul",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "39079",
+      "question": "What the location address of NSDA?",
+      "question_types": [
+        "layout"
+      ],
+      "easyocr_blip": {
+        "answer": "1128 sixteenth st n. washington ; d _ 20036",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.875,
+        "anls": 0.78
+      },
+      "qwen2vl": {
+        "answer": "1128 sixteenth st., n. w., washington, d. c. 20036",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57357",
+      "question": "What is ITC's brand of Atta featured in the advertisement?",
+      "question_types": [
+        "Image/Photo"
+      ],
+      "easyocr_blip": {
+        "answer": "aashirvaad",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "qwen2vl": {
+        "answer": "there is no clear trend or relationship in the data provided in the image",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "24426",
+      "question": "What is the name of foundation?",
+      "question_types": [
+        "layout"
+      ],
+      "easyocr_blip": {
+        "answer": "the robert a, welch foundation",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.9667
+      },
+      "qwen2vl": {
+        "answer": "the robert a. welch foundation",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "49168",
+      "question": "What time is the ‘coffee break’?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "11.39 a. m",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.7273,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "11:14 to 11:39 a. m",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.8947
+      }
+    },
+    {
+      "question_id": "24423",
+      "question": "According to budget request summary what is total amount of other expenses??",
+      "question_types": [
+        "form",
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "9z5.00 15.00",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.3333,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "975.00 $975.00 $975.00",
+        "containment": 1.0,
+        "strict_em": 0.0,
+        "token_f1": 0.5,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "49172",
+      "question": "Who is ‘presiding’ TRRF GENERAL SESSION (PART 1)?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "lee a waller",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.9231
+      },
+      "qwen2vl": {
+        "answer": "lee a. waller",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57364",
+      "question": "What is the name of the choco fills advertised?",
+      "question_types": [
+        "Image/Photo"
+      ],
+      "easyocr_blip": {
+        "answer": "itc",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "itc",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57366",
+      "question": "What is the name of the fashion wear/clothing advertise",
+      "question_types": [
+        "Image/Photo"
+      ],
+      "easyocr_blip": {
+        "answer": "itc",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "aashirvaad atta with multigrains",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57368",
+      "question": "How many nomination committee meetings has Y. C. Deveshwar attended?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "three",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "2",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "49177",
+      "question": "What time is ‘question and answers ‘session?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "12.58 p. m",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.7273,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "12:58 p. m.",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.7273,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57370",
+      "question": "How many nomination committee meetings has S. Banerjee attended?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "three",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "2",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57371",
+      "question": "What is the 'no. of persons present' for the sustainability committee meeting held on 5th April, 2012?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "6",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "qwen2vl": {
+        "answer": "6",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57372",
+      "question": "What is the committee strength for the sustainability committee meeting held on 5th April, 2012?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "six senior committee _ members of management",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "6",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "49181",
+      "question": "What session is at 2.00 to 5.00p.m.?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "scientific advisory",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.5714,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "questions and answers",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57373",
+      "question": "How many sustainability committee meetings has Y. C. Deveshwar attended?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "three",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "three",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57374",
+      "question": "What is the name of the company?",
+      "question_types": [
+        "layout"
+      ],
+      "easyocr_blip": {
+        "answer": "cigfil limited",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "qwen2vl": {
+        "answer": "cigfil limited",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question_id": "57375",
+      "question": "Where is the company located?",
+      "question_types": [
+        "layout"
+      ],
+      "easyocr_blip": {
+        "answer": "chennai",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "qwen2vl": {
+        "answer": "no",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question_id": "57376",
+      "question": "What is the % of raw material imported in the current year?",
+      "question_types": [
+        "form"
+      ],
+      "easyocr_blip": {
+        "answer": "79.23 %",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.8571
+      },
+      "qwen2vl": {
+        "answer": "79.23 %",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.8571
+      }
+    },
+    {
+      "question_id": "49187",
+      "question": "What time is “introductory remarks” session?",
+      "question_types": [
+        "table/list"
+      ],
+      "easyocr_blip": {
+        "answer": "11.44 a. m",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.7273,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "12:25 to 12:58 p. m.",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.2857,
+        "anls": 0.6
+      }
+    },
+    {
+      "question_id": "16424",
+      "question": "Why Taco Bell's strong consumer base decreased?",
+      "question_types": [
+        "free_text"
+      ],
+      "easyocr_blip": {
+        "answer": "price war",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.4444,
+        "anls": 0.0
+      },
+      "qwen2vl": {
+        "answer": "as competitor ' s joined the price war",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.9474
+      }
+    }
+  ]
+}

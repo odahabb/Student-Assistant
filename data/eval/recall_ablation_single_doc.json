@@ -6,23 +6,23 @@
     5
   ],
   "full_index_recall": {
-    "recall_at_1": 0.125,
-    "recall_at_3": 0.25,
-    "recall_at_5": 0.375
+    "recall_at_1": 0.44,
+    "recall_at_3": 0.56,
+    "recall_at_5": 0.6
   },
   "single_doc_recall": {
-    "recall_at_1": 0.125,
-    "recall_at_3": 0.25,
-    "recall_at_5": 0.375
+    "recall_at_1": 0.44,
+    "recall_at_3": 0.56,
+    "recall_at_5": 0.6
   },
   "single_doc_hits": {
-    "k=1": 1,
-    "k=3": 2,
-    "k=5": 3
+    "k=1": 11,
+    "k=3": 14,
+    "k=5": 15
   },
-  "total_questions": 8,
-  "questions_rank_improved_in_isolation": 0,
-  "questions_still_missing_at_k5_alone": 5,
+  "total_questions": 25,
+  "questions_rank_improved_in_isolation": 1,
+  "questions_still_missing_at_k5_alone": 10,
   "results": [
     {
       "question": "What is the size of the synthetic dataset used to fine-tune the embedding models?",
@@ -31,7 +31,7 @@
         "source_file": "embedding.pdf",
         "page": 1
       },
-      "document_chunks": 67,
+      "document_chunks": 66,
       "single_doc": {
         "hit_at_1": false,
         "hit_at_3": false,
@@ -125,7 +125,7 @@
         "source_file": "embedding.pdf",
         "page": 2
       },
-      "document_chunks": 67,
+      "document_chunks": 66,
       "single_doc": {
         "hit_at_1": false,
         "hit_at_3": true,
@@ -407,7 +407,7 @@
         "source_file": "Flant5pdf.pdf",
         "page": 2
       },
-      "document_chunks": 293,
+      "document_chunks": 292,
       "single_doc": {
         "hit_at_1": false,
         "hit_at_3": false,
@@ -501,7 +501,7 @@
         "source_file": "Flant5pdf.pdf",
         "page": 4
       },
-      "document_chunks": 293,
+      "document_chunks": 292,
       "single_doc": {
         "hit_at_1": false,
         "hit_at_3": false,
@@ -595,7 +595,7 @@
         "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
         "page": 1
       },
-      "document_chunks": 34,
+      "document_chunks": 33,
       "single_doc": {
         "hit_at_1": false,
         "hit_at_3": false,
@@ -689,7 +689,7 @@
         "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
         "page": 3
       },
-      "document_chunks": 34,
+      "document_chunks": 33,
       "single_doc": {
         "hit_at_1": true,
         "hit_at_3": true,
@@ -763,6 +763,1604 @@
               "page": 3,
               "match": true,
               "text_preview": "o = c ÷ c ÷ e ø ( 1 ) the add & norm operation is applied after each sub - layer in the transformer stack, including attention and feed - forward layers. the ad"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "Which base model architecture are the fine-tuned embedding models built on?",
+      "answer": "all-MiniLM-L6-v2",
+      "expected": {
+        "source_file": "embedding.pdf",
+        "page": 4
+      },
+      "document_chunks": 66,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 15,
+              "match": false,
+              "text_preview": ", j., boettcher, l., westphalen, m., & jasser, j. ( 2024 ). the open source advantage in large language models ( llms ). arxiv ( cornell university ). https : /"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 15,
+              "match": false,
+              "text_preview": ", j., boettcher, l., westphalen, m., & jasser, j. ( 2024 ). the open source advantage in large language models ( llms ). arxiv ( cornell university ). https : /"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 13,
+              "match": false,
+              "text_preview": "generated during this study is publicly available at : https : / / github. com / uihilab / educational - qa - embeddings. the fine - tuned embedding models are "
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 15,
+              "match": false,
+              "text_preview": "harris, n., butani, a., & hashmy, s. ( 2024 ). enhancing embedding performance through large language model - based text enrichment and rewriting. advances in a"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 15,
+              "match": false,
+              "text_preview": ", j., boettcher, l., westphalen, m., & jasser, j. ( 2024 ). the open source advantage in large language models ( llms ). arxiv ( cornell university ). https : /"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 13,
+              "match": false,
+              "text_preview": "generated during this study is publicly available at : https : / / github. com / uihilab / educational - qa - embeddings. the fine - tuned embedding models are "
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 15,
+              "match": false,
+              "text_preview": "harris, n., butani, a., & hashmy, s. ( 2024 ). enhancing embedding performance through large language model - based text enrichment and rewriting. advances in a"
+            },
+            {
+              "rank": 4,
+              "source_file": "embedding.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "quality - to - cost ratio. text - embedding - 3 - large ( openai, 2024 ) most advanced in openai ' s embedding lineup, optimized for performance. open source al"
+            },
+            {
+              "rank": 5,
+              "source_file": "embedding.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "form a context string. this context is passed to a lightweight generative model ( gpt - 4o - mini ), which produces a natural language answer. the final answer "
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many positive sentence pairs were included in the fine-tuning dataset?",
+      "answer": "2,710 pairs",
+      "expected": {
+        "source_file": "embedding.pdf",
+        "page": 4
+      },
+      "document_chunks": 66,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 2,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": false,
+              "text_preview": "2. 3. 2. dual - objective training with mnrl and cosine similarity the second approach extends the optimization objective by incorporating an additional cosines"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": false,
+              "text_preview": "2. 3. 2. dual - objective training with mnrl and cosine similarity the second approach extends the optimization objective by incorporating an additional cosines"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "pairs were constructed to act as difficult semantic distractors. these examples were deliberately crafted to appear structurally similar to positive examples bu"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "##ability for low - latency inference. these characteristics make it particularly appropriate for educational applications that demand real - time or near - rea"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": false,
+              "text_preview": "2. 3. 2. dual - objective training with mnrl and cosine similarity the second approach extends the optimization objective by incorporating an additional cosines"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "pairs were constructed to act as difficult semantic distractors. these examples were deliberately crafted to appear structurally similar to positive examples bu"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "##ability for low - latency inference. these characteristics make it particularly appropriate for educational applications that demand real - time or near - rea"
+            },
+            {
+              "rank": 4,
+              "source_file": "embedding.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": "synonymy, and implicit - to - explicit mappings is essential. 2. 3. 1. contrastive training with mnrl the first approach employs the mnrl, a contrastive loss fu"
+            },
+            {
+              "rank": 5,
+              "source_file": "embedding.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "quality - to - cost ratio. text - embedding - 3 - large ( openai, 2024 ) most advanced in openai ' s embedding lineup, optimized for performance. open source al"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 2
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "What learning rate was used for the MNRL-only fine-tuning run?",
+      "answer": "2e-5",
+      "expected": {
+        "source_file": "embedding.pdf",
+        "page": 6
+      },
+      "document_chunks": 66,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##ine learning rate scheduler. weight decay was set to 0. 01 to regularize the model and mitigate overfitting. mixed - precision ( amp ) was disabled, as all tr"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "dual - loss ) 100. 00 % 88. 10 % 87. 50 % open sourced all - minilm - l6 - v2 92. 86 % 73. 81 % 69. 64 % msmarco - distilbert - base - v4 98. 81 % 79. 76 % 77. "
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##ine learning rate scheduler. weight decay was set to 0. 01 to regularize the model and mitigate overfitting. mixed - precision ( amp ) was disabled, as all tr"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "dual - loss ) 100. 00 % 88. 10 % 87. 50 % open sourced all - minilm - l6 - v2 92. 86 % 73. 81 % 69. 64 % msmarco - distilbert - base - v4 98. 81 % 79. 76 % 77. "
+            },
+            {
+              "rank": 4,
+              "source_file": "embedding.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "accuracy, matching the performance of the mnrl - only model and narrowing the gap with openai ’ s text - embedding - 3 - large model ( 90. 18 % ). the course in"
+            },
+            {
+              "rank": 5,
+              "source_file": "embedding.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "quality - to - cost ratio. text - embedding - 3 - large ( openai, 2024 ) most advanced in openai ' s embedding lineup, optimized for performance. open source al"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "What learning rate was used for the dual-loss (MNRL + CosineSimilarityLoss) run?",
+      "answer": "1e-5",
+      "expected": {
+        "source_file": "embedding.pdf",
+        "page": 6
+      },
+      "document_chunks": 66,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##ine learning rate scheduler. weight decay was set to 0. 01 to regularize the model and mitigate overfitting. mixed - precision ( amp ) was disabled, as all tr"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "2. 3. 2. dual - objective training with mnrl and cosine similarity the second approach extends the optimization objective by incorporating an additional cosines"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##s. during training, batches are alternated or sampled from both dataloaders, and losses from both objectives are computed and combined in a multi - objective "
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##ine learning rate scheduler. weight decay was set to 0. 01 to regularize the model and mitigate overfitting. mixed - precision ( amp ) was disabled, as all tr"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "2. 3. 2. dual - objective training with mnrl and cosine similarity the second approach extends the optimization objective by incorporating an additional cosines"
+            },
+            {
+              "rank": 4,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "dual - loss ) 100. 00 % 88. 10 % 87. 50 % open sourced all - minilm - l6 - v2 92. 86 % 73. 81 % 69. 64 % msmarco - distilbert - base - v4 98. 81 % 79. 76 % 77. "
+            },
+            {
+              "rank": 5,
+              "source_file": "embedding.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "accuracy, matching the performance of the mnrl - only model and narrowing the gap with openai ’ s text - embedding - 3 - large model ( 90. 18 % ). the course in"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many university syllabus files make up the retrieval evaluation corpus?",
+      "answer": "28 syllabus files",
+      "expected": {
+        "source_file": "embedding.pdf",
+        "page": 7
+      },
+      "document_chunks": 66,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 7,
+              "match": true,
+              "text_preview": "##ed into fixed - size text chunks of approximately 300 words or fewer, and embeddings are precomputed for each chunk using the embedding model under evaluation"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 7,
+              "match": true,
+              "text_preview": "##ed into fixed - size text chunks of approximately 300 words or fewer, and embeddings are precomputed for each chunk using the embedding model under evaluation"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "to reflect distinct but frequently queried types of academic metadata, providing a structured framework for analyzing the semantic retrieval capabilities of dif"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "types of educational queries. 3. 2. quantitative accuracy to assess the retrieval effectiveness of each embedding model, we measure accuracy across three evalua"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "embedding.pdf",
+              "page": 7,
+              "match": true,
+              "text_preview": "##ed into fixed - size text chunks of approximately 300 words or fewer, and embeddings are precomputed for each chunk using the embedding model under evaluation"
+            },
+            {
+              "rank": 2,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "to reflect distinct but frequently queried types of academic metadata, providing a structured framework for analyzing the semantic retrieval capabilities of dif"
+            },
+            {
+              "rank": 3,
+              "source_file": "embedding.pdf",
+              "page": 9,
+              "match": false,
+              "text_preview": "types of educational queries. 3. 2. quantitative accuracy to assess the retrieval effectiveness of each embedding model, we measure accuracy across three evalua"
+            },
+            {
+              "rank": 4,
+              "source_file": "embedding.pdf",
+              "page": 7,
+              "match": true,
+              "text_preview": "? - what is the credit hour value of this course? faculty information - what is the name of the instructor? - what is the professor ' s name? - what is the lect"
+            },
+            {
+              "rank": 5,
+              "source_file": "embedding.pdf",
+              "page": 6,
+              "match": false,
+              "text_preview": "the proposed fine - tuned embedding models within an educational semantic retrieval setting. we compare our models, trained using contrastive and dual - loss st"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many of Whisper's 680,000 training hours are non-English, and how many languages do they cover?",
+      "answer": "117,000 hours covering 96 other languages",
+      "expected": {
+        "source_file": "Whisper.pdf",
+        "page": 2
+      },
+      "document_chunks": 190,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "audio was mis - classiﬁed as welsh by the language identiﬁcation system, resulting in it being included as translation training data rather transcription data a"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "uz be km tg as et oc ca is kk he fr af vi ha mt lo bn pt hu fi ko sd id ur ln lv az yo lb cy hy pl lt de ka ru mk ms sr es zh ja nb bs mn sn tr ps sk so cs sl h"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "audio was mis - classiﬁed as welsh by the language identiﬁcation system, resulting in it being included as translation training data rather transcription data a"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "uz be km tg as et oc ca is kk he fr af vi ha mt lo bn pt hu fi ko sd id ur ln lv az yo lb cy hy pl lt de ka ru mk ms sr es zh ja nb bs mn sn tr ps sk so cs sl h"
+            },
+            {
+              "rank": 4,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "10k + ft baseline from the original paper. we suspect the underperformance of whisper models on voxpopuli could be due to other models including this distributi"
+            },
+            {
+              "rank": 5,
+              "source_file": "Whisper.pdf",
+              "page": 11,
+              "match": false,
+              "text_preview": "70 80 accuracy on 102 languages ( % ) language identification ( fleurs ) average large v2 figure 8. zero - shot whisper performance scales reliably across tasks"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many hours of speech translation data does the Whisper training set include?",
+      "answer": "125,000 hours of X-to-English translation data",
+      "expected": {
+        "source_file": "Whisper.pdf",
+        "page": 2
+      },
+      "document_chunks": 190,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 11,
+              "match": false,
+              "text_preview": "observed with model size scaling for english speech recognition and could similarly be explained by saturation effects when approaching human - level performanc"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "uz be km tg as et oc ca is kk he fr af vi ha mt lo bn pt hu fi ko sd id ur ln lv az yo lb cy hy pl lt de ka ru mk ms sr es zh ja nb bs mn sn tr ps sk so cs sl h"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for x→en "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 11,
+              "match": false,
+              "text_preview": "observed with model size scaling for english speech recognition and could similarly be explained by saturation effects when approaching human - level performanc"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "uz be km tg as et oc ca is kk he fr af vi ha mt lo bn pt hu fi ko sd id ur ln lv az yo lb cy hy pl lt de ka ru mk ms sr es zh ja nb bs mn sn tr ps sk so cs sl h"
+            },
+            {
+              "rank": 4,
+              "source_file": "Whisper.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "- nition. exactly how important is the raw dataset size to whisper ’ s performance? to study this, we trained a series of medium - sized models on subsampled ve"
+            },
+            {
+              "rank": 5,
+              "source_file": "Whisper.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##urate at the inherent quality level of the dataset, which could be far below human level. a re - lated concern is that as capacity and compute spent training "
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many parameters does the Whisper Large model have, per the architecture table?",
+      "answer": "1550M parameters",
+      "expected": {
+        "source_file": "Whisper.pdf",
+        "page": 5
+      },
+      "document_chunks": 190,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 26,
+              "match": false,
+              "text_preview": "9 1. 7 16. 8 6. 8 whisper medium 38. 1 48. 7 39. 4 17. 7 39. 5 2. 9 27. 0 14. 0 whisper large 39. 3 48. 6 41. 6 23. 9 40. 3 3. 7 26. 7 17. 1 whisper large - v2 "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 26,
+              "match": false,
+              "text_preview": "9 1. 7 16. 8 6. 8 whisper medium 38. 1 48. 7 39. 4 17. 7 39. 5 2. 9 27. 0 14. 0 whisper large 39. 3 48. 6 41. 6 23. 9 40. 3 3. 7 26. 7 17. 1 whisper large - v2 "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "10k + ft baseline from the original paper. we suspect the underperformance of whisper models on voxpopuli could be due to other models including this distributi"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 23,
+              "match": false,
+              "text_preview": ". 9 37. 3 106. 5 71. 9 36. 1 30. 5 24. 2 91. 3 78. 0 122. 9 137. 0 29. 5 32. 8 whisper small 30. 5 22. 7 43. 6 44. 4 18. 4 16. 0 14. 0 72. 8 54. 6 104. 8 225. 8"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 26,
+              "match": false,
+              "text_preview": "9 1. 7 16. 8 6. 8 whisper medium 38. 1 48. 7 39. 4 17. 7 39. 5 2. 9 27. 0 14. 0 whisper large 39. 3 48. 6 41. 6 23. 9 40. 3 3. 7 26. 7 17. 1 whisper large - v2 "
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 7,
+              "match": false,
+              "text_preview": "10k + ft baseline from the original paper. we suspect the underperformance of whisper models on voxpopuli could be due to other models including this distributi"
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 23,
+              "match": false,
+              "text_preview": ". 9 37. 3 106. 5 71. 9 36. 1 30. 5 24. 2 91. 3 78. 0 122. 9 137. 0 29. 5 32. 8 whisper small 30. 5 22. 7 43. 6 44. 4 18. 4 16. 0 14. 0 72. 8 54. 6 104. 8 225. 8"
+            },
+            {
+              "rank": 4,
+              "source_file": "Whisper.pdf",
+              "page": 25,
+              "match": false,
+              "text_preview": ". 7 0. 1 0. 2 1. 0 whisper base 13. 7 0. 7 73. 3 12. 4 0. 3 0. 2 0. 5 2. 1 13. 1 10. 5 1. 5 0. 0 0. 6 3. 4 whisper small 25. 9 11. 6 77. 3 18. 2 3. 6 5. 8 7. 3 "
+            },
+            {
+              "rank": 5,
+              "source_file": "Whisper.pdf",
+              "page": 22,
+              "match": false,
+              "text_preview": ". 6 37. 1 7. 2 4. 5 whisper large - v2 2. 5 4. 9 3. 7 2. 6 16. 4 13. 6 8. 2 5. 7 14. 2 24. 9 17. 4 39. 9 7. 0 4. 2 table 9. english transcription wer ( % ) with"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "What LibriSpeech clean-test WER does the best zero-shot Whisper model achieve?",
+      "answer": "2.5",
+      "expected": {
+        "source_file": "Whisper.pdf",
+        "page": 6
+      },
+      "document_chunks": 190,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##sets. although both models perform within 0. 1 % of each other on librispeech, a zero - shot whisper model performs much better on other datasets than expecte"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##sets. although both models perform within 0. 1 % of each other on librispeech, a zero - shot whisper model performs much better on other datasets than expecte"
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "a suite of 12 other academic speech recognition datasets to study out - of - distribution behaviors. full details about these datasets can be found in appendix "
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##60 - self asr - crdnn - rnnlm - librispeech asr - transformer - transformerlm - librispeech hubert - large - ls960 - ft hubert - xlarge - ls960 - ft s2t - med"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "##sets. although both models perform within 0. 1 % of each other on librispeech, a zero - shot whisper model performs much better on other datasets than expecte"
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "a suite of 12 other academic speech recognition datasets to study out - of - distribution behaviors. full details about these datasets can be found in appendix "
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "##60 - self asr - crdnn - rnnlm - librispeech asr - transformer - transformerlm - librispeech hubert - large - ls960 - ft hubert - xlarge - ls960 - ft s2t - med"
+            },
+            {
+              "rank": 4,
+              "source_file": "Whisper.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": "as a dataset ’ s reference transcripts seperating contractions from words with whitespace. we caution this development procedure comes at a risk of overﬁtting t"
+            },
+            {
+              "rank": 5,
+              "source_file": "Whisper.pdf",
+              "page": 8,
+              "match": false,
+              "text_preview": "shot bleu score on fleurs. while there is a clear trend of improvement with increasing training data, the squared correlation coefﬁcient is much lower than the "
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many additional academic speech recognition datasets are used to study out-of-distribution behaviour?",
+      "answer": "12 datasets",
+      "expected": {
+        "source_file": "Whisper.pdf",
+        "page": 6
+      },
+      "document_chunks": 190,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "particular human. to quantify this difference, we examine both overall ro - bustness, that is average performance across many distribu - tions / datasets, and e"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "particular human. to quantify this difference, we examine both overall ro - bustness, that is average performance across many distribu - tions / datasets, and e"
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "a suite of 12 other academic speech recognition datasets to study out - of - distribution behaviors. full details about these datasets can be found in appendix "
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "##t, this is still tiny compared to the previously mentioned 1, 000, 000 hours of unlabeled speech data utilized in zhang et al. ( 2021 ). recognizing the limit"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "particular human. to quantify this difference, we examine both overall ro - bustness, that is average performance across many distribu - tions / datasets, and e"
+            },
+            {
+              "rank": 2,
+              "source_file": "Whisper.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "a suite of 12 other academic speech recognition datasets to study out - of - distribution behaviors. full details about these datasets can be found in appendix "
+            },
+            {
+              "rank": 3,
+              "source_file": "Whisper.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "##t, this is still tiny compared to the previously mentioned 1, 000, 000 hours of unlabeled speech data utilized in zhang et al. ( 2021 ). recognizing the limit"
+            },
+            {
+              "rank": 4,
+              "source_file": "Whisper.pdf",
+              "page": 19,
+              "match": false,
+              "text_preview": "robust speech recognition via large - scale weak supervision 19 a. evaluation datasets. a. 1. short - form english - only datasets • librispeech ( panayotov et "
+            },
+            {
+              "rank": 5,
+              "source_file": "Whisper.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "box ” in a broad range of environments without requiring supervised ﬁne - tuning of a decoder for every deployment distribution. as demonstrated by narayanan et"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many datasets, task categories and total tasks make up the Flan finetuning data?",
+      "answer": "473 datasets, 146 task categories, and 1,836 total tasks",
+      "expected": {
+        "source_file": "Flant5pdf.pdf",
+        "page": 3
+      },
+      "document_chunks": 292,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 3,
+              "match": true,
+              "text_preview": "the squad dataset is configurable for multiple task categories such as extractive question answering, query generation, and context generation ). [UNK] a task i"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 3,
+              "match": true,
+              "text_preview": "the squad dataset is configurable for multiple task categories such as extractive question answering, query generation, and context generation ). [UNK] a task i"
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 3,
+              "match": true,
+              "text_preview": "cot, as summarized in figure 2. [UNK] ( 80 tasks ) comprises 62 tasks from wei et al. ( 2021 ) and 26 new tasks that we added in this work, including dialog dat"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 47,
+              "match": false,
+              "text_preview": "f finetuning data card we present the data card, following the format proposed by pushkarna et al. ( 2021 ). dataset owners. ﬂan - core @ google. com dataset ov"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 3,
+              "match": true,
+              "text_preview": "the squad dataset is configurable for multiple task categories such as extractive question answering, query generation, and context generation ). [UNK] a task i"
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 3,
+              "match": true,
+              "text_preview": "cot, as summarized in figure 2. [UNK] ( 80 tasks ) comprises 62 tasks from wei et al. ( 2021 ) and 26 new tasks that we added in this work, including dialog dat"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 47,
+              "match": false,
+              "text_preview": "f finetuning data card we present the data card, following the format proposed by pushkarna et al. ( 2021 ). dataset owners. ﬂan - core @ google. com dataset ov"
+            },
+            {
+              "rank": 4,
+              "source_file": "Flant5pdf.pdf",
+              "page": 50,
+              "match": false,
+              "text_preview": "1 2 5 10 20 50 100 500 1000 task count english spanish japanese persian hindi french chinese bengali gujarati german telugu italian arabic polish tamil marathi "
+            },
+            {
+              "rank": 5,
+              "source_file": "Flant5pdf.pdf",
+              "page": 47,
+              "match": false,
+              "text_preview": "aqua ling et al. ( 2017 ) reasoning creak onoe et al. ( 2021 ) reasoning ecqa aggarwal et al. ( 2021 ) reasoning esnli camburu et al. ( 2018 ) reasoning qasc kh"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "Beyond how many finetuning tasks does the majority of the performance improvement stop accruing?",
+      "answer": "282 tasks",
+      "expected": {
+        "source_file": "Flant5pdf.pdf",
+        "page": 6
+      },
+      "document_chunks": 292,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "3 scaling to 540b parameters and 1. 8k tasks we ﬁrst examine the [UNK] of scaling in terms of ( 1 ) the size of model and ( 2 ) the number of ﬁnetuning tasks on"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "3 scaling to 540b parameters and 1. 8k tasks we ﬁrst examine the [UNK] of scaling in terms of ( 1 ) the size of model and ( 2 ) the number of ﬁnetuning tasks on"
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 12,
+              "match": false,
+              "text_preview": "##netuning tasks — improve performance. prior work has either scaled the number of templates ( puri et al., 2022 ), the number of tasks ( to 1. 6k tasks in wang"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "we see that increasing model scale by an order of magnitude ( i. e., 8b →62b or 62b →540b ) improves performance substantially for both ﬁnetuned and non - ﬁnetu"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "3 scaling to 540b parameters and 1. 8k tasks we ﬁrst examine the [UNK] of scaling in terms of ( 1 ) the size of model and ( 2 ) the number of ﬁnetuning tasks on"
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 12,
+              "match": false,
+              "text_preview": "##netuning tasks — improve performance. prior work has either scaled the number of templates ( puri et al., 2022 ), the number of tasks ( to 1. 6k tasks in wang"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "we see that increasing model scale by an order of magnitude ( i. e., 8b →62b or 62b →540b ) improves performance substantially for both ﬁnetuned and non - ﬁnetu"
+            },
+            {
+              "rank": 4,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "no ﬁnetuning. the performance gain ranges from 9. 4 % to 15. 5 %. second, increasing the number of ﬁnetuning tasks improves performance, although the majority o"
+            },
+            {
+              "rank": 5,
+              "source_file": "Flant5pdf.pdf",
+              "page": 6,
+              "match": true,
+              "text_preview": "another order of magnitude ( though challenging ) is expected to provide substantial performance gain. scaling number of ﬁnetuning tasks should also improve per"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How many tokens are in PaLM's pre-training data compared with instruction finetuning?",
+      "answer": "780B pre-training tokens vs 1.4B finetuning tokens (0.2%)",
+      "expected": {
+        "source_file": "Flant5pdf.pdf",
+        "page": 6
+      },
+      "document_chunks": 292,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##cb2a7de. 5 putting it all together given the prior results on scaling the number of tasks and including chain - of - thought data, we now show the generality "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##cb2a7de. 5 putting it all together given the prior results on scaling the number of tasks and including chain - of - thought data, we now show the generality "
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": ". 6e + 19 0. 2 % 8b flan - palm decoder - only causal lm 3. 7e + 22 1. 6e + 20 0. 4 % 62b flan - palm decoder - only causal lm 2. 9e + 23 1. 2e + 21 0. 4 % 540b"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##ized from palm - 540b and then pretrained with an ul2 objective for 20k additional steps ( tay et al., 2022a, b ). these evaluation results are shown in table"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Flant5pdf.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##cb2a7de. 5 putting it all together given the prior results on scaling the number of tasks and including chain - of - thought data, we now show the generality "
+            },
+            {
+              "rank": 2,
+              "source_file": "Flant5pdf.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": ". 6e + 19 0. 2 % 8b flan - palm decoder - only causal lm 3. 7e + 22 1. 6e + 20 0. 4 % 62b flan - palm decoder - only causal lm 2. 9e + 23 1. 2e + 21 0. 4 % 540b"
+            },
+            {
+              "rank": 3,
+              "source_file": "Flant5pdf.pdf",
+              "page": 10,
+              "match": false,
+              "text_preview": "##ized from palm - 540b and then pretrained with an ul2 objective for 20k additional steps ( tay et al., 2022a, b ). these evaluation results are shown in table"
+            },
+            {
+              "rank": 4,
+              "source_file": "Flant5pdf.pdf",
+              "page": 12,
+              "match": false,
+              "text_preview": "further increased by around 10 %. as for few - shot, there was no regression compared to palm. this ability of instruction - ﬁnetuned mod - els to better respon"
+            },
+            {
+              "rank": 5,
+              "source_file": "Flant5pdf.pdf",
+              "page": 4,
+              "match": false,
+              "text_preview": "##5 - small ( 80m parameters ), to palm and u - palm ( 540b parameters ). for each model, we apply the same training procedure, except for a few hyperparameters"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_at_5": false,
+        "first_correct_rank": null
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",
+      "answer": "530 billion parameters, Microsoft and NVIDIA",
+      "expected": {
+        "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 2
+      },
+      "document_chunks": 33,
+      "single_doc": {
+        "hit_at_1": false,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 2,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps "
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps "
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "data management § data collection § data preparation § versioning model training and fine - tuning deployment and serving feedback and improvement § choosing an"
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "( llms ) are a kind of ai that are trained on huge datasets [ 9 ], [ 10 ]. llms are advanced nlp ( natural language processing ) models that use a deep neural n"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps "
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "data management § data collection § data preparation § versioning model training and fine - tuning deployment and serving feedback and improvement § choosing an"
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "( llms ) are a kind of ai that are trained on huge datasets [ 9 ], [ 10 ]. llms are advanced nlp ( natural language processing ) models that use a deep neural n"
+            },
+            {
+              "rank": 4,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "might have imbalances or unfair representations of specific groups or topics, resulting in unintended consequences for the model ' s behavior and outputs. some "
+            },
+            {
+              "rank": 5,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": "training multi - billion parameter language models using model parallelism, ” 2019, doi : https : / / doi. org / 10. 48550 / arxiv. 1909. 08053. authorized lice"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": false,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 3
+      },
+      "rank_improvement": 1,
+      "cross_document_interference": true
+    },
+    {
+      "question": "What two major parts make up the transformer architecture?",
+      "answer": "the encoder and the decoder",
+      "expected": {
+        "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 2
+      },
+      "document_chunks": 33,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "specific data ) prompt response websites fig. 3. the process of fine - tuning an llm. ii. transformer architecture after the invention of the transformer archit"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "specific data ) prompt response websites fig. 3. the process of fine - tuning an llm. ii. transformer architecture after the invention of the transformer archit"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "data management § data collection § data preparation § versioning model training and fine - tuning deployment and serving feedback and improvement § choosing an"
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "of the transformer network when compared to other neural networks because it can make use of current graphics processing unit ( gpu ) parallel processing. this "
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "specific data ) prompt response websites fig. 3. the process of fine - tuning an llm. ii. transformer architecture after the invention of the transformer archit"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "data management § data collection § data preparation § versioning model training and fine - tuning deployment and serving feedback and improvement § choosing an"
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 2,
+              "match": true,
+              "text_preview": "of the transformer network when compared to other neural networks because it can make use of current graphics processing unit ( gpu ) parallel processing. this "
+            },
+            {
+              "rank": 4,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": ". 1. large language model operations ( llmops ) focus on the challenges and best practices of deploying and managing llms in production environments. key steps "
+            },
+            {
+              "rank": 5,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "o = c ÷ c ÷ e ø ( 1 ) the add & norm operation is applied after each sub - layer in the transformer stack, including attention and feed - forward layers. the ad"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "How does the paper define overfitting as a cause of hallucinations?",
+      "answer": "the model learns the training data too well and cannot generalize to new data",
+      "expected": {
+        "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 4
+      },
+      "document_chunks": 33,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "data but are inaccurate for new data. it ' s essential to recognize the potential for overfitting to result in hallucinations in llms. when using llms, critical"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "data but are inaccurate for new data. it ' s essential to recognize the potential for overfitting to result in hallucinations in llms. when using llms, critical"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "input to the decoder block. the decoder block consists of attention, feed - forward, and add & norm layers. here one of the attention layers used is the masked "
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "the direct contradiction between the input and the generated content. for example, if the input to llm is \" ramu likes to play cricket \", then the output will b"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "data but are inaccurate for new data. it ' s essential to recognize the potential for overfitting to result in hallucinations in llms. when using llms, critical"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "input to the decoder block. the decoder block consists of attention, feed - forward, and add & norm layers. here one of the attention layers used is the masked "
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "the direct contradiction between the input and the generated content. for example, if the input to llm is \" ramu likes to play cricket \", then the output will b"
+            },
+            {
+              "rank": 4,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": true,
+              "text_preview": "implications of the hallucinations as shown in fig. 6. a. ethical considerations 1 ) spread of misinformation : when llms produce fabricated or incorrect inform"
+            },
+            {
+              "rank": 5,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 5,
+              "match": false,
+              "text_preview": "social impact § legal and regulatory challenges § erosion of trust § influence on decision - making § damaging reputation and brand image § risks in critical ap"
+            }
+          ]
+        }
+      },
+      "full_index": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1
+      },
+      "rank_improvement": 0,
+      "cross_document_interference": false
+    },
+    {
+      "question": "Which regularization technique is given as an example for reducing hallucinations?",
+      "answer": "dropout",
+      "expected": {
+        "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 5
+      },
+      "document_chunks": 33,
+      "single_doc": {
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_at_5": true,
+        "first_correct_rank": 1,
+        "retrieved": {
+          "k=1": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 5,
+              "match": true,
+              "text_preview": "social impact § legal and regulatory challenges § erosion of trust § influence on decision - making § damaging reputation and brand image § risks in critical ap"
+            }
+          ],
+          "k=3": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 5,
+              "match": true,
+              "text_preview": "social impact § legal and regulatory challenges § erosion of trust § influence on decision - making § damaging reputation and brand image § risks in critical ap"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "input to the decoder block. the decoder block consists of attention, feed - forward, and add & norm layers. here one of the attention layers used is the masked "
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "data, resulting in inaccurate output. these hallucinatory responses appear to be authentic but lack grounding in reality. such hallucinations can include fabric"
+            }
+          ],
+          "k=5": [
+            {
+              "rank": 1,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 5,
+              "match": true,
+              "text_preview": "social impact § legal and regulatory challenges § erosion of trust § influence on decision - making § damaging reputation and brand image § risks in critical ap"
+            },
+            {
+              "rank": 2,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 3,
+              "match": false,
+              "text_preview": "input to the decoder block. the decoder block consists of attention, feed - forward, and add & norm layers. here one of the attention layers used is the masked "
+            },
+            {
+              "rank": 3,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 1,
+              "match": false,
+              "text_preview": "data, resulting in inaccurate output. these hallucinatory responses appear to be authentic but lack grounding in reality. such hallucinations can include fabric"
+            },
+            {
+              "rank": 4,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": false,
+              "text_preview": "data but are inaccurate for new data. it ' s essential to recognize the potential for overfitting to result in hallucinations in llms. when using llms, critical"
+            },
+            {
+              "rank": 5,
+              "source_file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+              "page": 4,
+              "match": false,
+              "text_preview": "also raise doubts about the competence and reliability of the entities implementing them. 2 ) risks in critical applications : in applications where accuracy is"
             }
           ]
         }

@@ -1,0 +1,28 @@
+{
+  "note": "Manual review of the two questions generation_analysis.json places in bucket 2 (retrieved + wrong answer). Reviewed 2026-09-16 against the retrieved_chunks stored in generation_analysis.json. In both cases a chunk from the expected page was retrieved, but no retrieved chunk contains the answer: the expected-page chunk stops or starts mid-passage, just before or after the answer.",
+  "k": 3,
+  "reviews": [
+    {
+      "index": 20,
+      "question": "Beyond how many finetuning tasks does the majority of the performance improvement stop accruing?",
+      "expected_answer": "282 tasks",
+      "generated_answer": "scaling number of tasks has diminishing ( though still positive ) returns",
+      "evidence": "Expected-page chunk ends '...increasing the number of finetuning tasks improves performance, although the majority of the' — the sentence carrying '282 tasks' continues in the next chunk, which was not retrieved. '282' appears in no retrieved chunk.",
+      "verdict": "answer not present in retrieved context (chunk boundary); not a generator error"
+    },
+    {
+      "index": 24,
+      "question": "How does the paper define overfitting as a cause of hallucinations?",
+      "expected_answer": "the model learns the training data too well and cannot generalize to new data",
+      "generated_answer": "increased complexity in models with more layers or parameters",
+      "evidence": "Expected-page chunk begins '...data but are inaccurate for new data.' — the definition's opening clause sits in the preceding chunk, which was not retrieved. The model answered from the next paragraph (model architecture), which is present in full.",
+      "verdict": "answer not present in retrieved context (chunk boundary); not a generator error"
+    }
+  ],
+  "reclassified_buckets": {
+    "retrieved and correct": 12,
+    "answer cut by chunk boundary (retrieved page, answer missing)": 2,
+    "not retrieved (retrieval failure)": 11,
+    "generator wrong despite complete context": 0
+  }
+}

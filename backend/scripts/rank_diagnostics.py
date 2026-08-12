@@ -5,7 +5,7 @@ Student: Omar Dahab — 23100704
 
 Rank diagnostics for the Recall@k investigation.
 
-Computes, over the existing 8-question full-index results:
+Computes, over the full-index results for every ground-truth question:
   - Mean Reciprocal Rank (1/rank of first correct hit, 0 if outside top 5)
   - per question: token length of the correct chunk, and the cosine similarity
     gap between (question, correct chunk) and (question, top-ranked incorrect
