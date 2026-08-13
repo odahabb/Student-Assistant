@@ -181,7 +181,8 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
     page numbers intact.
     """
     if isinstance(source, str):
-        return [{"source_file": source_file, "page": None, "text": source}]
+        return [{"source_file": source_file, "page": None, "section": None,
+                 "text": source}]
 
     if isinstance(source, dict):
         source = [source]
@@ -202,6 +203,7 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
         pages.append({
             "source_file": entry.get("source_file", source_file),
             "page": entry.get("page"),
+            "section": entry.get("section"),
             "text": entry["text"],
         })
     return pages
@@ -243,8 +245,8 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
         [{"source_file": ..., "page": ..., "text": ...}, ...]
 
     Pages are chunked independently, so a chunk never spans a page boundary.
-    Every returned Chunk carries .source_file and .page (both None for plain
-    string input with no source_file given).
+    Every returned Chunk carries .source_file, .page and .section (page and
+    section are None for plain string input).
 
     strip_page1_boilerplate removes author/affiliation/ORCID/email lines from
     page 1 only (see _strip_page1_boilerplate). Pass False to reproduce the
@@ -280,6 +282,7 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
                 window_text,
                 source_file=page["source_file"],
                 page=page["page"],
+                section=page["section"],
             ))
 
     return chunks

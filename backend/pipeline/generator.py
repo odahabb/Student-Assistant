@@ -176,19 +176,31 @@ def _fix_number_spacing(text: str) -> str:
     return text
 
 
+def complete(prompt: str, max_new_tokens: int = 128) -> str:
+    """
+    Run flan-t5-large on an arbitrary prompt (greedy decoding) and return the
+    decoded output. Shared by generate() and the quiz layer, which prompts the
+    same model to write questions. Prompts longer than the model's input limit
+    are truncated from the end, so callers should keep their passage short.
+    """
+    tokenizer, model = _get_model()
+
+    device = "cpu" if _model_is_ov else get_torch_device()
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True,
+                       max_length=MAX_INPUT_TOKENS).to(device)
+    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens)
+
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+
 def generate(query: str, context_chunks: List[str]) -> str:
     """
     Build a prompt from the query and context chunks, run inference on CPU
     using flan-t5-large, and return the generated answer string.
     """
-    tokenizer, model = _get_model()
+    tokenizer, _ = _get_model()
 
     context = _budget_context(tokenizer, query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
 
-    device = "cpu" if _model_is_ov else get_torch_device()
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=False, max_length=MAX_INPUT_TOKENS).to(device)
-    outputs = model.generate(**inputs, max_new_tokens=128)
-
-    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return _fix_number_spacing(answer)
+    return _fix_number_spacing(complete(prompt, max_new_tokens=128))

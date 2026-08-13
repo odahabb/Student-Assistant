@@ -26,16 +26,21 @@ class Chunk(str):
                   or None when the caller didn't supply one.
     page        : 1-based page number for PDF input; None for images, audio
                   and plain text, where page numbers don't apply.
+    section     : title of the document section the chunk belongs to (see
+                  loader._page_sections); None when the input had no sections.
+                  The quiz layer groups chunks into topics by it.
 
     Note: string operations (.strip(), slicing, re.sub, ...) return a plain
     str, not a Chunk — the metadata does not propagate through them.
     """
 
     def __new__(cls, text: str, source_file: Optional[str] = None,
-                page: Optional[int] = None) -> "Chunk":
+                page: Optional[int] = None,
+                section: Optional[str] = None) -> "Chunk":
         obj = super().__new__(cls, text)
         obj.source_file = source_file
         obj.page = page
+        obj.section = section
         return obj
 
     @property
@@ -46,7 +51,8 @@ class Chunk(str):
 
     def to_record(self) -> dict:
         """JSON-serialisable form, used by vector_store to persist chunks."""
-        return {"text": str(self), "source_file": self.source_file, "page": self.page}
+        return {"text": str(self), "source_file": self.source_file,
+                "page": self.page, "section": self.section}
 
     @classmethod
     def from_record(cls, record) -> "Chunk":
@@ -63,8 +69,9 @@ class Chunk(str):
             record["text"],
             source_file=record.get("source_file"),
             page=record.get("page"),
+            section=record.get("section"),
         )
 
     def __repr__(self) -> str:
         return (f"Chunk(source_file={self.source_file!r}, page={self.page!r}, "
-                f"text={str(self)!r})")
+                f"section={self.section!r}, text={str(self)!r})")

@@ -173,18 +173,148 @@ def _get_blip_model():
 
 # Individual loaders
 
+# Section detection
+#
+# The quiz and recommendation layer tracks mastery per section of a document,
+# so every PDF page is tagged with the section it belongs to. Sources, in order
+# of trust:
+#   1. the PDF's own outline (bookmarks), top level only;
+#   2. headings in the page text — "Lecture 3 - ...", "Chapter 2: ...", or a
+#      top-level number ("2. Approach", "II. TRANSFORMER ARCHITECTURE", or a
+#      bare "3." line followed by its title). Numbered headings are only
+#      accepted as a run counting up from 1, which filters out numbered lines
+#      that are not headings (affiliations, list items, figure labels);
+#   3. fixed groups of pages.
+# Assignment is per page: a page takes the first heading that appears on it,
+# otherwise the section carried over from the previous page. Text on a page
+# before its first heading is therefore attributed to the new section — an
+# approximation that is fine at the granularity mastery is tracked at.
+
+PAGE_GROUP_SIZE = 5
+FRONT_MATTER_TITLE = "Overview"
+
+_NAMED_HEADING = re.compile(
+    r"^(?:chapter|lecture|week|unit|module|topic|part)\s+[\dIVXivx]+\b.{0,80}$",
+    re.IGNORECASE)
+_NUMBERED_HEADING = re.compile(r"^(\d{1,2}|[IVX]{1,5})\.?\s+([A-Z][A-Za-z].{0,70})$")
+_BARE_NUMBER = re.compile(r"^(\d{1,2})\.?$")
+_REFERENCES_HEADING = re.compile(
+    r"^(?:references|bibliography|works cited|acknowledge?ments?)$", re.IGNORECASE)
+_ROMAN = {"I": 1, "V": 5, "X": 10}
+
+
+def _numeral_value(token: str) -> int:
+    if token.isdigit():
+        return int(token)
+    total, prev = 0, 0
+    for ch in reversed(token.upper()):
+        value = _ROMAN[ch]
+        total = total - value if value < prev else total + value
+        prev = max(prev, value)
+    return total
+
+
+def _tidy_title(title: str) -> str:
+    title = " ".join(title.split()).rstrip(".:")
+    if title.isupper():
+        title = title.title()
+    return title
+
+
+def _heading_candidates(page_lines: List[List[str]]) -> List[tuple]:
+    """(page, kind, number, title) for every line that looks like a heading."""
+    found = []
+    for page_no, lines in enumerate(page_lines, start=1):
+        for i, line in enumerate(lines):
+            if len(line.split()) > 12:
+                continue
+            if _NAMED_HEADING.match(line):
+                found.append((page_no, "named", None, _tidy_title(line)))
+            elif _REFERENCES_HEADING.match(line):
+                found.append((page_no, "references", None, "References"))
+            elif (m := _NUMBERED_HEADING.match(line)) and not re.match(r"^\d+\.\d", line):
+                style = "arabic" if m.group(1).isdigit() else "roman"
+                found.append((page_no, f"numbered_{style}", _numeral_value(m.group(1)),
+                              _tidy_title(m.group(2))))
+            elif (m := _BARE_NUMBER.match(line)) and i + 1 < len(lines):
+                title = lines[i + 1]
+                if re.match(r"^[A-Z][A-Za-z]", title) and len(title.split()) <= 8:
+                    found.append((page_no, "numbered_arabic", int(m.group(1)),
+                                  _tidy_title(title)))
+    return found
+
+
+def _sections_from_headings(page_lines: List[List[str]]) -> List[tuple]:
+    """Heading starts as (page, title), or [] when no reliable run is found."""
+    candidates = _heading_candidates(page_lines)
+
+    named = [(p, t) for p, kind, _, t in candidates if kind == "named"]
+    # One run per numbering style, so "1. Introduction" is not followed by an
+    # unrelated "II. ..." line; the longer run wins.
+    runs = {"arabic": [], "roman": []}
+    for style, run in runs.items():
+        expected = 1
+        for p, kind, number, title in candidates:
+            if kind == f"numbered_{style}" and number == expected:
+                run.append((p, title))
+                expected += 1
+    numbered = max(runs.values(), key=len)
+
+    starts = named if len(named) >= 2 else (numbered if len(numbered) >= 2 else [])
+    if not starts:
+        return []
+    # A references heading only counts once the body's sections have begun.
+    # Numbered lines after it are appendix tables and lists, not the body's
+    # section run, so the run stops there.
+    first_page = starts[0][0]
+    references = [p for p, kind, _, _ in candidates
+                  if kind == "references" and p >= first_page]
+    if references:
+        starts = [(p, t) for p, t in starts if p <= references[0]]
+        starts.append((references[0], "References"))
+    return sorted(starts, key=lambda s: s[0])
+
+
+def _page_sections(doc, page_lines: List[List[str]]) -> dict:
+    """Map every 1-based page number to a section title."""
+    n_pages = len(page_lines)
+    starts = [(page, title.strip()) for level, title, page in doc.get_toc()
+              if level == 1 and page >= 1 and title.strip()]
+    if len(starts) < 2:
+        starts = _sections_from_headings(page_lines)
+
+    if not starts:
+        return {p: f"Pages {p0}–{min(p0 + PAGE_GROUP_SIZE - 1, n_pages)}"
+                for p in range(1, n_pages + 1)
+                for p0 in [(p - 1) // PAGE_GROUP_SIZE * PAGE_GROUP_SIZE + 1]}
+
+    sections, current = {}, FRONT_MATTER_TITLE
+    for page in range(1, n_pages + 1):
+        on_page = [title for p, title in starts if p == page]
+        sections[page] = on_page[0] if on_page else current
+        if on_page:
+            # a later heading on the same page carries over to the next page
+            current = on_page[-1]
+    return sections
+
+
+# Individual loaders
+
 def load_pdf(path: str) -> List[dict]:
     """
     Extract text from a PDF file page by page using PyMuPDF.
 
     Returns one dict per page that had extractable text:
 
-        [{"source_file": "lecture_notes.pdf", "page": 1, "text": "..."}, ...]
+        [{"source_file": "lecture_notes.pdf", "page": 1,
+          "section": "Lecture 3 - Supervised Learning", "text": "..."}, ...]
 
     Page boundaries are deliberately preserved instead of being concatenated
     into a single string, so that preprocessor.preprocess() can chunk *within*
     a page (no chunk spanning two pages) and tag every chunk with the file and
     page it came from. Pages with no extractable text are skipped, as before.
+    "section" comes from _page_sections() and is what the quiz layer groups
+    pages by.
     """
     try:
         import fitz
@@ -197,14 +327,17 @@ def load_pdf(path: str) -> List[dict]:
     log.info(f"Loading PDF → {path}")
     doc = fitz.open(path)
     source_file = os.path.basename(path)
+    texts = [page.get_text() for page in doc]
+    sections = _page_sections(
+        doc, [[line.strip() for line in t.splitlines() if line.strip()] for t in texts])
     pages = []
 
-    for i, page in enumerate(doc):
-        page_text = page.get_text()
+    for i, page_text in enumerate(texts):
         if page_text.strip():
             pages.append({
                 "source_file": source_file,
                 "page": i + 1,
+                "section": sections[i + 1],
                 "text": page_text,
             })
         else:
@@ -456,4 +589,10 @@ def load_file(path: str) -> Union[str, List[dict]]:
         )
 
     log.info(f"Auto-detected '{ext}' → input_type='{input_type}'")
+    if input_type == "text":
+        # load_input's "text" type takes the text itself, not a path.
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Text file not found: {path}")
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return load_text(f.read())
     return load_input(path, input_type)
