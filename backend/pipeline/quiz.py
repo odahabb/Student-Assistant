@@ -30,9 +30,10 @@ because flan-t5-large does not reliably follow instructions to write harder
   level 3 — short answer, no hint (recall)
 
 Grading compares the student's answer with the reference answer: containment
-in either direction counts as correct outright, otherwise the score is the
-higher of token F1 and MiniLM cosine similarity, and GRADE_THRESHOLD decides
-correctness (calibrated in backend/scripts/eval_grader.py).
+in either direction counts as correct outright; an answer missing a number
+the reference states is wrong; otherwise the score is the higher of token F1
+and MiniLM cosine similarity, and GRADE_THRESHOLD decides correctness
+(calibrated in backend/scripts/eval_grader.py).
 """
 
 import random
@@ -153,6 +154,12 @@ def token_f1(answer: str, reference: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def _numbers(text: str) -> List[str]:
+    """Numbers in a string, with thousands separators and spacing removed."""
+    text = re.sub(r"(?<=\d)[,\s](?=\d{3}\b)", "", str(text))
+    return re.findall(r"\d+(?:\.\d+)?", text)
+
+
 def _cosine(a: str, b: str) -> float:
     from backend.pipeline.embedder import embed
     vectors = embed([a, b])
@@ -173,6 +180,12 @@ def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,
     if f" {r} " in f" {a} " or (len(a.split()) >= max(1, len(r.split()) // 2)
                                 and f" {a} " in f" {r} "):
         return Grade(1.0, True, "containment")
+
+    # Embeddings rate "861 hours" close to "680,000 hours", so when the
+    # reference states numbers, the answer must state the same ones.
+    missing = set(_numbers(reference)) - set(_numbers(answer))
+    if missing:
+        return Grade(0.0, False, "number_mismatch")
 
     f1 = token_f1(a, r)
     cosine = (similarity or _cosine)(answer, reference)

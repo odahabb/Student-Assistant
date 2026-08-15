@@ -1,0 +1,147 @@
+{
+  "note": "Simulated students; response model differs from the recommender's (see script docstring).",
+  "students": 500,
+  "topics": 6,
+  "seed": 2026,
+  "response_model": {
+    "discrimination": 1.7,
+    "slip": 0.05,
+    "guess_by_level": {
+      "1": 0.25,
+      "2": 0.0,
+      "3": 0.0
+    },
+    "level_difficulty": {
+      "1": -1.0,
+      "2": 0.0,
+      "3": 1.0
+    }
+  },
+  "chance": {
+    "weakest_top1": 0.16666666666666666,
+    "weakest_top2": 0.3333333333333333,
+    "practice_on_weakest_two": 0.3333333333333333
+  },
+  "results_by_budget": {
+    "6": {
+      "adaptive": {
+        "weakest_top1": 0.334,
+        "weakest_top2": 0.474,
+        "spearman": 0.197,
+        "practice_on_weakest_two": 0.451,
+        "success_gap": 0.161
+      },
+      "explore_first": {
+        "weakest_top1": 0.326,
+        "weakest_top2": 0.51,
+        "spearman": 0.28,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.163
+      },
+      "round_robin": {
+        "weakest_top1": 0.292,
+        "weakest_top2": 0.526,
+        "spearman": 0.478,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.286
+      },
+      "random": {
+        "weakest_top1": 0.31,
+        "weakest_top2": 0.542,
+        "spearman": 0.361,
+        "practice_on_weakest_two": 0.339,
+        "success_gap": 0.313
+      }
+    },
+    "12": {
+      "adaptive": {
+        "weakest_top1": 0.392,
+        "weakest_top2": 0.536,
+        "spearman": 0.284,
+        "practice_on_weakest_two": 0.51,
+        "success_gap": 0.165
+      },
+      "explore_first": {
+        "weakest_top1": 0.412,
+        "weakest_top2": 0.566,
+        "spearman": 0.33,
+        "practice_on_weakest_two": 0.466,
+        "success_gap": 0.165
+      },
+      "round_robin": {
+        "weakest_top1": 0.38,
+        "weakest_top2": 0.68,
+        "spearman": 0.601,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.286
+      },
+      "random": {
+        "weakest_top1": 0.374,
+        "weakest_top2": 0.634,
+        "spearman": 0.483,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.308
+      }
+    },
+    "24": {
+      "adaptive": {
+        "weakest_top1": 0.498,
+        "weakest_top2": 0.606,
+        "spearman": 0.388,
+        "practice_on_weakest_two": 0.614,
+        "success_gap": 0.166
+      },
+      "explore_first": {
+        "weakest_top1": 0.54,
+        "weakest_top2": 0.64,
+        "spearman": 0.454,
+        "practice_on_weakest_two": 0.6,
+        "success_gap": 0.167
+      },
+      "round_robin": {
+        "weakest_top1": 0.516,
+        "weakest_top2": 0.798,
+        "spearman": 0.714,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.286
+      },
+      "random": {
+        "weakest_top1": 0.508,
+        "weakest_top2": 0.74,
+        "spearman": 0.611,
+        "practice_on_weakest_two": 0.33,
+        "success_gap": 0.312
+      }
+    },
+    "36": {
+      "adaptive": {
+        "weakest_top1": 0.578,
+        "weakest_top2": 0.666,
+        "spearman": 0.441,
+        "practice_on_weakest_two": 0.689,
+        "success_gap": 0.167
+      },
+      "explore_first": {
+        "weakest_top1": 0.58,
+        "weakest_top2": 0.688,
+        "spearman": 0.48,
+        "practice_on_weakest_two": 0.678,
+        "success_gap": 0.169
+      },
+      "round_robin": {
+        "weakest_top1": 0.592,
+        "weakest_top2": 0.836,
+        "spearman": 0.75,
+        "practice_on_weakest_two": 0.333,
+        "success_gap": 0.286
+      },
+      "random": {
+        "weakest_top1": 0.564,
+        "weakest_top2": 0.798,
+        "spearman": 0.688,
+        "practice_on_weakest_two": 0.34,
+        "success_gap": 0.31
+      }
+    }
+  }
+}

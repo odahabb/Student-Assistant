@@ -69,6 +69,16 @@ class GradeTests(unittest.TestCase):
         self.assertFalse(quiz.grade("bias", "variance", similarity=no_similarity).correct)
         self.assertEqual(quiz.grade("  ", "variance").score, 0.0)
 
+    def test_numbers_in_the_reference_must_match(self):
+        high = lambda a, b: 0.95  # noqa: E731
+        self.assertFalse(quiz.grade("861 hours", "680,000 hours", similarity=high).correct)
+        self.assertEqual(quiz.grade("2e-5", "1e-5", similarity=high).method,
+                         "number_mismatch")
+        self.assertTrue(quiz.grade("about 680 000 hours of audio", "680,000 hours",
+                                   similarity=no_similarity).correct)
+        self.assertTrue(quiz.grade("three thousand one hundred ninety-seven pairs",
+                                   "sentence pairs", similarity=high).correct)
+
     def test_threshold_is_respected(self):
         result = quiz.grade("x", "y", similarity=lambda a, b: 0.69)
         self.assertFalse(result.correct)

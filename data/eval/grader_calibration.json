@@ -1,0 +1,163 @@
+{
+  "note": "Grader calibration on rule-labelled pairs; see script docstring for the caveat. Scores use MiniLM cosine and token F1.",
+  "pairs": 50,
+  "labelled_correct": 12,
+  "grade_threshold": 0.7,
+  "at_threshold": {
+    "threshold": 0.7,
+    "tp": 12,
+    "fp": 0,
+    "tn": 38,
+    "fn": 0,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "at_threshold_stored_pairs_only": {
+    "threshold": 0.7,
+    "tp": 12,
+    "fp": 0,
+    "tn": 13,
+    "fn": 0,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "sweep": [
+    {
+      "threshold": 0.4,
+      "tp": 12,
+      "fp": 1,
+      "tn": 37,
+      "fn": 0,
+      "accuracy": 0.98,
+      "precision": 0.923,
+      "recall": 1.0,
+      "f1": 0.96
+    },
+    {
+      "threshold": 0.45,
+      "tp": 12,
+      "fp": 1,
+      "tn": 37,
+      "fn": 0,
+      "accuracy": 0.98,
+      "precision": 0.923,
+      "recall": 1.0,
+      "f1": 0.96
+    },
+    {
+      "threshold": 0.5,
+      "tp": 12,
+      "fp": 1,
+      "tn": 37,
+      "fn": 0,
+      "accuracy": 0.98,
+      "precision": 0.923,
+      "recall": 1.0,
+      "f1": 0.96
+    },
+    {
+      "threshold": 0.55,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.6,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.65,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.7,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.75,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.8,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.85,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.9,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "threshold": 0.95,
+      "tp": 12,
+      "fp": 0,
+      "tn": 38,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  ],
+  "disagreements": []
+}
