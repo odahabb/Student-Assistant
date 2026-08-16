@@ -20,7 +20,7 @@ stored,How many additional academic speech recognition datasets are used to stud
 stored,"How many datasets, task categories and total tasks make up the Flan finetuning data?","473 datasets, 146 task categories, and 1,836 total tasks","473 datasets, 146 task categories, and 1,836 total tasks",True,1.0,containment,True,
 stored,Beyond how many finetuning tasks does the majority of the performance improvement stop accruing?,scaling number of tasks has diminishing ( though still positive ) returns,282 tasks,False,0.0,number_mismatch,False,
 stored,How many tokens are in PaLM's pre-training data compared with instruction finetuning?,62b palm - model initialized from palm - 62b and then pretrained for 500b more tokens,780B pre-training tokens vs 1.4B finetuning tokens (0.2%),False,0.0,number_mismatch,False,
-stored,"According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",microsoft and nvidia,"530 billion parameters, Microsoft and NVIDIA",True,1.0,containment,True,
+stored,"According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",microsoft and nvidia,"530 billion parameters, Microsoft and NVIDIA",True,0.0,number_mismatch,False,
 stored,What two major parts make up the transformer architecture?,decoder and the encoder,the encoder and the decoder,True,0.9743,cosine,True,
 stored,How does the paper define overfitting as a cause of hallucinations?,increased complexity in models with more layers or parameters,the model learns the training data too well and cannot generalize to new data,False,0.3854,cosine,False,
 stored,Which regularization technique is given as an example for reducing hallucinations?,dropout,dropout,True,1.0,containment,True,

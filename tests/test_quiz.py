@@ -79,6 +79,12 @@ class GradeTests(unittest.TestCase):
         self.assertTrue(quiz.grade("three thousand one hundred ninety-seven pairs",
                                    "sentence pairs", similarity=high).correct)
 
+    def test_decimals_are_not_split_into_matching_integers(self):
+        self.assertFalse(quiz.grade("0.83", "0", similarity=no_similarity).correct)
+        self.assertFalse(quiz.grade("0", "0.83", similarity=no_similarity).correct)
+        self.assertTrue(quiz.grade("0. 83", "0.83", similarity=no_similarity).correct)
+        self.assertEqual(quiz.normalize("Score 0.83."), "score 0_83")
+
     def test_threshold_is_respected(self):
         result = quiz.grade("x", "y", similarity=lambda a, b: 0.69)
         self.assertFalse(result.correct)

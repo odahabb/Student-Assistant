@@ -90,7 +90,9 @@ def looks_like_reference_list(text: str) -> bool:
 
 def normalize(text: str) -> str:
     text = str(text).lower()
-    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    # keep "0.83" as one token so it cannot match a bare "0"
+    text = re.sub(r"(?<=\d)\s*\.\s*(?=\d)", "_", text)
+    text = re.sub(r"[^a-z0-9_\s]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -155,8 +157,12 @@ def token_f1(answer: str, reference: str) -> float:
 
 
 def _numbers(text: str) -> List[str]:
-    """Numbers in a string, with thousands separators and spacing removed."""
-    text = re.sub(r"(?<=\d)[,\s](?=\d{3}\b)", "", str(text))
+    """
+    Numbers in a string, with thousands separators and decoding spaces removed
+    ("680, 000" -> "680000", "0. 83" -> "0.83").
+    """
+    text = re.sub(r"(?<=\d),?\s?(?=\d{3}\b)", "", str(text))
+    text = re.sub(r"(?<=\d)\s*\.\s*(?=\d)", ".", text)
     return re.findall(r"\d+(?:\.\d+)?", text)
 
 
@@ -177,15 +183,16 @@ def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,
     a, r = normalize(answer), normalize(reference)
     if not a or not r:
         return Grade(0.0, False, "empty")
-    if f" {r} " in f" {a} " or (len(a.split()) >= max(1, len(r.split()) // 2)
-                                and f" {a} " in f" {r} "):
-        return Grade(1.0, True, "containment")
 
     # Embeddings rate "861 hours" close to "680,000 hours", so when the
     # reference states numbers, the answer must state the same ones.
     missing = set(_numbers(reference)) - set(_numbers(answer))
     if missing:
         return Grade(0.0, False, "number_mismatch")
+
+    if f" {r} " in f" {a} " or (len(a.split()) >= max(1, len(r.split()) // 2)
+                                and f" {a} " in f" {r} "):
+        return Grade(1.0, True, "containment")
 
     f1 = token_f1(a, r)
     cosine = (similarity or _cosine)(answer, reference)
@@ -268,14 +275,23 @@ def generate_item(chunk, answer_fn: Optional[Callable] = None,
         passage=str(chunk),
     )
 
-    if retrieve_fn is not None:
-        item.roundtrip_answer = answer_fn(question, retrieve_fn(question)).strip()
-        check = grade(item.roundtrip_answer, answer, similarity=similarity)
-        item.roundtrip_score = check.score
-        if not check.correct:
-            return None, "failed round-trip check"
+    if retrieve_fn is not None and not roundtrip_check(item, answer_fn, retrieve_fn,
+                                                       similarity):
+        return None, "failed round-trip check"
 
     return item, None
+
+
+def roundtrip_check(item: QuizItem, answer_fn: Callable, retrieve_fn: Callable,
+                    similarity: Optional[Callable[[str, str], float]] = None) -> bool:
+    """
+    Answer the item's question through normal retrieval and compare with its
+    reference answer. Records the outcome on the item; True when they agree.
+    """
+    item.roundtrip_answer = answer_fn(item.question, retrieve_fn(item.question)).strip()
+    check = grade(item.roundtrip_answer, item.answer, similarity=similarity)
+    item.roundtrip_score = check.score
+    return check.correct
 
 
 def build_pool(chunks: Sequence, topics: Sequence[Topic], per_topic: int = 2,

@@ -5,159 +5,169 @@
   "grade_threshold": 0.7,
   "at_threshold": {
     "threshold": 0.7,
-    "tp": 12,
+    "tp": 11,
     "fp": 0,
     "tn": 38,
-    "fn": 0,
-    "accuracy": 1.0,
+    "fn": 1,
+    "accuracy": 0.98,
     "precision": 1.0,
-    "recall": 1.0,
-    "f1": 1.0
+    "recall": 0.917,
+    "f1": 0.957
   },
   "at_threshold_stored_pairs_only": {
     "threshold": 0.7,
-    "tp": 12,
+    "tp": 11,
     "fp": 0,
     "tn": 13,
-    "fn": 0,
-    "accuracy": 1.0,
+    "fn": 1,
+    "accuracy": 0.96,
     "precision": 1.0,
-    "recall": 1.0,
-    "f1": 1.0
+    "recall": 0.917,
+    "f1": 0.957
   },
   "sweep": [
     {
       "threshold": 0.4,
-      "tp": 12,
+      "tp": 11,
       "fp": 1,
       "tn": 37,
-      "fn": 0,
-      "accuracy": 0.98,
-      "precision": 0.923,
-      "recall": 1.0,
-      "f1": 0.96
+      "fn": 1,
+      "accuracy": 0.96,
+      "precision": 0.917,
+      "recall": 0.917,
+      "f1": 0.917
     },
     {
       "threshold": 0.45,
-      "tp": 12,
+      "tp": 11,
       "fp": 1,
       "tn": 37,
-      "fn": 0,
-      "accuracy": 0.98,
-      "precision": 0.923,
-      "recall": 1.0,
-      "f1": 0.96
+      "fn": 1,
+      "accuracy": 0.96,
+      "precision": 0.917,
+      "recall": 0.917,
+      "f1": 0.917
     },
     {
       "threshold": 0.5,
-      "tp": 12,
+      "tp": 11,
       "fp": 1,
       "tn": 37,
-      "fn": 0,
-      "accuracy": 0.98,
-      "precision": 0.923,
-      "recall": 1.0,
-      "f1": 0.96
+      "fn": 1,
+      "accuracy": 0.96,
+      "precision": 0.917,
+      "recall": 0.917,
+      "f1": 0.917
     },
     {
       "threshold": 0.55,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.6,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.65,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.7,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.75,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.8,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.85,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.9,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     },
     {
       "threshold": 0.95,
-      "tp": 12,
+      "tp": 11,
       "fp": 0,
       "tn": 38,
-      "fn": 0,
-      "accuracy": 1.0,
+      "fn": 1,
+      "accuracy": 0.98,
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.917,
+      "f1": 0.957
     }
   ],
-  "disagreements": []
+  "disagreements": [
+    {
+      "kind": "stored",
+      "question": "According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",
+      "answer": "microsoft and nvidia",
+      "reference": "530 billion parameters, Microsoft and NVIDIA",
+      "label": true,
+      "score": 0.0,
+      "method": "number_mismatch"
+    }
+  ]
 }
