@@ -43,10 +43,26 @@ def _get_model() -> SentenceTransformer:
     return _model
 
 
-def embed(chunks: List[str]) -> np.ndarray:
+def with_section_context(chunk) -> str:
+    """
+    The text to embed for a chunk when section context is on: the section
+    title in front of the chunk ("Model. whisper uses an encoder ..."). Only
+    the vector changes — the stored chunk text, and what the generator sees,
+    stay the same.
+    """
+    section = getattr(chunk, "section", None)
+    return f"{section}. {chunk}" if section else str(chunk)
+
+
+def embed(chunks: List[str], section_context: bool = False) -> np.ndarray:
     """
     Encode a list of text chunks into a 2D numpy array of shape (n_chunks, 384).
+
+    section_context=True embeds each chunk with its section title in front
+    (with_section_context), an experimental variant compared in
+    backend/scripts/retrieval_variants.py.
     """
     model = _get_model()
-    embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
+    texts = [with_section_context(c) for c in chunks] if section_context else chunks
+    embeddings = model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
     return np.asarray(embeddings, dtype=np.float32)

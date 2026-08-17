@@ -57,6 +57,9 @@ SUPPORTED_EXTENSIONS = sorted({ext.lstrip(".") for ext in EXTENSION_MAP})
 
 # Retrieval depth is a development-time setting, not a user-facing control.
 TOP_K = 3
+# Sentence-aware chunks: equal or better than fixed windows on every retrieval
+# metric in data/eval/retrieval_variants.json.
+CHUNKING = "sentence"
 QUESTIONS_PER_TOPIC = 2
 STUDY_DIR = "_study"
 VIEWS = {
@@ -121,7 +124,8 @@ def build_project_index(project_name: str, signature):
     for path in project_documents(project):
         try:
             loaded = load_file(str(path))
-            file_chunks = preprocess(loaded, source_file=path.name)
+            file_chunks = preprocess(loaded, source_file=path.name,
+                                     chunking=CHUNKING)
         except Exception as exc:  # a bad upload shouldn't sink the project
             failures.append((path.name, str(exc)))
             continue
@@ -159,12 +163,13 @@ def study_path(project: Path, name: str) -> Path:
 def load_pool(project: Path, signature) -> dict:
     """
     Saved quiz items by topic id, plus the chunk indices already tried for each
-    topic. Discarded when the documents change, since chunk indices then shift.
+    topic. Discarded when the documents or the chunking mode change, since
+    chunk indices then shift.
     """
     path = study_path(project, "quiz_pool.json")
     if path.exists():
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("signature") == repr(signature):
+        if data.get("signature") == repr((CHUNKING, signature)):
             return {
                 "items": {tid: [quiz.QuizItem.from_record(r) for r in records]
                           for tid, records in data["items"].items()},
@@ -176,7 +181,7 @@ def load_pool(project: Path, signature) -> dict:
 def save_pool(project: Path, signature, pool: dict) -> None:
     path = study_path(project, "quiz_pool.json")
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"signature": repr(signature),
+    payload = {"signature": repr((CHUNKING, signature)),
                "items": {tid: [i.to_record() for i in items]
                          for tid, items in pool["items"].items()},
                "tried": {tid: sorted(v) for tid, v in pool["tried"].items()}}

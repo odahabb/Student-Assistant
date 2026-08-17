@@ -231,9 +231,49 @@ def _window(tokenizer, cleaned: str, chunk_tokens: int,
         start += step
 
 
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[])")
+
+
+def _sentence_windows(tokenizer, cleaned: str, chunk_tokens: int,
+                      overlap: int) -> Iterator[str]:
+    """
+    Pack whole sentences into windows of at most chunk_tokens tokens, so no
+    chunk starts or ends mid-sentence. The next window repeats the trailing
+    sentences of the previous one, up to `overlap` tokens. A sentence longer
+    than a whole window falls back to _window().
+    """
+    sentences = [s for s in _SENTENCE_END.split(cleaned) if s.strip()]
+    lengths = [len(tokenizer.encode(s, add_special_tokens=False)) for s in sentences]
+
+    i = 0
+    while i < len(sentences):
+        if lengths[i] > chunk_tokens:
+            yield from _window(tokenizer, sentences[i], chunk_tokens, overlap)
+            i += 1
+            continue
+        j, used = i, 0
+        while j < len(sentences) and lengths[j] <= chunk_tokens - used:
+            used += lengths[j]
+            j += 1
+        yield tokenizer.decode(tokenizer.encode(" ".join(sentences[i:j]),
+                                                add_special_tokens=False))
+        if j >= len(sentences):
+            break
+        # step back over trailing sentences that fit in the overlap budget
+        back, carried = j, 0
+        while back - 1 > i and carried + lengths[back - 1] <= overlap:
+            back -= 1
+            carried += lengths[back]
+        i = back
+
+
+CHUNKING_MODES = ("window", "sentence")
+
+
 def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
                overlap: int = 40, source_file: Optional[str] = None,
-               strip_page1_boilerplate: bool = True) -> List[Chunk]:
+               strip_page1_boilerplate: bool = True,
+               chunking: str = "window") -> List[Chunk]:
     """
     Clean raw text and split it into overlapping chunks sized to fit the
     embedder's 256-token limit (220-token windows, 40-token overlap by default).
@@ -251,7 +291,13 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
     strip_page1_boilerplate removes author/affiliation/ORCID/email lines from
     page 1 only (see _strip_page1_boilerplate). Pass False to reproduce the
     behaviour from before that filter existed.
+
+    chunking="window" is the fixed token window used throughout the
+    evaluation; "sentence" packs whole sentences instead (_sentence_windows),
+    an experimental variant compared in backend/scripts/retrieval_variants.py.
     """
+    if chunking not in CHUNKING_MODES:
+        raise ValueError(f"chunking must be one of {CHUNKING_MODES}")
     pages = _as_pages(text, source_file)
 
     for page in pages:
@@ -277,7 +323,8 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
         cleaned = re.sub(r'\s+', ' ', page_text).strip()
         if not cleaned:
             continue
-        for window_text in _window(tokenizer, cleaned, chunk_tokens, overlap):
+        windows = (_sentence_windows if chunking == "sentence" else _window)
+        for window_text in windows(tokenizer, cleaned, chunk_tokens, overlap):
             chunks.append(Chunk(
                 window_text,
                 source_file=page["source_file"],

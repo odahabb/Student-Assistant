@@ -49,6 +49,30 @@ class PreprocessTests(unittest.TestCase):
         chunks = preprocessor.preprocess("alpha   beta\n\n gamma " + words(10))
         self.assertTrue(chunks[0].startswith("alpha beta gamma"))
 
+    def test_sentence_chunking_keeps_sentences_whole(self):
+        sentences = [f"Sentence {n} has exactly six words." for n in range(10)]
+        chunks = preprocessor.preprocess(" ".join(sentences), chunk_tokens=20,
+                                         overlap=6, chunking="sentence")
+        for chunk in chunks:
+            self.assertTrue(chunk.startswith("Sentence"), chunk)
+            self.assertTrue(chunk.endswith("words."), chunk)
+            self.assertLessEqual(len(chunk.split()), 20)
+        # one trailing sentence (6 tokens) is repeated as overlap
+        self.assertEqual(chunks[1].split()[:2], ["Sentence", "2"])
+        self.assertIn("Sentence 9", chunks[-1])
+
+    def test_sentence_chunking_splits_an_overlong_sentence(self):
+        text = "Short one here. " + words(50) + " end. Another short sentence."
+        chunks = preprocessor.preprocess(text, chunk_tokens=20, overlap=4,
+                                         chunking="sentence")
+        self.assertTrue(all(len(c.split()) <= 20 for c in chunks))
+        self.assertIn("w49", " ".join(chunks))
+        self.assertTrue(chunks[-1].endswith("Another short sentence."))
+
+    def test_unknown_chunking_mode_is_rejected(self):
+        with self.assertRaises(ValueError):
+            preprocessor.preprocess(words(30), chunking="semantic")
+
     def test_too_short_input_is_rejected(self):
         with self.assertRaises(ValueError):
             preprocessor.preprocess("tiny")

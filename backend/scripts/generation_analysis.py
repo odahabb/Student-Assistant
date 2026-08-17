@@ -12,7 +12,16 @@ the Streamlit app uses (TOP_K = 3), and two independent facts are recorded:
                       among the chunks actually handed to the generator
   answer_correct    : does the generated text carry the ground-truth answer
 
-Crossing those gives four buckets:
+A third fact separates the two ways bucket 2 can happen:
+
+  answer_in_context : does the ground-truth answer appear verbatim (letters and
+                      digits only) in the retrieved text. Only meaningful for
+                      extractive answers, so it is None when the answer is not
+                      verbatim anywhere on its expected page. A matching page
+                      does not guarantee this — the answer can sit in another
+                      chunk of the same page.
+
+Crossing the first two gives four buckets:
 
   1. retrieved + correct answer   working as intended
   2. retrieved + wrong answer     GENERATION failure - the evidence was in the
@@ -27,6 +36,9 @@ as the app calls them. Nothing is tuned, and no fix is attempted.
 
 Run from anywhere:
     python backend/scripts/generation_analysis.py
+    python backend/scripts/generation_analysis.py --chunking sentence
+The second form measures the sentence-chunking configuration the app uses
+and writes generation_analysis_sentence.json instead.
 """
 
 import json
@@ -52,7 +64,11 @@ from backend.pipeline.generator import generate  # noqa: E402
 RAW_DIR = ROOT / "data" / "raw"
 EVAL_DIR = ROOT / "data" / "eval"
 GROUND_TRUTH_PATH = EVAL_DIR / "retrieval_ground_truth.json"
-OUT_PATH = EVAL_DIR / "generation_analysis.json"
+# "--chunking sentence" measures preprocess(chunking="sentence") instead.
+CHUNKING = (sys.argv[sys.argv.index("--chunking") + 1]
+            if "--chunking" in sys.argv else "window")
+OUT_PATH = EVAL_DIR / ("generation_analysis.json" if CHUNKING == "window"
+                       else f"generation_analysis_{CHUNKING}.json")
 
 DOCUMENTS = [
     "embedding.pdf",
@@ -138,10 +154,14 @@ def judge(expected: str, produced: str) -> dict:
     return correct, signals
 
 
+def squash(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(text).lower())
+
+
 def build_index():
     chunks = []
     for name in DOCUMENTS:
-        chunks.extend(preprocess(load_file(str(RAW_DIR / name))))
+        chunks.extend(preprocess(load_file(str(RAW_DIR / name)), chunking=CHUNKING))
     embeddings = embed(chunks)
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.ascontiguousarray(embeddings, dtype=np.float32))
@@ -179,6 +199,10 @@ def main():
         } for r, c in enumerate(retrieved, start=1)]
 
         retrieved_correct = any(rec["is_expected"] for rec in retrieved_records)
+        page_text = squash(" ".join(str(c) for c in chunks
+                                    if (c.source_file, c.page) == expected))
+        answer_in_context = (squash(entry["answer"]) in squash(" ".join(map(str, retrieved)))
+                             if squash(entry["answer"]) in page_text else None)
         answer_correct, signals = judge(entry["answer"], answer)
         bucket = BUCKETS[(retrieved_correct, answer_correct)]
         counts[bucket] += 1
@@ -189,6 +213,7 @@ def main():
             "expected_answer": entry["answer"],
             "expected_source": {"source_file": expected[0], "page": expected[1]},
             "retrieved_correct": retrieved_correct,
+            "answer_in_context": answer_in_context,
             "generated_answer": answer,
             "answer_correct": answer_correct,
             "bucket": bucket,
@@ -249,8 +274,13 @@ def main():
         "note": "Read-only analysis. Retrieval, embedding, chunking and "
                 "generation are unchanged; no fix attempted.",
         "k": TOP_K,
+        "chunking": CHUNKING,
         "total_questions": total,
         "bucket_counts": counts,
+        "bucket_2_answer_in_context": {
+            str(k): sum(1 for r in results if r["bucket"].startswith("2.")
+                        and r["answer_in_context"] is k)
+            for k in (True, False, None)},
         "grading_rule": "An answer counts as correct if the normalised expected "
                         "answer is contained in the output (or vice versa), or "
                         "token F1 >= 0.6, or every number in the expected answer "

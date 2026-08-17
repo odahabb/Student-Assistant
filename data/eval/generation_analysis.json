@@ -1,12 +1,18 @@
 {
   "note": "Read-only analysis. Retrieval, embedding, chunking and generation are unchanged; no fix attempted.",
   "k": 3,
+  "chunking": "window",
   "total_questions": 25,
   "bucket_counts": {
     "1. retrieved + correct answer": 12,
     "2. retrieved + wrong answer (generation failure)": 2,
     "3. not retrieved + wrong answer (retrieval failure)": 11,
     "4. not retrieved + correct answer": 0
+  },
+  "bucket_2_answer_in_context": {
+    "True": 0,
+    "False": 1,
+    "None": 1
   },
   "grading_rule": "An answer counts as correct if the normalised expected answer is contained in the output (or vice versa), or token F1 >= 0.6, or every number in the expected answer appears in the output. All signals are stored per question so calls can be re-judged.",
   "results": [
@@ -19,6 +25,7 @@
         "page": 1
       },
       "retrieved_correct": false,
+      "answer_in_context": false,
       "generated_answer": "0.5 %, 1 %, 2 %, 4 %, and 8 % of the full dataset size",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -33,7 +40,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 7.41,
+      "seconds": 6.34,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -67,6 +74,7 @@
         "page": 2
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "transparency, cost, vendor lock - in, and data governance",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -79,7 +87,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.74,
+      "seconds": 0.99,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -113,6 +121,7 @@
         "page": 1
       },
       "retrieved_correct": false,
+      "answer_in_context": false,
       "generated_answer": "861 hours",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -127,7 +136,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": true
       },
-      "seconds": 3.83,
+      "seconds": 0.71,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -161,6 +170,7 @@
         "page": 3
       },
       "retrieved_correct": false,
+      "answer_in_context": false,
       "generated_answer": "30 - second",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -175,7 +185,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.73,
+      "seconds": 0.66,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -209,6 +219,7 @@
         "page": 2
       },
       "retrieved_correct": false,
+      "answer_in_context": false,
       "generated_answer": "24",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -221,7 +232,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 2.71,
+      "seconds": 0.4,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -255,6 +266,7 @@
         "page": 4
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "t5 - xxl",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -267,7 +279,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.88,
+      "seconds": 1.84,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -301,6 +313,7 @@
         "page": 1
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "spread of misinformation",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -313,7 +326,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.78,
+      "seconds": 0.7,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -347,6 +360,7 @@
         "page": 3
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "key ( k ), query ( q ), and value ( v )",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -359,7 +373,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 4.87,
+      "seconds": 1.32,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -393,6 +407,7 @@
         "page": 4
       },
       "retrieved_correct": false,
+      "answer_in_context": false,
       "generated_answer": "mnrl",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -408,7 +423,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.74,
+      "seconds": 0.73,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -442,6 +457,7 @@
         "page": 4
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "2,710",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -456,7 +472,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 2.76,
+      "seconds": 0.47,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -490,6 +506,7 @@
         "page": 6
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "2e - 5",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -505,7 +522,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 3.86,
+      "seconds": 0.91,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -539,6 +556,7 @@
         "page": 6
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "1e - 5",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -554,7 +572,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 3.89,
+      "seconds": 0.87,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -588,6 +606,7 @@
         "page": 7
       },
       "retrieved_correct": true,
+      "answer_in_context": null,
       "generated_answer": "28",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -602,7 +621,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 3.62,
+      "seconds": 0.61,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -636,6 +655,7 @@
         "page": 2
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "##en translation data for these languages in our pre - training dataset which, al - though noisy, is vastly larger than the 861 hours of training data for xen translation in covost2",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -651,7 +671,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 6.66,
+      "seconds": 11.38,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -685,6 +705,7 @@
         "page": 2
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "680,000 hours",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -699,7 +720,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 4.16,
+      "seconds": 0.71,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -733,6 +754,7 @@
         "page": 5
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "0",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -747,7 +769,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.53,
+      "seconds": 564.61,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -781,6 +803,7 @@
         "page": 6
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "2.5",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -795,7 +818,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 3.72,
+      "seconds": 0.8,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -829,6 +852,7 @@
         "page": 6
       },
       "retrieved_correct": true,
+      "answer_in_context": null,
       "generated_answer": "12",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -843,7 +867,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 3.09,
+      "seconds": 0.54,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -877,6 +901,7 @@
         "page": 3
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "473 datasets, 146 task categories, and 1,836 total tasks",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -893,7 +918,7 @@
         "all_expected_numbers_present": true,
         "needs_human_review": false
       },
-      "seconds": 4.87,
+      "seconds": 1.37,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -927,6 +952,7 @@
         "page": 6
       },
       "retrieved_correct": true,
+      "answer_in_context": false,
       "generated_answer": "scaling number of tasks has diminishing ( though still positive ) returns",
       "answer_correct": false,
       "bucket": "2. retrieved + wrong answer (generation failure)",
@@ -941,7 +967,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 4.07,
+      "seconds": 1.08,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -975,6 +1001,7 @@
         "page": 6
       },
       "retrieved_correct": false,
+      "answer_in_context": null,
       "generated_answer": "62b palm - model initialized from palm - 62b and then pretrained for 500b more tokens",
       "answer_correct": false,
       "bucket": "3. not retrieved + wrong answer (retrieval failure)",
@@ -991,7 +1018,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 5.43,
+      "seconds": 1.65,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -1025,6 +1052,7 @@
         "page": 2
       },
       "retrieved_correct": true,
+      "answer_in_context": null,
       "generated_answer": "microsoft and nvidia",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -1039,7 +1067,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 4.08,
+      "seconds": 0.87,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -1073,6 +1101,7 @@
         "page": 2
       },
       "retrieved_correct": true,
+      "answer_in_context": null,
       "generated_answer": "decoder and the encoder",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -1085,7 +1114,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.68,
+      "seconds": 0.83,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -1119,6 +1148,7 @@
         "page": 4
       },
       "retrieved_correct": true,
+      "answer_in_context": null,
       "generated_answer": "increased complexity in models with more layers or parameters",
       "answer_correct": false,
       "bucket": "2. retrieved + wrong answer (generation failure)",
@@ -1131,7 +1161,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.97,
+      "seconds": 0.89,
       "retrieved_chunks": [
         {
           "rank": 1,
@@ -1165,6 +1195,7 @@
         "page": 5
       },
       "retrieved_correct": true,
+      "answer_in_context": true,
       "generated_answer": "dropout",
       "answer_correct": true,
       "bucket": "1. retrieved + correct answer",
@@ -1177,7 +1208,7 @@
         "all_expected_numbers_present": false,
         "needs_human_review": false
       },
-      "seconds": 3.43,
+      "seconds": 0.58,
       "retrieved_chunks": [
         {
           "rank": 1,

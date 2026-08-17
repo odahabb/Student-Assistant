@@ -1,0 +1,176 @@
+{
+  "note": "Retrieval variants on the 25-question ground truth. Question numbers in gained/lost are 1-based positions in retrieval_ground_truth.json. ranks: first matching rank in the top 5, null if none.",
+  "questions": 25,
+  "variants": {
+    "baseline": {
+      "chunking": "window",
+      "section_context": false,
+      "chunks": 581,
+      "mean_chunk_tokens": 204.1,
+      "recall": {
+        "recall_at_1": 0.44,
+        "recall_at_3": 0.56,
+        "recall_at_5": 0.6
+      },
+      "mrr_top5": 0.5033,
+      "ranks": [
+        null,
+        2,
+        null,
+        4,
+        null,
+        null,
+        null,
+        1,
+        null,
+        2,
+        1,
+        1,
+        1,
+        null,
+        null,
+        null,
+        1,
+        1,
+        1,
+        1,
+        null,
+        3,
+        1,
+        1,
+        1
+      ],
+      "gained_at_5": [],
+      "lost_at_5": []
+    },
+    "section_context": {
+      "chunking": "window",
+      "section_context": true,
+      "chunks": 581,
+      "mean_chunk_tokens": 204.1,
+      "recall": {
+        "recall_at_1": 0.4,
+        "recall_at_3": 0.56,
+        "recall_at_5": 0.6
+      },
+      "mrr_top5": 0.4833,
+      "ranks": [
+        null,
+        3,
+        null,
+        2,
+        null,
+        4,
+        null,
+        1,
+        null,
+        2,
+        1,
+        1,
+        1,
+        null,
+        null,
+        null,
+        1,
+        1,
+        1,
+        1,
+        null,
+        null,
+        1,
+        2,
+        1
+      ],
+      "gained_at_5": [
+        6
+      ],
+      "lost_at_5": [
+        22
+      ]
+    },
+    "sentence_chunking": {
+      "chunking": "sentence",
+      "section_context": false,
+      "chunks": 635,
+      "mean_chunk_tokens": 176.1,
+      "recall": {
+        "recall_at_1": 0.52,
+        "recall_at_3": 0.6,
+        "recall_at_5": 0.6
+      },
+      "mrr_top5": 0.5467,
+      "ranks": [
+        null,
+        1,
+        null,
+        3,
+        null,
+        null,
+        null,
+        1,
+        null,
+        1,
+        1,
+        1,
+        1,
+        null,
+        null,
+        null,
+        1,
+        1,
+        1,
+        1,
+        null,
+        3,
+        1,
+        1,
+        1
+      ],
+      "gained_at_5": [],
+      "lost_at_5": []
+    },
+    "sentence_chunking+section_context": {
+      "chunking": "sentence",
+      "section_context": true,
+      "chunks": 635,
+      "mean_chunk_tokens": 176.1,
+      "recall": {
+        "recall_at_1": 0.44,
+        "recall_at_3": 0.6,
+        "recall_at_5": 0.64
+      },
+      "mrr_top5": 0.5147,
+      "ranks": [
+        null,
+        3,
+        null,
+        2,
+        null,
+        2,
+        null,
+        1,
+        null,
+        1,
+        1,
+        1,
+        1,
+        null,
+        null,
+        null,
+        1,
+        1,
+        1,
+        5,
+        null,
+        3,
+        1,
+        1,
+        1
+      ],
+      "gained_at_5": [
+        6
+      ],
+      "lost_at_5": []
+    }
+  }
+}

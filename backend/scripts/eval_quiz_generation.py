@@ -55,6 +55,7 @@ DOCUMENTS = [
     ROOT / "data" / "Prototype" / "sample_lecture_notes.pdf",
 ]
 ATTEMPTS_PER_TOPIC = 3
+CHUNKING = "sentence"   # as app.py
 TOP_K = 3
 SEED = 7
 RATINGS = {
@@ -78,7 +79,7 @@ def generate():
 
     chunks = []
     for path in DOCUMENTS:
-        chunks.extend(preprocess(load_file(str(path))))
+        chunks.extend(preprocess(load_file(str(path)), chunking=CHUNKING))
     embeddings = embed(chunks)
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.ascontiguousarray(embeddings, dtype=np.float32))
@@ -157,6 +158,7 @@ def generate():
                 "notes. Round-trip check applied separately so rejected pairs "
                 "are kept for comparison.",
         "settings": {"attempts_per_topic": ATTEMPTS_PER_TOPIC, "top_k": TOP_K,
+                     "chunking": CHUNKING,
                      "seed": SEED, "grade_threshold": quiz.GRADE_THRESHOLD,
                      "device": os.environ.get("SA_DEVICE", "gpu")},
         "summary": summary,

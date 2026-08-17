@@ -30,6 +30,15 @@ class ChunkTests(unittest.TestCase):
         self.assertIsNone(old.section)
 
 
+class SectionContextTests(unittest.TestCase):
+    def test_section_title_is_prefixed_only_when_known(self):
+        from backend.pipeline.embedder import with_section_context
+        self.assertEqual(with_section_context(Chunk("body", "a.pdf", 2, "Model")),
+                         "Model. body")
+        self.assertEqual(with_section_context(Chunk("body")), "body")
+        self.assertEqual(with_section_context("plain"), "plain")
+
+
 class VectorStoreTests(unittest.TestCase):
     def test_save_and_load_keep_vectors_order_and_metadata(self):
         with tempfile.TemporaryDirectory() as tmp:
