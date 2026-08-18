@@ -11,7 +11,7 @@ from typing import List
 
 import numpy as np
 
-from backend.pipeline.embedder import _get_model
+from backend.pipeline.embedder import _get_model, query_prefix
 
 
 def retrieve(query: str, index, chunks: List[str], k: int = 3) -> List[str]:
@@ -19,7 +19,8 @@ def retrieve(query: str, index, chunks: List[str], k: int = 3) -> List[str]:
     Embed the query and search the FAISS index for the top-k most similar chunks.
     """
     model = _get_model()
-    query_embedding = model.encode([query], convert_to_numpy=True, show_progress_bar=False)
+    query_embedding = model.encode([query_prefix() + query], convert_to_numpy=True,
+                                   normalize_embeddings=True, show_progress_bar=False)
     query_embedding = np.ascontiguousarray(query_embedding, dtype=np.float32)
 
     _, indices = index.search(query_embedding, k)

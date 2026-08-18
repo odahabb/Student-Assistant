@@ -39,6 +39,40 @@ class SectionContextTests(unittest.TestCase):
         self.assertEqual(with_section_context("plain"), "plain")
 
 
+class EmbedderSelectionTests(unittest.TestCase):
+    def test_default_and_explicit_models(self):
+        from backend.pipeline import embedder
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("SA_EMBEDDER", None)
+            self.assertEqual(embedder.model_key(), "minilm")
+            self.assertEqual(embedder.query_prefix(), "")
+        with mock.patch.dict(os.environ, {"SA_EMBEDDER": "bge-small"}):
+            self.assertEqual(embedder.model_key(), "bge-small")
+            self.assertTrue(embedder.query_prefix().startswith("Represent"))
+            self.assertEqual(embedder.model_key("minilm"), "minilm")
+
+    def test_unknown_model_falls_back(self):
+        from backend.pipeline import embedder
+        with mock.patch.dict(os.environ, {"SA_EMBEDDER": "nonsense"}):
+            self.assertEqual(embedder.model_key(), "minilm")
+
+    def test_retriever_prefixes_queries_for_bge(self):
+        seen = []
+
+        class Recorder(FakeEncoder):
+            def encode(self, texts, **kwargs):
+                seen.extend(texts)
+                return np.array([[1, 0, 0]], dtype=np.float32)
+
+        index = faiss.IndexFlatL2(3)
+        index.add(np.array([[1, 0, 0]], dtype=np.float32))
+        with mock.patch.dict(os.environ, {"SA_EMBEDDER": "bge-small"}), \
+             mock.patch.object(retriever, "_get_model", return_value=Recorder()):
+            retriever.retrieve("what is x?", index, ["x"], k=1)
+        self.assertTrue(seen[0].startswith("Represent"))
+        self.assertTrue(seen[0].endswith("what is x?"))
+
+
 class VectorStoreTests(unittest.TestCase):
     def test_save_and_load_keep_vectors_order_and_metadata(self):
         with tempfile.TemporaryDirectory() as tmp:

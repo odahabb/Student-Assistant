@@ -36,6 +36,9 @@ from pathlib import Path
 # CPU-only, matching the pipeline's demo path. Set before importing any pipeline
 # module: device.py reads this when the models are lazily constructed.
 os.environ.setdefault("SA_DEVICE", "cpu")
+# bge-small-en-v1.5 answered 18/25 evaluation questions end to end against 12
+# for all-MiniLM-L6-v2 (data/eval/generation_analysis_bge-small.json).
+os.environ.setdefault("SA_EMBEDDER", "bge-small")
 
 import faiss
 import numpy as np
@@ -47,7 +50,7 @@ SAMPLE_DIR = ROOT / "data" / "raw"
 
 from backend.pipeline.loader import EXTENSION_MAP, load_file
 from backend.pipeline.preprocessor import preprocess
-from backend.pipeline.embedder import embed
+from backend.pipeline.embedder import embed, model_key
 from backend.pipeline.retriever import retrieve
 from backend.pipeline.generator import generate
 from backend.pipeline import quiz
@@ -57,9 +60,9 @@ SUPPORTED_EXTENSIONS = sorted({ext.lstrip(".") for ext in EXTENSION_MAP})
 
 # Retrieval depth is a development-time setting, not a user-facing control.
 TOP_K = 3
-# Sentence-aware chunks: equal or better than fixed windows on every retrieval
-# metric in data/eval/retrieval_variants.json.
-CHUNKING = "sentence"
+# Fixed token windows. Sentence-aware chunks helped all-MiniLM-L6-v2 slightly
+# but lost two end-to-end answers with bge-small (data/eval/).
+CHUNKING = "window"
 QUESTIONS_PER_TOPIC = 2
 STUDY_DIR = "_study"
 VIEWS = {
@@ -163,13 +166,13 @@ def study_path(project: Path, name: str) -> Path:
 def load_pool(project: Path, signature) -> dict:
     """
     Saved quiz items by topic id, plus the chunk indices already tried for each
-    topic. Discarded when the documents or the chunking mode change, since
-    chunk indices then shift.
+    topic. Discarded when the documents, the chunking mode or the embedding
+    model change, since chunk indices or the round-trip check would differ.
     """
     path = study_path(project, "quiz_pool.json")
     if path.exists():
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("signature") == repr((CHUNKING, signature)):
+        if data.get("signature") == repr((CHUNKING, model_key(), signature)):
             return {
                 "items": {tid: [quiz.QuizItem.from_record(r) for r in records]
                           for tid, records in data["items"].items()},
@@ -181,7 +184,7 @@ def load_pool(project: Path, signature) -> dict:
 def save_pool(project: Path, signature, pool: dict) -> None:
     path = study_path(project, "quiz_pool.json")
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"signature": repr((CHUNKING, signature)),
+    payload = {"signature": repr((CHUNKING, model_key(), signature)),
                "items": {tid: [i.to_record() for i in items]
                          for tid, items in pool["items"].items()},
                "tried": {tid: sorted(v) for tid, v in pool["tried"].items()}}

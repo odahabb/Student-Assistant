@@ -37,8 +37,9 @@ as the app calls them. Nothing is tuned, and no fix is attempted.
 Run from anywhere:
     python backend/scripts/generation_analysis.py
     python backend/scripts/generation_analysis.py --chunking sentence
-The second form measures the sentence-chunking configuration the app uses
-and writes generation_analysis_sentence.json instead.
+The second form measures sentence chunking and writes
+generation_analysis_sentence.json instead. With SA_EMBEDDER=bge-small the
+file name also gains a _bge-small suffix.
 """
 
 import json
@@ -57,7 +58,7 @@ import numpy as np  # noqa: E402
 
 from backend.pipeline.loader import load_file  # noqa: E402
 from backend.pipeline.preprocessor import preprocess  # noqa: E402
-from backend.pipeline.embedder import embed  # noqa: E402
+from backend.pipeline.embedder import embed, model_key  # noqa: E402
 from backend.pipeline.retriever import retrieve  # noqa: E402
 from backend.pipeline.generator import generate  # noqa: E402
 
@@ -67,8 +68,10 @@ GROUND_TRUTH_PATH = EVAL_DIR / "retrieval_ground_truth.json"
 # "--chunking sentence" measures preprocess(chunking="sentence") instead.
 CHUNKING = (sys.argv[sys.argv.index("--chunking") + 1]
             if "--chunking" in sys.argv else "window")
-OUT_PATH = EVAL_DIR / ("generation_analysis.json" if CHUNKING == "window"
-                       else f"generation_analysis_{CHUNKING}.json")
+EMBEDDER = model_key()
+OUT_PATH = EVAL_DIR / ("generation_analysis"
+                       + ("" if CHUNKING == "window" else f"_{CHUNKING}")
+                       + ("" if EMBEDDER == "minilm" else f"_{EMBEDDER}") + ".json")
 
 DOCUMENTS = [
     "embedding.pdf",
@@ -275,6 +278,7 @@ def main():
                 "generation are unchanged; no fix attempted.",
         "k": TOP_K,
         "chunking": CHUNKING,
+        "embedder": EMBEDDER,
         "total_questions": total,
         "bucket_counts": counts,
         "bucket_2_answer_in_context": {

@@ -168,8 +168,9 @@ def _numbers(text: str) -> List[str]:
 
 def _cosine(a: str, b: str) -> float:
     from backend.pipeline.embedder import embed
-    vectors = embed([a, b])
-    return float(vectors[0] @ vectors[1])   # MiniLM vectors are unit-norm
+    # Always MiniLM: GRADE_THRESHOLD was calibrated on its similarities.
+    vectors = embed([a, b], model="minilm")
+    return float(vectors[0] @ vectors[1])   # vectors are unit-norm
 
 
 def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,

@@ -1,0 +1,470 @@
+{
+  "note": "Embedding-model comparison on the 25-question retrieval ground truth. ranks: first matching rank in the top 5, null if none.",
+  "device": "xpu",
+  "chunks": {
+    "window": 581,
+    "sentence": 635
+  },
+  "models": {
+    "all-MiniLM-L6-v2": {
+      "hf_id": "sentence-transformers/all-MiniLM-L6-v2",
+      "parameters_millions": 22.7,
+      "dimensions": 384,
+      "max_seq_length": 256,
+      "query_prefix": "",
+      "by_chunking": {
+        "window": {
+          "recall": {
+            "recall_at_1": 0.44,
+            "recall_at_3": 0.56,
+            "recall_at_5": 0.6
+          },
+          "mrr_top5": 0.5033,
+          "encode_sec_per_100_chunks": 0.708,
+          "ranks": [
+            null,
+            2,
+            null,
+            4,
+            null,
+            null,
+            null,
+            1,
+            null,
+            2,
+            1,
+            1,
+            1,
+            null,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            3,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            }
+          }
+        },
+        "sentence": {
+          "recall": {
+            "recall_at_1": 0.52,
+            "recall_at_3": 0.6,
+            "recall_at_5": 0.6
+          },
+          "mrr_top5": 0.5467,
+          "encode_sec_per_100_chunks": 0.302,
+          "ranks": [
+            null,
+            1,
+            null,
+            3,
+            null,
+            null,
+            null,
+            1,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            3,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            }
+          }
+        }
+      }
+    },
+    "multi-qa-MiniLM-L6-cos-v1": {
+      "hf_id": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+      "parameters_millions": 22.7,
+      "dimensions": 384,
+      "max_seq_length": 512,
+      "query_prefix": "",
+      "by_chunking": {
+        "window": {
+          "recall": {
+            "recall_at_1": 0.4,
+            "recall_at_3": 0.6,
+            "recall_at_5": 0.72
+          },
+          "mrr_top5": 0.5173,
+          "encode_sec_per_100_chunks": 0.337,
+          "ranks": [
+            null,
+            5,
+            null,
+            null,
+            null,
+            5,
+            3,
+            2,
+            5,
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            null,
+            1,
+            null,
+            1,
+            2,
+            null,
+            1,
+            1,
+            2,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 3,
+              "lost": 4,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 3,
+              "lost": 2,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 5,
+              "lost": 2,
+              "mcnemar_p": 0.453
+            }
+          }
+        },
+        "sentence": {
+          "recall": {
+            "recall_at_1": 0.44,
+            "recall_at_3": 0.6,
+            "recall_at_5": 0.76
+          },
+          "mrr_top5": 0.536,
+          "encode_sec_per_100_chunks": 0.308,
+          "ranks": [
+            null,
+            null,
+            null,
+            4,
+            5,
+            null,
+            4,
+            1,
+            3,
+            1,
+            1,
+            1,
+            1,
+            3,
+            2,
+            3,
+            1,
+            5,
+            1,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 1,
+              "lost": 3,
+              "mcnemar_p": 0.625
+            },
+            "k=3": {
+              "gained": 4,
+              "lost": 4,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 6,
+              "lost": 2,
+              "mcnemar_p": 0.289
+            }
+          }
+        }
+      }
+    },
+    "bge-small-en-v1.5": {
+      "hf_id": "BAAI/bge-small-en-v1.5",
+      "parameters_millions": 33.4,
+      "dimensions": 384,
+      "max_seq_length": 512,
+      "query_prefix": "Represent this sentence for searching relevant passages: ",
+      "by_chunking": {
+        "window": {
+          "recall": {
+            "recall_at_1": 0.56,
+            "recall_at_3": 0.72,
+            "recall_at_5": 0.76
+          },
+          "mrr_top5": 0.6413,
+          "encode_sec_per_100_chunks": 0.667,
+          "ranks": [
+            null,
+            2,
+            null,
+            1,
+            5,
+            null,
+            1,
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            null,
+            null,
+            3,
+            1,
+            1,
+            1,
+            1,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 3,
+              "lost": 0,
+              "mcnemar_p": 0.25
+            },
+            "k=3": {
+              "gained": 4,
+              "lost": 0,
+              "mcnemar_p": 0.125
+            },
+            "k=5": {
+              "gained": 4,
+              "lost": 0,
+              "mcnemar_p": 0.125
+            }
+          }
+        },
+        "sentence": {
+          "recall": {
+            "recall_at_1": 0.6,
+            "recall_at_3": 0.72,
+            "recall_at_5": 0.72
+          },
+          "mrr_top5": 0.6467,
+          "encode_sec_per_100_chunks": 0.586,
+          "ranks": [
+            null,
+            2,
+            null,
+            1,
+            3,
+            null,
+            1,
+            1,
+            3,
+            1,
+            1,
+            1,
+            1,
+            null,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 3,
+              "lost": 1,
+              "mcnemar_p": 0.625
+            },
+            "k=3": {
+              "gained": 3,
+              "lost": 0,
+              "mcnemar_p": 0.25
+            },
+            "k=5": {
+              "gained": 3,
+              "lost": 0,
+              "mcnemar_p": 0.25
+            }
+          }
+        }
+      }
+    },
+    "all-mpnet-base-v2": {
+      "hf_id": "sentence-transformers/all-mpnet-base-v2",
+      "parameters_millions": 109.5,
+      "dimensions": 768,
+      "max_seq_length": 384,
+      "query_prefix": "",
+      "by_chunking": {
+        "window": {
+          "recall": {
+            "recall_at_1": 0.24,
+            "recall_at_3": 0.44,
+            "recall_at_5": 0.52
+          },
+          "mrr_top5": 0.3467,
+          "encode_sec_per_100_chunks": 1.986,
+          "ranks": [
+            null,
+            3,
+            null,
+            4,
+            null,
+            null,
+            null,
+            2,
+            null,
+            1,
+            null,
+            3,
+            1,
+            null,
+            null,
+            null,
+            2,
+            1,
+            1,
+            1,
+            null,
+            null,
+            1,
+            2,
+            4
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 1,
+              "lost": 6,
+              "mcnemar_p": 0.125
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 3,
+              "mcnemar_p": 0.25
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 2,
+              "mcnemar_p": 0.5
+            }
+          }
+        },
+        "sentence": {
+          "recall": {
+            "recall_at_1": 0.24,
+            "recall_at_3": 0.4,
+            "recall_at_5": 0.52
+          },
+          "mrr_top5": 0.3367,
+          "encode_sec_per_100_chunks": 1.689,
+          "ranks": [
+            null,
+            4,
+            null,
+            1,
+            null,
+            null,
+            null,
+            2,
+            null,
+            3,
+            null,
+            4,
+            1,
+            null,
+            null,
+            null,
+            3,
+            1,
+            2,
+            1,
+            null,
+            null,
+            1,
+            1,
+            4
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 1,
+              "lost": 8,
+              "mcnemar_p": 0.039
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 5,
+              "mcnemar_p": 0.062
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 2,
+              "mcnemar_p": 0.5
+            }
+          }
+        }
+      }
+    }
+  }
+}

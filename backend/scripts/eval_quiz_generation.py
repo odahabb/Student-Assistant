@@ -55,7 +55,8 @@ DOCUMENTS = [
     ROOT / "data" / "Prototype" / "sample_lecture_notes.pdf",
 ]
 ATTEMPTS_PER_TOPIC = 3
-CHUNKING = "sentence"   # as app.py
+CHUNKING = "window"      # as app.py
+os.environ.setdefault("SA_EMBEDDER", "bge-small")   # as app.py
 TOP_K = 3
 SEED = 7
 RATINGS = {
@@ -159,6 +160,7 @@ def generate():
                 "are kept for comparison.",
         "settings": {"attempts_per_topic": ATTEMPTS_PER_TOPIC, "top_k": TOP_K,
                      "chunking": CHUNKING,
+                     "embedder": os.environ["SA_EMBEDDER"],
                      "seed": SEED, "grade_threshold": quiz.GRADE_THRESHOLD,
                      "device": os.environ.get("SA_DEVICE", "gpu")},
         "summary": summary,

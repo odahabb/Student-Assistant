@@ -4,13 +4,25 @@ Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
 Step 3 of pipeline: EMBEDDING
-Encodes text chunks into dense vectors using all-MiniLM-L6-v2.
+Encodes text chunks into dense 384-d vectors.
 Runs on CPU by default; supports optional Intel Arc GPU / NPU acceleration
 via the SA_DEVICE env var (see backend/pipeline/device.py).
+
+Two embedding models are supported, chosen with the SA_EMBEDDER env var:
+
+  minilm     all-MiniLM-L6-v2 — the original model
+  bge-small  BAAI/bge-small-en-v1.5 — better retrieval on the evaluation set
+             (data/eval/embedder_comparison.json). It expects an instruction
+             in front of search queries, which embed_query() adds.
+
+Both use the same bert-base-uncased tokenizer, so chunk boundaries do not
+depend on the choice. The quiz grader always uses minilm, because its
+threshold was calibrated on MiniLM similarities.
 """
 
 import logging
-from typing import List
+import os
+from typing import Dict, List, Optional
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -19,28 +31,49 @@ from backend.pipeline.device import get_torch_device, should_use_npu
 
 log = logging.getLogger(__name__)
 
-MODEL_NAME = "all-MiniLM-L6-v2"
+MODELS = {
+    "minilm": {"name": "all-MiniLM-L6-v2", "query_prefix": ""},
+    "bge-small": {"name": "BAAI/bge-small-en-v1.5",
+                  "query_prefix": "Represent this sentence for searching "
+                                  "relevant passages: "},
+}
+DEFAULT_MODEL = "minilm"
+MODEL_NAME = MODELS[DEFAULT_MODEL]["name"]
 
-_model = None
+_models: Dict[str, SentenceTransformer] = {}
 
 
-def _get_model() -> SentenceTransformer:
-    global _model
-    if _model is not None:
-        return _model
+def model_key(key: Optional[str] = None) -> str:
+    """The embedding model to use: `key` if given, else SA_EMBEDDER, else minilm."""
+    key = key or os.environ.get("SA_EMBEDDER", DEFAULT_MODEL)
+    if key not in MODELS:
+        log.warning(f"Unknown SA_EMBEDDER '{key}' — using {DEFAULT_MODEL}")
+        key = DEFAULT_MODEL
+    return key
+
+
+def query_prefix(key: Optional[str] = None) -> str:
+    return MODELS[model_key(key)]["query_prefix"]
+
+
+def _get_model(key: Optional[str] = None) -> SentenceTransformer:
+    key = model_key(key)
+    if key in _models:
+        return _models[key]
+    name = MODELS[key]["name"]
 
     if should_use_npu():
         try:
-            _model = SentenceTransformer(
-                MODEL_NAME, backend="openvino",
+            _models[key] = SentenceTransformer(
+                name, backend="openvino",
                 model_kwargs={"device": "NPU"},
             )
-            return _model
+            return _models[key]
         except Exception as e:
             log.warning(f"NPU embedder load failed ({e}), falling back to torch CPU/GPU")
 
-    _model = SentenceTransformer(MODEL_NAME, device=get_torch_device())
-    return _model
+    _models[key] = SentenceTransformer(name, device=get_torch_device())
+    return _models[key]
 
 
 def with_section_context(chunk) -> str:
@@ -54,15 +87,17 @@ def with_section_context(chunk) -> str:
     return f"{section}. {chunk}" if section else str(chunk)
 
 
-def embed(chunks: List[str], section_context: bool = False) -> np.ndarray:
+def embed(chunks: List[str], section_context: bool = False,
+          model: Optional[str] = None) -> np.ndarray:
     """
     Encode a list of text chunks into a 2D numpy array of shape (n_chunks, 384).
 
     section_context=True embeds each chunk with its section title in front
     (with_section_context), an experimental variant compared in
-    backend/scripts/retrieval_variants.py.
+    backend/scripts/retrieval_variants.py. `model` overrides SA_EMBEDDER.
     """
-    model = _get_model()
+    encoder = _get_model(model)
     texts = [with_section_context(c) for c in chunks] if section_context else chunks
-    embeddings = model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+    embeddings = encoder.encode(texts, convert_to_numpy=True,
+                                normalize_embeddings=True, show_progress_bar=False)
     return np.asarray(embeddings, dtype=np.float32)
