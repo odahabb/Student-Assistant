@@ -228,7 +228,84 @@ def recommender():
     save(fig, "fig_recommender.png")
 
 
+def architecture():
+    """Figure 3.1: the three paths through the system."""
+    from matplotlib.patches import FancyBboxPatch
+
+    fig, ax = plt.subplots(figsize=(8.0, 4.6))
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-2, 58)
+    ax.axis("off")
+    box_fill, store_fill = "#eef4fc", "#f3f2ef"
+    cols = [5, 29, 53, 77]
+    w, h = 20, 10
+
+    def box(col, y, title, detail, fill=box_fill, edge=SERIES[0]):
+        x = cols[col]
+        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.2",
+                                    facecolor=fill, edgecolor=edge, linewidth=1))
+        ax.text(x + w / 2, y + h * 0.7, title, ha="center", va="center", fontsize=8,
+                fontweight="semibold", color=INK)
+        ax.text(x + w / 2, y + h * 0.32, detail, ha="center", va="center", fontsize=6.2,
+                color=INK_2, linespacing=1.2)
+
+    def path(points, label=None, label_at=None, ha="left"):
+        xs, ys = zip(*points)
+        ax.plot(xs[:-1] + (xs[-1],), ys[:-1] + (ys[-1],), color=INK_2, linewidth=1,
+                solid_joinstyle="round")
+        ax.annotate("", xy=points[-1], xytext=points[-2],
+                    arrowprops=dict(arrowstyle="-|>", color=INK_2, lw=1,
+                                    mutation_scale=9, shrinkA=0, shrinkB=0))
+        if label:
+            ax.text(*label_at, label, fontsize=6.4, color=INK_2, ha=ha, va="center")
+
+    def row(y):
+        for c in range(3):
+            path([(cols[c] + w, y + h / 2), (cols[c + 1], y + h / 2)])
+
+    def lane(y, label):
+        ax.text(1.5, y + h / 2, label, ha="center", va="center", fontsize=7.5,
+                fontweight="semibold", color=INK_2, rotation=90)
+
+    top, mid, low = 44, 24, 4
+    lane(top, "Indexing")
+    box(0, top, "Load", "PyMuPDF · Qwen2-VL-2B\n(EasyOCR+BLIP) · Whisper")
+    box(1, top, "Clean and chunk", "author filter · 220-token\nwindows · page, section")
+    box(2, top, "Embed", "bge-small-en-v1.5")
+    box(3, top, "Subject store", "FAISS index + chunks\nwith file, page, section",
+        fill=store_fill, edge=INK_2)
+    row(top)
+
+    lane(mid, "Question")
+    box(0, mid, "Question", "typed in the Ask view")
+    box(1, mid, "Retrieve", "top 3 chunks\n(same embedder)")
+    box(2, mid, "Generate", "FLAN-T5-Large with\nrank-weighted context")
+    box(3, mid, "Answer and sources", "file · page · section")
+    row(mid)
+    store_x = cols[3] + w / 2
+    retrieve_x = cols[1] + w / 2
+    path([(store_x, top), (store_x, 39), (retrieve_x, 39), (retrieve_x, mid + h)],
+         "searched by", (store_x - 1.5, 40.5), ha="right")
+
+    lane(low, "Study")
+    box(0, low, "Topics", "chunks grouped by\ndocument section")
+    box(1, low, "Write question", "FLAN-T5-Large +\nround-trip check")
+    box(2, low, "Grade answer", "rules + MiniLM\nsimilarity")
+    box(3, low, "Mastery model", "Rasch / Elo per topic:\nnext level, revise next",
+        fill=store_fill, edge=INK_2)
+    row(low)
+    path([(retrieve_x, low + h), (retrieve_x, mid)],
+         "answered again through\nthe question path", (retrieve_x + 1.2, 19))
+    topics_x = cols[0] + w / 2
+    mastery_x = cols[3] + w / 2
+    path([(mastery_x, low), (mastery_x, 0.5), (topics_x, 0.5), (topics_x, low)],
+         "chooses the next topic and difficulty", (50, -0.9), ha="center")
+
+    save(fig, "fig_architecture.png")
+
+
 def main():
+    architecture()
     image_models()
     embedders()
     error_breakdown()

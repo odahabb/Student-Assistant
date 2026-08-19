@@ -72,10 +72,10 @@ wheel, and `optimum[openvino]` / `openvino` for the NPU path.
 python -m unittest discover -s tests -t .
 ```
 
-85 unit tests cover loading and section detection, chunking (both modes),
+87 tests cover loading and section detection, chunking (both modes),
 boilerplate stripping, context budgeting, storage and retrieval, device
-fallback, quiz generation and grading, and the recommender. They stub out the
-models, so they run in under a second without downloading anything.
+fallback, quiz generation and grading, the recommender, and subject creation in the real app. They stub out the
+models, so they run in a few seconds without downloading anything.
 
 ## Evaluation
 

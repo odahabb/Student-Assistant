@@ -45,7 +45,8 @@ import numpy as np
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
-PROJECTS_DIR = ROOT / "data" / "projects"
+# SA_PROJECTS_DIR lets tests run the app against a temporary folder.
+PROJECTS_DIR = Path(os.environ.get("SA_PROJECTS_DIR", ROOT / "data" / "projects"))
 SAMPLE_DIR = ROOT / "data" / "raw"
 
 from backend.pipeline.loader import EXTENSION_MAP, load_file
@@ -253,6 +254,12 @@ def render_sidebar():
         names = [p.name for p in projects]
 
         selected_name = None
+        # A subject created on the previous run is selected here, before the
+        # radio exists: Streamlit refuses writes to a widget's key after the
+        # widget has been drawn in the same run.
+        pending = st.session_state.pop("pending_project", None)
+        if pending in names:
+            st.session_state["selected_project"] = pending
         if names:
             if st.session_state.get("selected_project") not in names:
                 st.session_state["selected_project"] = names[0]
@@ -272,7 +279,7 @@ def render_sidebar():
                 if new_name.strip():
                     try:
                         created = create_project(new_name)
-                        st.session_state["selected_project"] = created.name
+                        st.session_state["pending_project"] = created.name
                         st.rerun()
                     except ValueError as exc:
                         st.error(str(exc))
@@ -425,7 +432,8 @@ def new_question(project, signature, index, chunks, topics, progress, choice):
         options = quiz.multiple_choice(item, everything())
         if len(options) < 3:   # still too few distractors — ask as short answer
             level, options = 2, None
-    return {"item": item.to_record(), "level": level, "options": options}
+    return {"item": item.to_record(), "level": level, "options": options,
+            "asked": time.time()}
 
 
 def render_quiz(project: Path, signature, index, chunks):
@@ -474,9 +482,11 @@ def render_quiz(project: Path, signature, index, chunks):
 
         with st.form(f"answer_{project.name}", border=False):
             if level == 1:
-                answer = st.radio("Your answer", current["options"], index=None)
+                answer = st.radio("Your answer", current["options"], index=None,
+                                  key=f"mc_{current['asked']}")
             else:
-                answer = st.text_input("Your answer")
+                # Keyed per question, so one answer never carries into the next.
+                answer = st.text_input("Your answer", key=f"text_{current['asked']}")
             submitted = st.form_submit_button("Check answer",
                                               disabled=state["result"] is not None)
 
