@@ -8,16 +8,17 @@ Encodes text chunks into dense 384-d vectors.
 Runs on CPU by default; supports optional Intel Arc GPU / NPU acceleration
 via the SA_DEVICE env var (see backend/pipeline/device.py).
 
-Two embedding models are supported, chosen with the SA_EMBEDDER env var:
+Three embedding models are supported, chosen with the SA_EMBEDDER env var:
 
   minilm     all-MiniLM-L6-v2 — the original model
-  bge-small  BAAI/bge-small-en-v1.5 — better retrieval on the evaluation set
-             (data/eval/embedder_comparison.json). It expects an instruction
-             in front of search queries, which embed_query() adds.
+  multi-qa   multi-qa-MiniLM-L6-cos-v1 — MiniLM trained for question answering
+  bge-small  BAAI/bge-small-en-v1.5 — a retrieval model that expects an
+             instruction in front of search queries, which the retriever adds
 
-Both use the same bert-base-uncased tokenizer, so chunk boundaries do not
-depend on the choice. The quiz grader always uses minilm, because its
-threshold was calibrated on MiniLM similarities.
+The comparison is in data/eval/embedder_comparison.json. All three use the
+same bert-base-uncased tokenizer, so chunk boundaries do not depend on the
+choice. The quiz grader always uses minilm, because its threshold was
+calibrated on MiniLM similarities.
 """
 
 import logging
@@ -33,6 +34,8 @@ log = logging.getLogger(__name__)
 
 MODELS = {
     "minilm": {"name": "all-MiniLM-L6-v2", "query_prefix": ""},
+    "multi-qa": {"name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+                 "query_prefix": ""},
     "bge-small": {"name": "BAAI/bge-small-en-v1.5",
                   "query_prefix": "Represent this sentence for searching "
                                   "relevant passages: "},

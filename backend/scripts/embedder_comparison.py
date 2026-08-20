@@ -17,9 +17,10 @@ does that, holding everything else fixed:
   all-mpnet-base-v2          a larger general-purpose model (110M)
 
 Chunks come from preprocess() exactly as the pipeline makes them (chunk
-boundaries are set with the MiniLM tokenizer for every model, so each model
-sees identical text), for both chunking modes. bge expects an instruction in
-front of queries; the other models take text as-is. Vectors are normalised
+boundaries are set with the MiniLM tokenizer, and semantic breaks with MiniLM
+sentence vectors, so each model sees identical text), for all four chunking
+modes: fixed windows, sentence-aware, heading-aware and semantic. bge expects
+an instruction in front of queries; the other models take text as-is. Vectors are normalised
 and searched exactly, so the ranking is by cosine similarity, which matches
 IndexFlatL2 on unit vectors. Hit rule as in eval_recall.py: a retrieved
 chunk from the expected file and page.
@@ -71,7 +72,7 @@ MODELS = {
                           "query_prefix": ""},
 }
 BASELINE = "all-MiniLM-L6-v2"
-CHUNKINGS = ["window", "sentence"]
+CHUNKINGS = ["window", "sentence", "heading", "semantic"]
 K_VALUES = [1, 3, 5]
 
 

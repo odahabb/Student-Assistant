@@ -267,7 +267,122 @@ def _sentence_windows(tokenizer, cleaned: str, chunk_tokens: int,
         i = back
 
 
-CHUNKING_MODES = ("window", "sentence")
+# Heading-aware chunking
+#
+# A page is cut at every heading line — numbered ("2.1. Data Processing",
+# "3 Results", "II. CAUSES"), lettered appendix headings ("A. Evaluation
+# Datasets") or named ("Lecture 4 - Overfitting") — and each block is packed
+# into sentence windows on its own, so no chunk mixes two subsections. This
+# works on raw lines, before whitespace is collapsed, because headings are only
+# recognisable as whole lines.
+
+_SUBHEADING = re.compile(
+    r"^(?:(?:\d{1,2}(?:\.\d{1,2}){0,3}\.?|[IVX]{1,5}\.|[A-H]\.)\s+[A-Z][A-Za-z]"
+    r"|(?i:chapter|lecture|week|unit|module|topic|part)\s+[\dIVXivx]+\b)")
+_BARE_SECTION_NUMBER = re.compile(r"^\d{1,2}(?:\.\d{1,2}){0,3}\.?$")
+
+
+def _section_number_ok(line: str) -> bool:
+    """Section numbers start between 1 and 20; table cells like "0.1" or "69" don't."""
+    first = re.match(r"^(\d+)", line)
+    return first is None or 1 <= int(first.group(1)) <= 20
+
+
+def _is_heading(line: str) -> bool:
+    words = line.split()
+    return (0 < len(words) <= 12 and "," not in line
+            and not line.rstrip().endswith((".", ";"))
+            and _section_number_ok(line)
+            and bool(_SUBHEADING.match(line)))
+
+
+def _heading_blocks(page_text: str) -> List[str]:
+    """Raw page text split into blocks, each starting at a heading line."""
+    lines = [line.strip() for line in page_text.splitlines()]
+    blocks, current = [], []
+    for i, line in enumerate(lines):
+        # "3." on its own line, with the title on the next line
+        starts = _is_heading(line) or (
+            _BARE_SECTION_NUMBER.match(line) and i + 1 < len(lines)
+            and not re.search(r"\d", lines[i + 1])
+            and _is_heading(f"{line} {lines[i + 1]}"))
+        if starts and any(current):
+            blocks.append("\n".join(current))
+            current = []
+        current.append(line)
+    if any(current):
+        blocks.append("\n".join(current))
+    return blocks
+
+
+def _heading_windows(tokenizer, page_text: str, chunk_tokens: int,
+                     overlap: int) -> Iterator[str]:
+    for block in _heading_blocks(page_text):
+        cleaned = re.sub(r"\s+", " ", block).strip()
+        if cleaned:
+            yield from _sentence_windows(tokenizer, cleaned, chunk_tokens, overlap)
+
+
+# Semantic chunking
+#
+# The usual RAG sense of the term: embed every sentence, and start a new chunk
+# where two neighbouring sentences are least alike — here, at the least similar
+# quarter of neighbouring pairs on the page. Segments under MIN_SEGMENT_TOKENS are
+# merged into the one before (or after, for the first), and a segment too long
+# for one chunk is packed into sentence windows. Sentences are always embedded
+# with all-MiniLM-L6-v2, so the chunks are the same whichever model is used for
+# retrieval.
+
+SEMANTIC_BREAK_PERCENTILE = 25
+MIN_SEGMENT_TOKENS = 40
+
+
+def _sentence_vectors(sentences: List[str]):
+    from backend.pipeline.embedder import embed
+    return embed(sentences, model="minilm")
+
+
+def _semantic_windows(tokenizer, cleaned: str, chunk_tokens: int,
+                      overlap: int) -> Iterator[str]:
+    sentences = [s for s in _SENTENCE_END.split(cleaned) if s.strip()]
+    if len(sentences) < 3:
+        yield from _sentence_windows(tokenizer, cleaned, chunk_tokens, overlap)
+        return
+    lengths = [len(tokenizer.encode(s, add_special_tokens=False)) for s in sentences]
+
+    vectors = _sentence_vectors(sentences)
+    sims = [float(vectors[i] @ vectors[i + 1]) for i in range(len(sentences) - 1)]
+    # the k least similar neighbour pairs, so ties cannot add extra breaks
+    k = max(1, len(sims) * SEMANTIC_BREAK_PERCENTILE // 100)
+    breaks = set(sorted(range(len(sims)), key=lambda i: sims[i])[:k])
+
+    segments, current = [], [0]
+    for i in range(len(sims)):
+        if i in breaks:
+            segments.append(current)
+            current = []
+        current.append(i + 1)
+    segments.append(current)
+
+    merged = []
+    for seg in segments:
+        size = sum(lengths[i] for i in seg)
+        if merged and size < MIN_SEGMENT_TOKENS:
+            merged[-1] = merged[-1] + seg
+        elif merged and sum(lengths[i] for i in merged[-1]) < MIN_SEGMENT_TOKENS:
+            merged[-1] = merged[-1] + seg
+        else:
+            merged.append(seg)
+
+    for seg in merged:
+        text = " ".join(sentences[i] for i in seg)
+        if sum(lengths[i] for i in seg) <= chunk_tokens:
+            yield tokenizer.decode(tokenizer.encode(text, add_special_tokens=False))
+        else:
+            yield from _sentence_windows(tokenizer, text, chunk_tokens, overlap)
+
+
+CHUNKING_MODES = ("window", "sentence", "heading", "semantic")
 
 
 def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
@@ -292,9 +407,12 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
     page 1 only (see _strip_page1_boilerplate). Pass False to reproduce the
     behaviour from before that filter existed.
 
-    chunking="window" is the fixed token window used throughout the
-    evaluation; "sentence" packs whole sentences instead (_sentence_windows),
-    an experimental variant compared in backend/scripts/retrieval_variants.py.
+    chunking selects how each page is split, always within chunk_tokens:
+      "window"   fixed token windows with overlap (the default)
+      "sentence" whole sentences packed into windows (_sentence_windows)
+      "heading"  cut at section/subsection headings, then sentence windows
+      "semantic" cut where neighbouring sentences are least similar
+    The alternatives are compared in backend/scripts/embedder_comparison.py.
     """
     if chunking not in CHUNKING_MODES:
         raise ValueError(f"chunking must be one of {CHUNKING_MODES}")
@@ -323,8 +441,14 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
         cleaned = re.sub(r'\s+', ' ', page_text).strip()
         if not cleaned:
             continue
-        windows = (_sentence_windows if chunking == "sentence" else _window)
-        for window_text in windows(tokenizer, cleaned, chunk_tokens, overlap):
+        if chunking == "heading":
+            # needs the raw lines to see headings
+            windows = _heading_windows(tokenizer, page_text, chunk_tokens, overlap)
+        else:
+            splitter = {"window": _window, "sentence": _sentence_windows,
+                        "semantic": _semantic_windows}[chunking]
+            windows = splitter(tokenizer, cleaned, chunk_tokens, overlap)
+        for window_text in windows:
             chunks.append(Chunk(
                 window_text,
                 source_file=page["source_file"],

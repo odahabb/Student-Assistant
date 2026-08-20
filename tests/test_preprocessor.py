@@ -1,6 +1,8 @@
 import unittest
 from unittest import mock
 
+import numpy as np
+
 from backend.pipeline import preprocessor
 from backend.pipeline.chunk import Chunk
 from tests.helpers import FakeEmbeddingModel
@@ -71,7 +73,61 @@ class PreprocessTests(unittest.TestCase):
 
     def test_unknown_chunking_mode_is_rejected(self):
         with self.assertRaises(ValueError):
-            preprocessor.preprocess(words(30), chunking="semantic")
+            preprocessor.preprocess(words(30), chunking="topic")
+
+    def test_heading_chunking_never_mixes_subsections(self):
+        page = "\n".join([
+            "2.1. Data Processing",
+            "Audio is split into thirty second segments. Transcripts are normalised.",
+            "2.2. Model",
+            "The model is an encoder decoder transformer. It uses log mel features.",
+            "3",
+            "Experiments",
+            "Results are reported as word error rate.",
+        ])
+        chunks = preprocessor.preprocess(
+            [{"source_file": "w.pdf", "page": 2, "section": "Approach", "text": page}],
+            chunk_tokens=50, chunking="heading", strip_page1_boilerplate=False)
+        self.assertEqual([c.split()[0] for c in chunks], ["2.1.", "2.2.", "3"])
+        self.assertTrue(all(c.page == 2 and c.section == "Approach" for c in chunks))
+        self.assertNotIn("encoder", chunks[0])
+
+    def test_heading_detection_ignores_sentences_and_long_lines(self):
+        self.assertTrue(preprocessor._is_heading("II. CAUSES OF HALLUCINATIONS"))
+        self.assertTrue(preprocessor._is_heading("Lecture 4 - Overfitting"))
+        self.assertTrue(preprocessor._is_heading("A. Evaluation Datasets"))
+        self.assertFalse(preprocessor._is_heading("3 Models were trained for five days."))
+        self.assertFalse(preprocessor._is_heading("3 data sources and performed manual"))
+        self.assertFalse(preprocessor._is_heading(
+            "2 This line is far too long to be a heading because it keeps going on"))
+
+    def test_semantic_chunking_breaks_where_topics_change(self):
+        text = ("Cats purr loudly. Cats sleep often. Cats chase mice. "
+                "Stocks rose today. Markets closed higher. Bonds fell slightly.")
+        topic = {"Cats": [1.0, 0.0], "Stocks": [0.0, 1.0], "Markets": [0.1, 0.99],
+                 "Bonds": [0.0, 1.0]}
+
+        def fake_vectors(sentences):
+            return np.array([topic[s.split()[0]] for s in sentences])
+
+        with mock.patch.object(preprocessor, "_sentence_vectors", fake_vectors), \
+             mock.patch.object(preprocessor, "MIN_SEGMENT_TOKENS", 1):
+            chunks = preprocessor.preprocess(text, chunk_tokens=50, chunking="semantic")
+        self.assertEqual(len(chunks), 2)
+        self.assertTrue(chunks[0].startswith("Cats") and "Stocks" not in chunks[0])
+        self.assertTrue(chunks[1].startswith("Stocks"))
+
+    def test_semantic_chunking_merges_tiny_segments_and_respects_size(self):
+        text = " ".join(f"Sentence {i} about topic {i}." for i in range(12))
+
+        def alternating(sentences):
+            return np.array([[1.0, 0.0] if i % 2 else [0.0, 1.0]
+                             for i in range(len(sentences))])
+
+        with mock.patch.object(preprocessor, "_sentence_vectors", alternating):
+            chunks = preprocessor.preprocess(text, chunk_tokens=12, chunking="semantic")
+        self.assertTrue(all(len(c.split()) <= 12 for c in chunks))
+        self.assertIn("Sentence 11", " ".join(chunks))
 
     def test_too_short_input_is_rejected(self):
         with self.assertRaises(ValueError):

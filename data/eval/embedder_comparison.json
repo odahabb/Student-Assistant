@@ -3,7 +3,9 @@
   "device": "xpu",
   "chunks": {
     "window": 581,
-    "sentence": 635
+    "sentence": 635,
+    "heading": 716,
+    "semantic": 776
   },
   "models": {
     "all-MiniLM-L6-v2": {
@@ -20,7 +22,7 @@
             "recall_at_5": 0.6
           },
           "mrr_top5": 0.5033,
-          "encode_sec_per_100_chunks": 0.708,
+          "encode_sec_per_100_chunks": 0.314,
           "ranks": [
             null,
             2,
@@ -73,7 +75,7 @@
             "recall_at_5": 0.6
           },
           "mrr_top5": 0.5467,
-          "encode_sec_per_100_chunks": 0.302,
+          "encode_sec_per_100_chunks": 0.289,
           "ranks": [
             null,
             1,
@@ -118,6 +120,112 @@
               "mcnemar_p": 1.0
             }
           }
+        },
+        "heading": {
+          "recall": {
+            "recall_at_1": 0.48,
+            "recall_at_3": 0.64,
+            "recall_at_5": 0.64
+          },
+          "mrr_top5": 0.5533,
+          "encode_sec_per_100_chunks": 0.259,
+          "ranks": [
+            null,
+            1,
+            null,
+            2,
+            null,
+            null,
+            null,
+            1,
+            null,
+            3,
+            1,
+            1,
+            1,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            2,
+            null,
+            2,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            }
+          }
+        },
+        "semantic": {
+          "recall": {
+            "recall_at_1": 0.4,
+            "recall_at_3": 0.56,
+            "recall_at_5": 0.6
+          },
+          "mrr_top5": 0.4813,
+          "encode_sec_per_100_chunks": 0.259,
+          "ranks": [
+            null,
+            3,
+            null,
+            2,
+            null,
+            null,
+            null,
+            1,
+            null,
+            5,
+            1,
+            1,
+            2,
+            null,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            2,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 0,
+              "mcnemar_p": 1.0
+            }
+          }
         }
       }
     },
@@ -135,7 +243,7 @@
             "recall_at_5": 0.72
           },
           "mrr_top5": 0.5173,
-          "encode_sec_per_100_chunks": 0.337,
+          "encode_sec_per_100_chunks": 0.313,
           "ranks": [
             null,
             5,
@@ -188,7 +296,7 @@
             "recall_at_5": 0.76
           },
           "mrr_top5": 0.536,
-          "encode_sec_per_100_chunks": 0.308,
+          "encode_sec_per_100_chunks": 0.284,
           "ranks": [
             null,
             null,
@@ -233,6 +341,112 @@
               "mcnemar_p": 0.289
             }
           }
+        },
+        "heading": {
+          "recall": {
+            "recall_at_1": 0.52,
+            "recall_at_3": 0.64,
+            "recall_at_5": 0.72
+          },
+          "mrr_top5": 0.598,
+          "encode_sec_per_100_chunks": 0.255,
+          "ranks": [
+            null,
+            null,
+            null,
+            5,
+            4,
+            null,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            1,
+            1,
+            null,
+            2,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 4,
+              "lost": 3,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 4,
+              "lost": 4,
+              "mcnemar_p": 1.0
+            },
+            "k=5": {
+              "gained": 5,
+              "lost": 3,
+              "mcnemar_p": 0.727
+            }
+          }
+        },
+        "semantic": {
+          "recall": {
+            "recall_at_1": 0.6,
+            "recall_at_3": 0.72,
+            "recall_at_5": 0.84
+          },
+          "mrr_top5": 0.6813,
+          "encode_sec_per_100_chunks": 0.255,
+          "ranks": [
+            null,
+            3,
+            4,
+            4,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            1,
+            1,
+            1,
+            5,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 6,
+              "lost": 1,
+              "mcnemar_p": 0.125
+            },
+            "k=3": {
+              "gained": 6,
+              "lost": 2,
+              "mcnemar_p": 0.289
+            },
+            "k=5": {
+              "gained": 6,
+              "lost": 0,
+              "mcnemar_p": 0.031
+            }
+          }
         }
       }
     },
@@ -250,7 +464,7 @@
             "recall_at_5": 0.76
           },
           "mrr_top5": 0.6413,
-          "encode_sec_per_100_chunks": 0.667,
+          "encode_sec_per_100_chunks": 0.589,
           "ranks": [
             null,
             2,
@@ -303,7 +517,7 @@
             "recall_at_5": 0.72
           },
           "mrr_top5": 0.6467,
-          "encode_sec_per_100_chunks": 0.586,
+          "encode_sec_per_100_chunks": 0.531,
           "ranks": [
             null,
             2,
@@ -348,6 +562,112 @@
               "mcnemar_p": 0.25
             }
           }
+        },
+        "heading": {
+          "recall": {
+            "recall_at_1": 0.56,
+            "recall_at_3": 0.72,
+            "recall_at_5": 0.8
+          },
+          "mrr_top5": 0.6513,
+          "encode_sec_per_100_chunks": 0.483,
+          "ranks": [
+            null,
+            3,
+            null,
+            1,
+            4,
+            null,
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            1,
+            null,
+            5,
+            1,
+            1,
+            1,
+            2,
+            1,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 5,
+              "lost": 3,
+              "mcnemar_p": 0.727
+            },
+            "k=3": {
+              "gained": 2,
+              "lost": 0,
+              "mcnemar_p": 0.5
+            },
+            "k=5": {
+              "gained": 4,
+              "lost": 0,
+              "mcnemar_p": 0.125
+            }
+          }
+        },
+        "semantic": {
+          "recall": {
+            "recall_at_1": 0.6,
+            "recall_at_3": 0.72,
+            "recall_at_5": 0.72
+          },
+          "mrr_top5": 0.6533,
+          "encode_sec_per_100_chunks": 0.481,
+          "ranks": [
+            null,
+            1,
+            null,
+            1,
+            3,
+            null,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            1,
+            null,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            null,
+            1,
+            1,
+            1,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 6,
+              "lost": 1,
+              "mcnemar_p": 0.125
+            },
+            "k=3": {
+              "gained": 4,
+              "lost": 0,
+              "mcnemar_p": 0.125
+            },
+            "k=5": {
+              "gained": 3,
+              "lost": 0,
+              "mcnemar_p": 0.25
+            }
+          }
         }
       }
     },
@@ -365,7 +685,7 @@
             "recall_at_5": 0.52
           },
           "mrr_top5": 0.3467,
-          "encode_sec_per_100_chunks": 1.986,
+          "encode_sec_per_100_chunks": 1.841,
           "ranks": [
             null,
             3,
@@ -418,7 +738,7 @@
             "recall_at_5": 0.52
           },
           "mrr_top5": 0.3367,
-          "encode_sec_per_100_chunks": 1.689,
+          "encode_sec_per_100_chunks": 1.632,
           "ranks": [
             null,
             4,
@@ -456,6 +776,112 @@
               "gained": 0,
               "lost": 5,
               "mcnemar_p": 0.062
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 2,
+              "mcnemar_p": 0.5
+            }
+          }
+        },
+        "heading": {
+          "recall": {
+            "recall_at_1": 0.36,
+            "recall_at_3": 0.52,
+            "recall_at_5": 0.56
+          },
+          "mrr_top5": 0.4367,
+          "encode_sec_per_100_chunks": 1.425,
+          "ranks": [
+            null,
+            4,
+            null,
+            null,
+            null,
+            null,
+            null,
+            2,
+            null,
+            2,
+            1,
+            1,
+            3,
+            null,
+            null,
+            1,
+            1,
+            1,
+            1,
+            1,
+            null,
+            null,
+            1,
+            1,
+            3
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 1,
+              "lost": 4,
+              "mcnemar_p": 0.375
+            },
+            "k=3": {
+              "gained": 0,
+              "lost": 3,
+              "mcnemar_p": 0.25
+            },
+            "k=5": {
+              "gained": 0,
+              "lost": 2,
+              "mcnemar_p": 0.5
+            }
+          }
+        },
+        "semantic": {
+          "recall": {
+            "recall_at_1": 0.4,
+            "recall_at_3": 0.48,
+            "recall_at_5": 0.52
+          },
+          "mrr_top5": 0.4433,
+          "encode_sec_per_100_chunks": 1.43,
+          "ranks": [
+            null,
+            1,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            1,
+            1,
+            1,
+            3,
+            null,
+            null,
+            null,
+            1,
+            1,
+            4,
+            1,
+            null,
+            null,
+            1,
+            2,
+            1
+          ],
+          "vs_baseline": {
+            "k=1": {
+              "gained": 2,
+              "lost": 2,
+              "mcnemar_p": 1.0
+            },
+            "k=3": {
+              "gained": 1,
+              "lost": 3,
+              "mcnemar_p": 0.625
             },
             "k=5": {
               "gained": 0,

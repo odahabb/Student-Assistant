@@ -29,7 +29,7 @@ has three views over one shared index:
 | Step | Module | What it does | Model |
 |---|---|---|---|
 | 1. Load | `loader.py` | Extracts text per modality. PDFs keep page numbers and are tagged with their section (from the PDF outline, numbered/"Lecture N" headings, or page groups). | PyMuPDF · **Qwen2-VL-2B-Instruct** for images (falls back to **EasyOCR + BLIP**) · **Whisper** (base) for audio |
-| 2. Preprocess | `preprocessor.py` | Cleans text, strips page-1 author/affiliation lines, and splits each page into 220-token windows with 40-token overlap (a sentence-aware mode is also available). | bert-base-uncased tokenizer |
+| 2. Preprocess | `preprocessor.py` | Cleans text, strips page-1 author/affiliation lines, and splits each page into chunks of at most 220 tokens: fixed windows with 40-token overlap (the app's choice), sentence-aware, heading-aware, or semantic (breaks where neighbouring sentences are least similar). | bert-base-uncased tokenizer; MiniLM for semantic breaks |
 | 3. Embed | `embedder.py` | Encodes chunks as 384-d unit vectors. | **bge-small-en-v1.5** in the app; **all-MiniLM-L6-v2** is the original model and the library default |
 | 4. Store | `vector_store.py` | FAISS `IndexFlatL2` plus chunk text and metadata. | — |
 | 5. Retrieve | `retriever.py` | Top-k (k = 3) nearest chunks for a question. | same embedding model |
@@ -56,7 +56,7 @@ and questions are written on demand. Quiz questions and progress are saved in
 `data/projects/<subject>/_study/`.
 
 **Embedding model.** `SA_EMBEDDER` selects `bge-small` (the app's default,
-chosen in the embedding-model comparison below) or `minilm`.
+chosen in the embedding-model comparison below), `multi-qa` or `minilm`.
 
 **Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU), `cpu` or
 `npu` (OpenVINO, generator and embedder only). The app defaults to `cpu`;
@@ -72,7 +72,7 @@ wheel, and `optimum[openvino]` / `openvino` for the NPU path.
 python -m unittest discover -s tests -t .
 ```
 
-87 tests cover loading and section detection, chunking (both modes),
+91 tests cover loading and section detection, all four chunking modes,
 boilerplate stripping, context budgeting, storage and retrieval, device
 fallback, quiz generation and grading, the recommender, and subject creation in the real app. They stub out the
 models, so they run in a few seconds without downloading anything.
@@ -90,8 +90,8 @@ Scripts live in `backend/scripts/`; results are committed in `data/eval/`.
 | Is the corpus mix to blame? (one index per document) | `ablation_single_doc.py` | `recall_ablation_single_doc.json` |
 | What outranks the correct chunk? | `competitor_analysis.py` | `competitor_analysis.json` |
 | Chunking and section-context variants | `retrieval_variants.py` | `retrieval_variants.json` |
-| Embedding models: MiniLM, multi-qa-MiniLM, bge-small, mpnet | `embedder_comparison.py` | `embedder_comparison.json` |
-| Retrieval failures vs generation failures at k = 3 | `[SA_EMBEDDER=bge-small] generation_analysis.py [--chunking sentence]` | `generation_analysis*.json`, `generation_manual_review.json` |
+| Embedding models (MiniLM, multi-qa-MiniLM, bge-small, mpnet) × chunking modes (window, sentence, heading, semantic) | `embedder_comparison.py` | `embedder_comparison.json` |
+| Retrieval failures vs generation failures at k = 3, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...]` | `generation_analysis[_chunking][_embedder].json`, `generation_manual_review.json` |
 | Quiz answer grader calibration | `eval_grader.py` | `grader_calibration.json`, `grader_decisions.csv` |
 | Quiz question generation (plus blind rating sheet) | `eval_quiz_generation.py [score]` | `quiz_generation.json`, `quiz_rating_sheet.csv` |
 | Recommender, on simulated students | `eval_recommender.py` | `recommender_simulation.json` |

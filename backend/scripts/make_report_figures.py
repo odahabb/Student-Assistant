@@ -122,34 +122,54 @@ def image_models():
     save(fig, "fig_image_models.png")
 
 
+SEQUENTIAL = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]
+
+
 def embedders():
+    """Recall@3 and MRR@5 for every embedding model and chunking mode."""
+    from matplotlib.colors import LinearSegmentedColormap
+
     d = load("embedder_comparison.json")["models"]
-    order = ["all-MiniLM-L6-v2", "multi-qa-MiniLM-L6-cos-v1",
-             "bge-small-en-v1.5", "all-mpnet-base-v2"]
-    names = [f"{m} ({d[m]['parameters_millions']:.0f}M parameters)" for m in order]
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.3), sharey=True)
-    for ax, mode, title in zip(axes, ["window", "sentence"],
-                               ["Fixed 220-token windows", "Sentence-aware chunks"]):
-        grouped_columns(
-            ax, ["Recall@1", "Recall@3", "Recall@5"], names,
-            [[d[m]["by_chunking"][mode]["recall"][f"recall_at_{k}"] for k in (1, 3, 5)]
-             for m in order],
-            ymax=0.8, labels=False)
-        ax.set_title(title)
-    axes[0].set_ylabel("Share of 25 questions")
-    fig.legend(handles=legend_handles(names), loc="lower center", ncols=2,
-               bbox_to_anchor=(0.5, -0.1), fontsize=8)
-    fig.suptitle("Retrieval recall by embedding model and chunking", x=0.01, ha="left",
-                 y=1.02, fontsize=10, fontweight="semibold", color=INK)
+    models = ["all-MiniLM-L6-v2", "multi-qa-MiniLM-L6-cos-v1",
+              "bge-small-en-v1.5", "all-mpnet-base-v2"]
+    modes = [("window", "Fixed\nwindows"), ("sentence", "Sentence-\naware"),
+             ("heading", "Heading-\naware"), ("semantic", "Semantic")]
+    cmap = LinearSegmentedColormap.from_list("seq", SEQUENTIAL)
+    panels = [("Recall@3 (the app retrieves 3 chunks)",
+               lambda m: m["recall"]["recall_at_3"]),
+              ("MRR over the top 5", lambda m: m["mrr_top5"])]
+
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 2.9), sharey=True)
+    for ax, (title, get) in zip(axes, panels):
+        grid = [[get(d[m]["by_chunking"][mode]) for mode, _ in modes] for m in models]
+        ax.imshow(grid, cmap=cmap, vmin=0.2, vmax=0.9, aspect="auto")
+        for r, row in enumerate(grid):
+            for c, v in enumerate(row):
+                ax.text(c, r, f"{v:.2f}", ha="center", va="center", fontsize=8,
+                        color="#ffffff" if v >= 0.58 else INK)
+        ax.set_xticks(range(len(modes)), [label for _, label in modes], fontsize=7.5)
+        ax.set_yticks(range(len(models)),
+                      [f"{m} ({d[m]['parameters_millions']:.0f}M)" for m in models],
+                      fontsize=7.5)
+        ax.tick_params(length=0)
+        for side in ax.spines.values():
+            side.set_visible(False)
+        ax.set_title(title, fontsize=8.5)
+    fig.suptitle("Retrieval quality by embedding model and chunking (25 questions)",
+                 x=0.01, ha="left", y=1.03, fontsize=10, fontweight="semibold", color=INK)
+    fig.tight_layout()
     save(fig, "fig_embedders.png")
 
 
 def error_breakdown():
     configs = [
-        ("generation_analysis.json", "MiniLM, windows"),
-        ("generation_analysis_sentence.json", "MiniLM, sentences"),
-        ("generation_analysis_bge-small.json", "bge-small, windows"),
-        ("generation_analysis_sentence_bge-small.json", "bge-small, sentences"),
+        ("generation_analysis.json", "MiniLM, fixed windows"),
+        ("generation_analysis_heading.json", "MiniLM, heading-aware"),
+        ("generation_analysis_semantic.json", "MiniLM, semantic"),
+        ("generation_analysis_semantic_multi-qa.json", "multi-qa, semantic"),
+        ("generation_analysis_bge-small.json", "bge-small, fixed windows"),
+        ("generation_analysis_heading_bge-small.json", "bge-small, heading-aware"),
+        ("generation_analysis_semantic_bge-small.json", "bge-small, semantic"),
     ]
     rows = []
     for name, label in configs:
@@ -167,7 +187,7 @@ def error_breakdown():
 
     segments = ["Correct answer", "Right page retrieved, answer not found in context",
                 "Right page not retrieved", "Answer in context, generator wrong"]
-    fig, ax = plt.subplots(figsize=(6.4, 0.55 * len(rows) + 1.2))
+    fig, ax = plt.subplots(figsize=(6.4, 0.42 * len(rows) + 1.2))
     height = 0.42
     for y, (label, counts) in enumerate(rows[::-1]):
         left = 0
@@ -175,7 +195,7 @@ def error_breakdown():
             if n == 0:
                 continue
             ax.barh(y, n - 0.08, height, left=left + 0.04, color=SERIES[s], linewidth=0)
-            if n >= 2:
+            if n >= 1:
                 ax.text(left + n / 2, y, str(n), ha="center", va="center", fontsize=8,
                         color="#ffffff" if s in (0, 1) else INK)
             left += n
@@ -185,7 +205,7 @@ def error_breakdown():
     style_axes(ax, grid_axis="x")
     ax.spines["left"].set_visible(False)
     ax.legend(handles=legend_handles(segments), loc="upper center",
-              bbox_to_anchor=(0.5, -0.22), ncols=2, fontsize=8)
+              bbox_to_anchor=(0.5, -0.16), ncols=2, fontsize=8)
     ax.set_title("Where end-to-end answers succeed and fail")
     save(fig, "fig_error_breakdown.png")
 
