@@ -39,7 +39,7 @@ Run from anywhere:
     python backend/scripts/generation_analysis.py --chunking sentence
 The second form measures sentence chunking and writes
 generation_analysis_sentence.json instead. With SA_EMBEDDER=bge-small the
-file name also gains a _bge-small suffix.
+file name also gains a _bge-small suffix, and --retrieval hybrid adds _hybrid.
 """
 
 import json
@@ -59,7 +59,8 @@ import numpy as np  # noqa: E402
 from backend.pipeline.loader import load_file  # noqa: E402
 from backend.pipeline.preprocessor import preprocess  # noqa: E402
 from backend.pipeline.embedder import embed, model_key  # noqa: E402
-from backend.pipeline.retriever import retrieve  # noqa: E402
+from backend.pipeline.retriever import DENSE_WEIGHT, retrieve  # noqa: E402
+from backend.pipeline import sparse  # noqa: E402
 from backend.pipeline.generator import generate  # noqa: E402
 
 RAW_DIR = ROOT / "data" / "raw"
@@ -69,9 +70,14 @@ GROUND_TRUTH_PATH = EVAL_DIR / "retrieval_ground_truth.json"
 CHUNKING = (sys.argv[sys.argv.index("--chunking") + 1]
             if "--chunking" in sys.argv else "window")
 EMBEDDER = model_key()
+# "--retrieval hybrid" mixes BM25 keyword scores into retrieval (retriever.py);
+# "--retrieval keyword" uses BM25 alone.
+RETRIEVAL = (sys.argv[sys.argv.index("--retrieval") + 1]
+             if "--retrieval" in sys.argv else "dense")
 OUT_PATH = EVAL_DIR / ("generation_analysis"
                        + ("" if CHUNKING == "window" else f"_{CHUNKING}")
-                       + ("" if EMBEDDER == "minilm" else f"_{EMBEDDER}") + ".json")
+                       + ("" if EMBEDDER == "minilm" else f"_{EMBEDDER}")
+                       + ("" if RETRIEVAL == "dense" else f"_{RETRIEVAL}") + ".json")
 
 DOCUMENTS = [
     "embedding.pdf",
@@ -180,6 +186,7 @@ def main():
     print(f"Ground truth: {len(ground_truth)} questions")
 
     index, chunks = build_index()
+    bm25 = sparse.build_index(chunks) if RETRIEVAL != "dense" else None
     print(f"Combined index: {index.ntotal} chunks across {len(DOCUMENTS)} documents\n")
 
     results = []
@@ -189,7 +196,8 @@ def main():
         expected = (entry["source_file"], entry["page"])
 
         started = time.time()
-        retrieved = retrieve(entry["question"], index, chunks, k=TOP_K)
+        retrieved = retrieve(entry["question"], index, chunks, k=TOP_K, sparse=bm25,
+                             dense_weight=0.0 if RETRIEVAL == "keyword" else DENSE_WEIGHT)
         answer = generate(entry["question"], retrieved)
         elapsed = time.time() - started
 
@@ -279,6 +287,7 @@ def main():
         "k": TOP_K,
         "chunking": CHUNKING,
         "embedder": EMBEDDER,
+        "retrieval": RETRIEVAL,
         "total_questions": total,
         "bucket_counts": counts,
         "bucket_2_answer_in_context": {

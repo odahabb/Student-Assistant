@@ -31,7 +31,9 @@ import random
 import re
 import shutil
 import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 # CPU-only, matching the pipeline's demo path. Set before importing any pipeline
 # module: device.py reads this when the models are lazily constructed.
@@ -53,6 +55,7 @@ from backend.pipeline.loader import EXTENSION_MAP, load_file
 from backend.pipeline.preprocessor import preprocess
 from backend.pipeline.embedder import embed, model_key
 from backend.pipeline.retriever import retrieve
+from backend.pipeline import sparse
 from backend.pipeline.generator import generate
 from backend.pipeline import quiz
 from backend.pipeline.recommender import Progress
@@ -61,9 +64,12 @@ SUPPORTED_EXTENSIONS = sorted({ext.lstrip(".") for ext in EXTENSION_MAP})
 
 # Retrieval depth is a development-time setting, not a user-facing control.
 TOP_K = 3
-# Fixed token windows. Sentence-aware chunks helped all-MiniLM-L6-v2 slightly
-# but lost two end-to-end answers with bge-small (data/eval/).
-CHUNKING = "window"
+# Sentence-aware chunks with hybrid retrieval answered 20/25 evaluation questions
+# end to end, the best of the configurations tested (data/eval/).
+CHUNKING = "sentence"
+# Hybrid retrieval: BM25 keyword scores mixed with the embeddings
+# (retriever.py). See data/eval/ for the comparison with dense only.
+HYBRID = True
 QUESTIONS_PER_TOPIC = 2
 STUDY_DIR = "_study"
 VIEWS = {
@@ -145,9 +151,21 @@ def build_project_index(project_name: str, signature):
         return None, [], per_document, failures
 
     embeddings = embed(chunks)
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(np.ascontiguousarray(embeddings, dtype=np.float32))
-    return index, chunks, per_document, failures
+    vectors = faiss.IndexFlatL2(embeddings.shape[1])
+    vectors.add(np.ascontiguousarray(embeddings, dtype=np.float32))
+    keywords = sparse.build_index(chunks) if HYBRID else None
+    return SubjectIndex(vectors, keywords), chunks, per_document, failures
+
+
+@dataclass
+class SubjectIndex:
+    vectors: faiss.Index
+    keywords: Optional[sparse.BM25]
+
+
+def find(index: SubjectIndex, chunks, query: str):
+    """The TOP_K chunks for a query, hybrid when a keyword index exists."""
+    return retrieve(query, index.vectors, chunks, k=TOP_K, sparse=index.keywords)
 
 
 def describe_source(chunk) -> str:
@@ -167,13 +185,13 @@ def study_path(project: Path, name: str) -> Path:
 def load_pool(project: Path, signature) -> dict:
     """
     Saved quiz items by topic id, plus the chunk indices already tried for each
-    topic. Discarded when the documents, the chunking mode or the embedding
-    model change, since chunk indices or the round-trip check would differ.
+    topic. Discarded when the documents, chunking mode, embedding model or
+    retrieval mode change, since chunk indices or the round-trip check would differ.
     """
     path = study_path(project, "quiz_pool.json")
     if path.exists():
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("signature") == repr((CHUNKING, model_key(), signature)):
+        if data.get("signature") == repr((CHUNKING, model_key(), HYBRID, signature)):
             return {
                 "items": {tid: [quiz.QuizItem.from_record(r) for r in records]
                           for tid, records in data["items"].items()},
@@ -185,7 +203,7 @@ def load_pool(project: Path, signature) -> dict:
 def save_pool(project: Path, signature, pool: dict) -> None:
     path = study_path(project, "quiz_pool.json")
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"signature": repr((CHUNKING, model_key(), signature)),
+    payload = {"signature": repr((CHUNKING, model_key(), HYBRID, signature)),
                "items": {tid: [i.to_record() for i in items]
                          for tid, items in pool["items"].items()},
                "tried": {tid: sorted(v) for tid, v in pool["tried"].items()}}
@@ -220,7 +238,7 @@ def extend_topic(project, signature, pool, topic, index, chunks, add: int) -> in
             break
         tried.add(i)
         item, _ = quiz.generate_item(
-            chunks[i], retrieve_fn=lambda q: retrieve(q, index, chunks, k=TOP_K))
+            chunks[i], retrieve_fn=lambda q: find(index, chunks, q))
         if item is None or quiz.normalize(item.question) in known:
             continue
         item.topic_id = topic.id
@@ -354,7 +372,7 @@ def render_ask(project: Path, index, chunks):
         with st.spinner("Searching your materials and writing an answer… "
                         "(first answer loads the model and is slower)"):
             started = time.time()
-            retrieved = retrieve(question, index, chunks, k=TOP_K)
+            retrieved = find(index, chunks, question)
             answer = generate(question, retrieved)
             elapsed = time.time() - started
 

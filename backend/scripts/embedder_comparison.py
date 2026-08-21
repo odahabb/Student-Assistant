@@ -25,7 +25,10 @@ and searched exactly, so the ranking is by cosine similarity, which matches
 IndexFlatL2 on unit vectors. Hit rule as in eval_recall.py: a retrieved
 chunk from the expected file and page.
 
-Exact McNemar tests compare each model with MiniLM on the same chunks.
+Each combination is scored twice: dense only, and hybrid (the same dense
+scores mixed 40/60 with BM25 keyword scores, as retriever.py does). A
+keyword-only row is scored once per chunking mode. Exact McNemar tests compare
+each result with MiniLM dense retrieval on the same chunks.
 
 Run from anywhere:
     python backend/scripts/embedder_comparison.py
@@ -48,6 +51,8 @@ from sentence_transformers import SentenceTransformer  # noqa: E402
 from backend.pipeline.device import get_torch_device  # noqa: E402
 from backend.pipeline.loader import load_file  # noqa: E402
 from backend.pipeline.preprocessor import preprocess  # noqa: E402
+from backend.pipeline import sparse  # noqa: E402
+from backend.pipeline.retriever import DENSE_WEIGHT  # noqa: E402
 
 RAW_DIR = ROOT / "data" / "raw"
 EVAL_DIR = ROOT / "data" / "eval"
@@ -84,20 +89,32 @@ def mcnemar_p(gained: int, lost: int) -> float:
     return min(1.0, 2 * tail / 2 ** n)
 
 
-def evaluate(model, prefix, chunks, ground_truth):
+def scaled(values):
+    lo, hi = float(values.min()), float(values.max())
+    return (values - lo) / ((hi - lo) or 1.0)
+
+
+def evaluate(model, prefix, chunks, ground_truth, method="dense", bm25=None):
     t0 = time.time()
-    doc_vecs = model.encode([str(c) for c in chunks], normalize_embeddings=True,
-                            convert_to_numpy=True, show_progress_bar=False,
-                            batch_size=32)
+    doc_vecs = (model.encode([str(c) for c in chunks], normalize_embeddings=True,
+                             convert_to_numpy=True, show_progress_bar=False,
+                             batch_size=32) if model is not None else None)
     encode_sec = time.time() - t0
-    q_vecs = model.encode([prefix + e["question"] for e in ground_truth],
-                          normalize_embeddings=True, convert_to_numpy=True,
-                          show_progress_bar=False)
+    q_vecs = (model.encode([prefix + e["question"] for e in ground_truth],
+                           normalize_embeddings=True, convert_to_numpy=True,
+                           show_progress_bar=False)
+              if model is not None else [None] * len(ground_truth))
 
     ranks = []
     for q, entry in zip(q_vecs, ground_truth):
         expected = (entry["source_file"], entry["page"])
-        top = np.argsort(-(doc_vecs @ q))[:max(K_VALUES)]
+        if method == "dense":
+            score = doc_vecs @ q
+        else:
+            keyword = np.asarray(bm25.scores(entry["question"]))
+            score = (keyword if method == "keyword" else
+                     DENSE_WEIGHT * scaled(doc_vecs @ q) + (1 - DENSE_WEIGHT) * scaled(keyword))
+        top = np.argsort(-score, kind="stable")[:max(K_VALUES)]
         ranks.append(next((r for r, i in enumerate(top, 1)
                            if (chunks[i].source_file, chunks[i].page) == expected), None))
 
@@ -117,6 +134,7 @@ def main():
     chunk_sets = {mode: [c for p in pages for c in preprocess(p, chunking=mode)]
                   for mode in CHUNKINGS}
     device = get_torch_device()
+    bm25_sets = {mode: sparse.build_index(c) for mode, c in chunk_sets.items()}
 
     results = {}
     for name, spec in MODELS.items():
@@ -131,10 +149,18 @@ def main():
         results[name] = {**info, "by_chunking": {
             mode: evaluate(model, spec["query_prefix"], chunk_sets[mode], ground_truth)
             for mode in CHUNKINGS}}
+        results[f"{name} + BM25"] = {**info, "by_chunking": {
+            mode: evaluate(model, spec["query_prefix"], chunk_sets[mode], ground_truth,
+                           method="hybrid", bm25=bm25_sets[mode])
+            for mode in CHUNKINGS}}
         del model
+    results["BM25 only"] = {"by_chunking": {
+        mode: evaluate(None, "", chunk_sets[mode], ground_truth,
+                       method="keyword", bm25=bm25_sets[mode])
+        for mode in CHUNKINGS}}
 
     print(f"device: {device}\n")
-    print(f"{'model':<27} {'params':>6} {'chunking':<9} {'R@1':>5} {'R@3':>5} "
+    print(f"{'model':<34} {'params':>6} {'chunking':<9} {'R@1':>5} {'R@3':>5} "
           f"{'R@5':>5} {'MRR':>6} {'s/100':>6}  vs MiniLM at k=5 (gained/lost, p)")
     for name, r in results.items():
         for mode in CHUNKINGS:
@@ -150,7 +176,7 @@ def main():
                     "mcnemar_p": round(mcnemar_p(gained, lost), 3)}
             v = m["vs_baseline"]["k=5"]
             rc = m["recall"]
-            print(f"{name:<27} {r['parameters_millions']:>6} {mode:<9} "
+            print(f"{name:<34} {r.get('parameters_millions', '-'):>6} {mode:<9} "
                   f"{rc['recall_at_1']:>5} {rc['recall_at_3']:>5} {rc['recall_at_5']:>5} "
                   f"{m['mrr_top5']:>6} {m['encode_sec_per_100_chunks']:>6}  "
                   f"{v['gained']}/{v['lost']}, p={v['mcnemar_p']}")
