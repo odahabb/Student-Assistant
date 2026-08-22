@@ -55,8 +55,8 @@ DOCUMENTS = [
     ROOT / "data" / "Prototype" / "sample_lecture_notes.pdf",
 ]
 ATTEMPTS_PER_TOPIC = 3
-CHUNKING = "sentence"    # as app.py
-os.environ.setdefault("SA_EMBEDDER", "bge-small")   # as app.py
+CHUNKING = "sentence"    # as backend/service.py
+os.environ.setdefault("SA_EMBEDDER", "bge-small")   # as backend/service.py
 TOP_K = 3
 SEED = 7
 RATINGS = {

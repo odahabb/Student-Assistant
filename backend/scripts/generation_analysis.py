@@ -6,7 +6,7 @@ Student: Omar Dahab — 23100704
 Splits wrong answers into retrieval failures and generation failures.
 
 For each ground-truth question the full pipeline runs end to end at the same k
-the Streamlit app uses (TOP_K = 3), and two independent facts are recorded:
+the web app uses (TOP_K = 3), and two independent facts are recorded:
 
   retrieved_correct : was a chunk matching the expected source_file + page
                       among the chunks actually handed to the generator
@@ -86,7 +86,7 @@ DOCUMENTS = [
     "Hallucinations_in_Large_Language_Models_LLMs.pdf",
 ]
 
-# Matches app.py's TOP_K — this measures the configuration that actually ships.
+# Matches backend/service.py's TOP_K — this measures the configuration that actually ships.
 TOP_K = 3
 
 BUCKETS = {

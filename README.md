@@ -13,26 +13,36 @@ revise next. Everything runs locally; nothing is sent to an external API.
 
 ## Features
 
-The Streamlit app (`app.py`) organises material into **subjects**. Each subject
-has three views over one shared index:
+The web app organises material into **subjects**. Each subject has three
+views over one shared index:
 
-- **Ask** — chat with the subject's documents. Every answer lists its sources
-  (file, page and section).
-- **Quiz** — short questions generated from a chosen or recommended section.
-  Difficulty adapts to past answers: multiple choice → short answer with a hint
-  → short answer.
-- **Progress** — estimated mastery per section, the three sections to revise
-  next, and a button to practise each.
+- **Ask** — chat with the subject's documents. Answers appear as they are
+  written, and each one lists the three passages it was written from (file,
+  page, section); opening one shows the passage with the answer highlighted
+  and links to that page of the document.
+- **Quiz** — questions written from a chosen or recommended section, shown as
+  index cards. Difficulty adapts to past answers: multiple choice → short
+  answer with a hint → short answer. Keyboard: `N` new question, `1`–`4`
+  choose, `Enter` check.
+- **Progress** — answers so far, estimated mastery per section, the three
+  sections to revise next, and a button to practise each.
+
+The interface is a FastAPI server (`backend/api.py`) over a service layer
+(`backend/service.py`), with a hand-written HTML/CSS/JavaScript page in
+`frontend/` (no build step, no third-party scripts or fonts). The server
+listens on 127.0.0.1 only, so documents and questions stay on the machine.
+Indexing runs in the background with progress shown in the page; model calls
+are serialised with a lock, and answers are streamed as server-sent events.
 
 ## How it works
 
 | Step | Module | What it does | Model |
 |---|---|---|---|
 | 1. Load | `loader.py` | Extracts text per modality. PDFs keep page numbers and are tagged with their section (from the PDF outline, numbered/"Lecture N" headings, or page groups). | PyMuPDF · **Qwen2-VL-2B-Instruct** for images (falls back to **EasyOCR + BLIP**) · **Whisper** (base) for audio |
-| 2. Preprocess | `preprocessor.py` | Cleans text, strips page-1 author/affiliation lines, and splits each page into chunks of at most 220 tokens: fixed windows with 40-token overlap (the app's choice), sentence-aware, heading-aware, or semantic (breaks where neighbouring sentences are least similar). | bert-base-uncased tokenizer; MiniLM for semantic breaks |
+| 2. Preprocess | `preprocessor.py` | Cleans text, strips page-1 author/affiliation lines, and splits each page into chunks of at most 220 tokens: fixed windows with 40-token overlap (the library default), sentence-aware (the app's choice), heading-aware, or semantic (breaks where neighbouring sentences are least similar). | bert-base-uncased tokenizer; MiniLM for semantic breaks |
 | 3. Embed | `embedder.py` | Encodes chunks as 384-d unit vectors. | **bge-small-en-v1.5** in the app; **all-MiniLM-L6-v2** is the original model and the library default |
 | 4. Store | `vector_store.py` | FAISS `IndexFlatL2` plus chunk text and metadata. | — |
-| 5. Retrieve | `retriever.py` | Top-k (k = 3) nearest chunks for a question. | same embedding model |
+| 5. Retrieve | `retriever.py`, `sparse.py` | Top-k (k = 3) chunks for a question. The app uses hybrid retrieval: embedding similarity and BM25 keyword scores, each min-max scaled and mixed 0.4 / 0.6. | same embedding model |
 | 6. Generate | `generator.py` | Answers from the retrieved chunks, sharing the 1,024-token input budget across them by rank. | **FLAN-T5-Large** |
 | 7. Quiz | `quiz.py` | Groups chunks into topics (sections), writes questions, keeps only those whose answer survives a round-trip retrieval check, and grades answers. | FLAN-T5-Large; all-MiniLM-L6-v2 for grading |
 | 8. Recommend | `recommender.py` | Per-topic ability estimate (online Rasch / Elo update), next-question difficulty, and revision ranking. | — |
@@ -46,10 +56,11 @@ Requires Python 3.11+.
 
 ```bash
 pip install -r requirements.txt
-streamlit run app.py
+python -m backend.api
 ```
 
-Create a subject in the sidebar, upload documents (PDF, PNG/JPG/TIFF/BMP,
+Then open http://127.0.0.1:8000 (`SA_PORT` changes the port). Create a
+subject in the sidebar, upload documents (PDF, PNG/JPG/TIFF/BMP,
 MP3/MP4/WAV/M4A, TXT), then ask questions or open the Quiz view. The first
 answer and the first quiz question on a topic are slow because models load
 and questions are written on demand. Quiz questions and progress are saved in
@@ -60,7 +71,7 @@ chosen in the embedding-model comparison below), `multi-qa` or `minilm`.
 
 **Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU), `cpu` or
 `npu` (OpenVINO, generator and embedder only). The app defaults to `cpu`;
-`SA_DEVICE=gpu streamlit run app.py` is much faster when an XPU build of
+`SA_DEVICE=gpu python -m backend.api` is much faster when an XPU build of
 PyTorch is installed. Any unavailable device falls back to CPU.
 
 Optional acceleration packages (not in `requirements.txt`): the PyTorch XPU
@@ -72,9 +83,11 @@ wheel, and `optimum[openvino]` / `openvino` for the NPU path.
 python -m unittest discover -s tests -t .
 ```
 
-91 tests cover loading and section detection, all four chunking modes,
-boilerplate stripping, context budgeting, storage and retrieval, device
-fallback, quiz generation and grading, the recommender, and subject creation in the real app. They stub out the
+127 tests cover loading and section detection, all four chunking modes,
+boilerplate stripping, context budgeting, storage, dense and hybrid
+retrieval, device fallback, quiz generation and grading, the recommender, and
+the web server (subjects, uploads, background indexing, streamed answers,
+quiz and progress endpoints). They stub out the
 models, so they run in a few seconds without downloading anything.
 
 ## Evaluation
@@ -91,7 +104,7 @@ Scripts live in `backend/scripts/`; results are committed in `data/eval/`.
 | What outranks the correct chunk? | `competitor_analysis.py` | `competitor_analysis.json` |
 | Chunking and section-context variants | `retrieval_variants.py` | `retrieval_variants.json` |
 | Embedding models (MiniLM, multi-qa-MiniLM, bge-small, mpnet) × chunking modes (window, sentence, heading, semantic) | `embedder_comparison.py` | `embedder_comparison.json` |
-| Retrieval failures vs generation failures at k = 3, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...]` | `generation_analysis[_chunking][_embedder].json`, `generation_manual_review.json` |
+| Retrieval failures vs generation failures at k = 3, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...] [--retrieval dense\|hybrid\|keyword]` | `generation_analysis[_chunking][_embedder][_hybrid\|_keyword].json`, `generation_manual_review.json` |
 | Quiz answer grader calibration | `eval_grader.py` | `grader_calibration.json`, `grader_decisions.csv` |
 | Quiz question generation (plus blind rating sheet) | `eval_quiz_generation.py [score]` | `quiz_generation.json`, `quiz_rating_sheet.csv` |
 | Recommender, on simulated students | `eval_recommender.py` | `recommender_simulation.json` |
@@ -126,8 +139,9 @@ an image and an audio clip) that are in the repository.
 
 ```
 Student Assistant/
-├── app.py                        Streamlit app (Ask / Quiz / Progress)
 ├── backend/
+│   ├── api.py                    FastAPI server for the web app
+│   ├── service.py                subjects, indexing, asking, quiz, progress
 │   ├── pipeline/
 │   │   ├── loader.py             input loading + PDF section detection
 │   │   ├── device.py             torch device selection (gpu / cpu / npu)
@@ -135,11 +149,13 @@ Student Assistant/
 │   │   ├── preprocessor.py       cleaning, boilerplate stripping, chunking
 │   │   ├── embedder.py           bge-small / MiniLM embeddings
 │   │   ├── vector_store.py       FAISS index save / load
-│   │   ├── retriever.py          top-k retrieval
+│   │   ├── retriever.py          top-k retrieval (dense or hybrid)
+│   │   ├── sparse.py             BM25 keyword index
 │   │   ├── generator.py          FLAN-T5-Large answering
 │   │   ├── quiz.py               topics, question generation, grading
 │   │   └── recommender.py        mastery, difficulty, revision ranking
 │   └── scripts/                  evaluation scripts (see above)
+├── frontend/                     web page: index.html, styles.css, app.js
 ├── tests/                        unittest suite
 ├── data/
 │   ├── eval/                     evaluation results
@@ -157,10 +173,12 @@ Student Assistant/
 
 ## Known limitations
 
-- Retrieval is still the main weakness. With bge-small the app answers 18 of
-  the 25 evaluation questions correctly (12 with the original MiniLM), and the
-  correct page is missing from the top 5 for 6 of them. The configuration was
-  chosen on those same 25 questions, so these figures are optimistic.
+- Retrieval is still the main weakness. The app's configuration (bge-small,
+  sentence chunks, hybrid retrieval) answers 20 of the 25 evaluation questions
+  correctly, against 12 for the original MiniLM with fixed windows. It was
+  chosen from many configurations on those same 25 questions, so the figure is
+  optimistic, and the questions were written with the papers' wording, which
+  favours keyword matching.
 - Qwen2-VL-2B takes about a minute per image on the Arc GPU; exact chart
   values cannot be read reliably by either image method.
 - Fewer than a third of generated quiz questions pass the round-trip check on

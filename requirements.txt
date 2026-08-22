@@ -17,6 +17,11 @@ transformers
 sentence-transformers
 faiss-cpu
 
-# UI (app.py)
-streamlit
+# Web app (backend/api.py)
+fastapi
+uvicorn
+python-multipart
+
+# Tests (FastAPI's TestClient)
+httpx
 

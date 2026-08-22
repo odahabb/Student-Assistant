@@ -11,7 +11,8 @@ via the SA_DEVICE env var (see backend/pipeline/device.py).
 
 import logging
 import re
-from typing import List
+import threading
+from typing import Iterator, List
 
 from transformers import AutoTokenizer
 
@@ -191,6 +192,43 @@ def complete(prompt: str, max_new_tokens: int = 128) -> str:
     outputs = model.generate(**inputs, max_new_tokens=max_new_tokens)
 
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+
+def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
+    """
+    Same prompt and decoding as generate(), but yields the answer piece by
+    piece as the model produces it, for the web interface. Joining the pieces
+    and passing them through _fix_number_spacing gives generate()'s output.
+    """
+    from transformers import TextIteratorStreamer
+
+    tokenizer, model = _get_model()
+    context = _budget_context(tokenizer, query, context_chunks)
+    prompt = f"Question: {query}\nContext: {context}\nAnswer:"
+
+    device = "cpu" if _model_is_ov else get_torch_device()
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True,
+                       max_length=MAX_INPUT_TOKENS).to(device)
+    streamer = TextIteratorStreamer(tokenizer, skip_special_tokens=True)
+    failure = []
+
+    def run():
+        try:
+            model.generate(**inputs, max_new_tokens=128, streamer=streamer)
+        except Exception as exc:
+            failure.append(exc)
+            streamer.end()   # otherwise the loop below waits forever
+
+    worker = threading.Thread(target=run, daemon=True)
+    worker.start()
+    try:
+        yield from streamer
+    finally:
+        # Also reached when the caller stops early (e.g. the browser tab was
+        # closed): wait for the model to finish before anyone else uses it.
+        worker.join()
+    if failure:
+        raise failure[0]
 
 
 def generate(query: str, context_chunks: List[str]) -> str:
