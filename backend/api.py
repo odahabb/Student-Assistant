@@ -33,6 +33,16 @@ FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
 app = FastAPI(title="Study Assistant", docs_url="/api/docs", redoc_url=None)
 
 
+@app.middleware("http")
+async def no_caching(request: Request, call_next):
+    # Subjects and progress change all the time; never let the browser reuse
+    # an earlier API response.
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.exception_handler(service.NotFound)
 async def not_found(_: Request, exc: service.NotFound):
     return JSONResponse({"detail": str(exc)}, status_code=404)

@@ -602,6 +602,7 @@ function openSource(src, i, highlight, trigger, eyebrow) {
   activeCite = trigger;
   const drawer = $("#drawer");
   drawer.classList.add("open");
+  $("#shell").classList.add("drawer-open");
   drawer.setAttribute("aria-hidden", "false");
   $("#drawer-close").focus({ preventScroll: true });
 }
@@ -610,6 +611,7 @@ function closeDrawer() {
   const drawer = $("#drawer");
   if (!drawer.classList.contains("open")) return;
   drawer.classList.remove("open");
+  $("#shell").classList.remove("drawer-open");
   drawer.setAttribute("aria-hidden", "true");
   if (activeCite) { activeCite.classList.remove("active"); activeCite.focus({ preventScroll: true }); }
   activeCite = null;

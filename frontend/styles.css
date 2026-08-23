@@ -548,6 +548,10 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 .passage mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
 
 .scrim { display: none; }
+@media (min-width: 1180px) {
+  .main { transition: margin-right .28s cubic-bezier(.2,.8,.3,1); }
+  .shell.drawer-open .main { margin-right: min(460px, 100vw); }
+}
 
 /* Dialog + toasts */
 .dialog {
