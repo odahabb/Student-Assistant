@@ -16,7 +16,7 @@ import os
 import re
 import logging
 import warnings
-from typing import List, Union
+from typing import Callable, List, Optional, Union
 
 from backend.pipeline.device import get_torch_device, get_easyocr_device
 
@@ -298,9 +298,237 @@ def _page_sections(doc, page_lines: List[List[str]]) -> dict:
     return sections
 
 
+# Telling slide decks from ordinary documents
+#
+# A slide deck needs different treatment from a paper: its "pages" hold a
+# handful of words, its titles are the only headings it has, and much of what
+# it says is in pictures. These helpers label each page so the preprocessor
+# can pack slides together instead of embedding them one by one.
+
+SLIDE_MEDIAN_WORDS = 60      # a deck's slides hold far less text than a page
+SLIDE_MIN_PAGES = 4          # too few pages to judge — treat as a document
+# A divider's text is never embedded, so the rule has to be strict: anything
+# beyond the title and a stray page number means the slide says something.
+DIVIDER_MAX_EXTRA_WORDS = 2
+_BULLET_CHARS = "•●▪■·-*–—"
+_BULLET = re.compile(rf"^[\s{re.escape(_BULLET_CHARS)}]+")
+
+
+def _clean_line(line: str) -> str:
+    """A displayed line without its bullet glyph and surrounding space."""
+    return re.sub(r"\s+", " ", _BULLET.sub("", line)).strip()
+
+
+def _document_kind(doc, texts: List[str]) -> str:
+    """
+    "slides" or "pages". Slides are recognised by how little text they carry,
+    and by the landscape shape almost every deck uses; either signal alone is
+    enough, because a text-heavy deck is still a deck and a portrait deck is
+    still mostly pictures.
+    """
+    if len(texts) < SLIDE_MIN_PAGES:
+        return "pages"
+    counts = sorted(len(t.split()) for t in texts)
+    median_words = counts[len(counts) // 2]
+    try:
+        landscape = sum(1 for page in doc if page.rect.width > page.rect.height)
+        mostly_landscape = landscape > len(texts) / 2
+    except Exception:       # a PDF that won't report page sizes
+        mostly_landscape = False
+    return "slides" if (median_words <= SLIDE_MEDIAN_WORDS or mostly_landscape) else "pages"
+
+
+def _slide_title(text: str) -> Optional[str]:
+    """
+    A slide's title: its first line, which is how decks mark their topics.
+    Returns None for a slide that starts with a bullet or a sentence rather
+    than a title.
+    """
+    lines = [_clean_line(line) for line in text.splitlines()]
+    lines = [line for line in lines if line]
+    if not lines:
+        return None
+    title = lines[0]
+    if len(title.split()) > 12 or title.endswith((".", ",", ";")):
+        return None
+    return title
+
+
+def _title_from_layout(page) -> Optional[str]:
+    """
+    A slide's title taken from its largest type, joined across the lines it
+    wraps onto. Reading the first line instead truncates the common two-line
+    title ("1.101: Bio-inspired / computing"), and font size is the signal the
+    format itself uses to mark a title.
+    """
+    try:
+        spans = [(round(span["size"], 1), span["bbox"][1], span["bbox"][0],
+                  span["text"])
+                 for block in page.get_text("dict").get("blocks", [])
+                 if block.get("type") == 0
+                 for line in block.get("lines", [])
+                 for span in line.get("spans", []) if span.get("text", "").strip()]
+    except Exception:
+        return None
+    if not spans:
+        return None
+
+    # A slide set in one size throughout is usually a title or divider slide,
+    # so a single size is not a reason to give up; the length check below is
+    # what separates a title from a slide of running text.
+    biggest = max(size for size, _, _, _ in spans)
+    title = " ".join(text for size, _, _, text in
+                     sorted((s for s in spans if s[0] >= biggest - 0.1),
+                            key=lambda s: (s[1], s[2])))
+    title = _clean_line(title)
+    if not title or len(title.split()) > 12 or title.endswith((".", ",", ";")):
+        return None
+    return title
+
+
+def _is_divider(text: str, title: Optional[str]) -> bool:
+    """
+    True for a slide that carries its title and nothing else — a section
+    divider. These are never worth embedding alone; the preprocessor uses
+    them to label the slides that follow.
+    """
+    if not title:
+        return False
+    rest = _clean_line(re.sub(r"\s+", " ", text)).replace(title, "", 1)
+    words = [w for w in re.findall(r"[A-Za-z]{2,}", rest)]
+    return len(words) <= DIVIDER_MAX_EXTRA_WORDS and len(rest.split()) <= 4
+
+
+# Reading the pictures inside a PDF
+#
+# PyMuPDF only reads a page's text layer, so anything drawn as a picture — a
+# diagram, a chart, a screenshot of code, or a slide exported as an image — is
+# invisible to the rest of the pipeline. These helpers render such a page and
+# send it through the same extraction chain as an uploaded image, cheapest
+# method first, because the vision model costs about a minute per page.
+
+FIGURE_RENDER_DPI = 150
+FIGURE_THIN_WORDS = 12        # below this, a page may be mostly picture
+FIGURE_IMAGE_AREA = 0.15      # ... if pictures cover this share of the page
+# When OCR comes back with fewer words than this, the page holds a photograph
+# or a diagram with no legible labels, and only the vision model can say what
+# is on it. Anything more than that — a title slide, a screenshot, a labelled
+# chart — is already searchable text, and a minute of vision model per page
+# would buy a description the student can mostly read off the slide anyway.
+FIGURE_VISION_IF_FEWER = 3
+FIGURE_VISION_MIN_AREA = 0.35   # ... and the picture takes up this much of it
+FIGURE_VISION_PER_DOC = 8       # hard cap: one upload cannot run for hours
+FIGURE_MAX_PAGES = 80           # pages offered to the picture reader at all
+FIGURE_CACHE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "cache", "figures")
+
+
+def _picture_share(page) -> float:
+    """Share of the page covered by pictures, 0.0 when it has none."""
+    try:
+        area = float(page.rect.width * page.rect.height)
+        if area <= 0:
+            return 0.0
+        covered = 0.0
+        for block in page.get_text("dict").get("blocks", []):
+            if block.get("type") == 1:      # 1 = image block
+                x0, y0, x1, y1 = block["bbox"]
+                covered += abs((x1 - x0) * (y1 - y0))
+        return min(covered / area, 1.0)
+    except Exception:
+        return 0.0
+
+
+def _needs_figure_reading(text: str, page) -> bool:
+    """A page worth rendering: little or no text, and a picture on it."""
+    words = len(text.split())
+    if words == 0:
+        return True
+    return words < FIGURE_THIN_WORDS and _picture_share(page) >= FIGURE_IMAGE_AREA
+
+
+def _cached_figure_text(digest: str) -> Optional[str]:
+    cached = os.path.join(FIGURE_CACHE, f"{digest}.txt")
+    if os.path.exists(cached):
+        with open(cached, "r", encoding="utf-8") as f:
+            return f.read()
+    return None
+
+
+def _cache_figure_text(digest: str, text: str) -> None:
+    try:
+        os.makedirs(FIGURE_CACHE, exist_ok=True)
+        with open(os.path.join(FIGURE_CACHE, f"{digest}.txt"), "w",
+                  encoding="utf-8") as f:
+            f.write(text)
+    except OSError as e:       # a read-only or full disk must not stop a load
+        log.warning(f"  Could not cache figure text ({e})")
+
+
+def _ocr_page_image(image_path: str) -> str:
+    """EasyOCR alone — about 7 s a page, against about a minute for Qwen2-VL."""
+    reader = _get_ocr_reader()
+    return _reorder_ocr_by_layout(reader.readtext(image_path))
+
+
+def _read_page_picture(page, page_number: int, allow_vision: bool = True) -> tuple:
+    """
+    Read the picture content of one page. Returns (text, method), where method
+    is "cache", "ocr", "vision" or "" when nothing legible was found.
+
+    Cheapest first: EasyOCR handles slides whose content is a screenshot or a
+    labelled diagram, which is most of them, and Qwen2-VL is called only when
+    OCR comes back nearly empty and the caller allows it — the photographs and
+    unlabelled diagrams that need describing rather than transcribing.
+    """
+    import hashlib
+    import tempfile
+
+    pixmap = page.get_pixmap(dpi=FIGURE_RENDER_DPI)
+    data = pixmap.tobytes("png")
+    digest = hashlib.sha1(data).hexdigest()
+    cached = _cached_figure_text(digest)
+    if cached is not None:
+        log.info(f"  Page {page_number}: picture text from cache")
+        return cached, "cache"
+
+    handle, image_path = tempfile.mkstemp(suffix=".png")
+    os.close(handle)
+    try:
+        with open(image_path, "wb") as f:
+            f.write(data)
+
+        text, method = "", ""
+        try:
+            text = _ocr_page_image(image_path).strip()
+            method = "ocr"
+        except Exception as e:
+            log.warning(f"  Page {page_number}: OCR failed ({e})")
+
+        if allow_vision and len(text.split()) < FIGURE_VISION_IF_FEWER:
+            try:
+                described = _run_qwen_extraction(image_path).strip()
+                if len(described.split()) > len(text.split()):
+                    text, method = described, "vision"
+            except Exception as e:
+                log.warning(f"  Page {page_number}: vision model failed ({e})")
+
+        text = "" if len(text.split()) < 3 else text
+        _cache_figure_text(digest, text)
+        log.info(f"  Page {page_number}: read {len(text.split())} words from "
+                 f"its picture ({method or 'nothing found'})")
+        return text, method if text else ""
+    finally:
+        try:
+            os.remove(image_path)
+        except OSError:
+            pass
+
+
 # Individual loaders
 
-def load_pdf(path: str) -> List[dict]:
+def load_pdf(path: str, figures: str = "off", report=None) -> List[dict]:
     """
     Extract text from a PDF file page by page using PyMuPDF.
 
@@ -315,6 +543,17 @@ def load_pdf(path: str) -> List[dict]:
     page it came from. Pages with no extractable text are skipped, as before.
     "section" comes from _page_sections() and is what the quiz layer groups
     pages by.
+
+    Every page also carries "kind" ("page" or "slide"), and slides carry
+    "title" and "divider" so the preprocessor can pack a deck by its titles
+    instead of embedding one slide at a time.
+
+    figures="auto" additionally reads the pictures on pages whose text layer
+    is thin or empty (see _read_page_picture), which is how a diagram, a chart
+    or a slide exported as an image gets into the index at all. It is off by
+    default because it costs seconds to a minute per page, and because every
+    result recorded before it existed was measured without it. report(done,
+    total, page) is called as those pages are read, for a progress display.
     """
     try:
         import fitz
@@ -323,33 +562,95 @@ def load_pdf(path: str) -> List[dict]:
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"PDF not found: {path}")
+    if os.path.getsize(path) == 0:
+        raise ValueError(f"{os.path.basename(path)} is empty (0 bytes)")
 
     log.info(f"Loading PDF → {path}")
-    doc = fitz.open(path)
-    source_file = os.path.basename(path)
-    texts = [page.get_text() for page in doc]
-    sections = _page_sections(
-        doc, [[line.strip() for line in t.splitlines() if line.strip()] for t in texts])
-    pages = []
+    try:
+        doc = fitz.open(path)
+    except Exception as e:
+        raise ValueError(
+            f"{os.path.basename(path)} could not be opened as a PDF ({e})")
 
-    for i, page_text in enumerate(texts):
-        if page_text.strip():
+    try:
+        if getattr(doc, "needs_pass", False) and not doc.authenticate(""):
+            raise ValueError(
+                f"{os.path.basename(path)} is password-protected, so its text "
+                f"cannot be read")
+
+        source_file = os.path.basename(path)
+        texts = []
+        for page in doc:
+            try:
+                texts.append(page.get_text())
+            except Exception as e:      # a damaged page shouldn't lose the file
+                log.warning(f"  Page {len(texts) + 1} could not be read ({e})")
+                texts.append("")
+        if not texts:
+            raise ValueError(f"{source_file} has no pages")
+
+        kind = "slide" if _document_kind(doc, texts) == "slides" else "page"
+        sections = _page_sections(
+            doc, [[line.strip() for line in t.splitlines() if line.strip()]
+                  for t in texts])
+
+        picture_text = {}
+        if figures == "auto":
+            candidates = [i for i, t in enumerate(texts)
+                          if _needs_figure_reading(t, doc[i])][:FIGURE_MAX_PAGES]
+            if candidates:
+                log.info(f"  Reading pictures on {len(candidates)} page(s)")
+            vision_left = FIGURE_VISION_PER_DOC
+            for done, i in enumerate(candidates):
+                if report:
+                    report(done, len(candidates), i + 1)
+                may_describe = (vision_left > 0
+                                and _picture_share(doc[i]) >= FIGURE_VISION_MIN_AREA)
+                try:
+                    text, method = _read_page_picture(doc[i], i + 1,
+                                                      allow_vision=may_describe)
+                    if method == "vision":
+                        vision_left -= 1
+                except Exception as e:  # never let a picture stop the upload
+                    log.warning(f"  Page {i+1}: reading its picture failed ({e})")
+                    text = ""
+                if text:
+                    picture_text[i] = text
+            if report and candidates:
+                report(len(candidates), len(candidates), None)
+
+        pages = []
+        for i, page_text in enumerate(texts):
+            from_picture = picture_text.get(i, "")
+            if from_picture:
+                page_text = (page_text.rstrip() + "\n" + from_picture
+                             if page_text.strip() else from_picture)
+            if not page_text.strip():
+                log.warning(f"  Page {i+1}/{len(texts)} had no extractable text")
+                continue
+            title = None
+            if kind == "slide":
+                title = _title_from_layout(doc[i]) or _slide_title(page_text)
             pages.append({
                 "source_file": source_file,
                 "page": i + 1,
                 "section": sections[i + 1],
                 "text": page_text,
+                "kind": kind,
+                "title": title,
+                "divider": _is_divider(page_text, title) if kind == "slide" else False,
+                "from_image": bool(from_picture),
             })
-        else:
-            log.warning(f"  Page {i+1}/{len(doc)} had no extractable text")
 
-    total_chars = sum(len(p["text"]) for p in pages)
-    log.info(
-        f"PDF loaded — {len(doc)} pages ({len(pages)} with text), "
-        f"{total_chars} characters"
-    )
-    doc.close()
-    return pages
+        total_chars = sum(len(p["text"]) for p in pages)
+        log.info(
+            f"PDF loaded — {len(texts)} {kind}s ({len(pages)} with text"
+            + (f", {len(picture_text)} read from pictures" if picture_text else "")
+            + f"), {total_chars} characters"
+        )
+        return pages
+    finally:
+        doc.close()
 
 
 def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
@@ -493,15 +794,55 @@ def load_audio(path: str, model_size: str = "base") -> str:
     except ImportError:
         raise ImportError("Run: pip install openai-whisper")
 
+    return " ".join(s["text"].strip()
+                    for s in load_audio_segments(path, model_size)).strip()
+
+
+def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
+    """
+    Transcribe an audio file and keep Whisper's own segmentation:
+
+        [{"source_file": "lecture.m4a", "kind": "audio", "text": "...",
+          "start": 0.0, "end": 7.4}, ...]
+
+    A recording has no pages and no headings, so these segments and the pauses
+    between them are the only structure it offers. The preprocessor packs them
+    into chunks and breaks at the longest pauses, and the timestamps let an
+    answer cite the moment it came from.
+    """
+    try:
+        import whisper
+    except ImportError:
+        raise ImportError("Run: pip install openai-whisper")
+
     if not os.path.exists(path):
         raise FileNotFoundError(f"Audio file not found: {path}")
+    if os.path.getsize(path) == 0:
+        raise ValueError(f"{os.path.basename(path)} is empty (0 bytes)")
 
     log.info(f"Transcribing audio → {path}  (model: {model_size})")
     model = whisper.load_model(model_size)
-    result = model.transcribe(path)
-    text = result["text"]
-    log.info(f"Transcription complete — {len(text)} characters")
-    return text
+    try:
+        result = model.transcribe(path)
+    except Exception as e:
+        raise ValueError(
+            f"{os.path.basename(path)} could not be transcribed ({e}). "
+            f"Whisper needs ffmpeg on the PATH and a readable audio track.")
+
+    source_file = os.path.basename(path)
+    segments = [
+        {"source_file": source_file, "kind": "audio", "text": s["text"],
+         "start": float(s.get("start", 0.0)), "end": float(s.get("end", 0.0))}
+        for s in result.get("segments", []) if s.get("text", "").strip()
+    ]
+    if not segments and result.get("text", "").strip():
+        # Some builds return no segments; keep the transcript as one piece.
+        segments = [{"source_file": source_file, "kind": "audio",
+                     "text": result["text"], "start": 0.0, "end": 0.0}]
+
+    spoken = sum(len(s["text"].split()) for s in segments)
+    log.info(f"Transcription complete — {len(segments)} segments, {spoken} words")
+    return segments
 
 
 def load_text(raw: str) -> str:
@@ -548,7 +889,7 @@ def load_input(source: str, input_type: str) -> Union[str, List[dict]]:
     loaders = {
         "pdf"  : load_pdf,
         "image": load_image,
-        "audio": load_audio,
+        "audio": load_audio_segments,
         "text" : load_text,
     }
 
@@ -571,13 +912,17 @@ EXTENSION_MAP = {
     ".txt"  : "text",
 }
 
-def load_file(path: str) -> Union[str, List[dict]]:
+def load_file(path: str, figures: str = "off",
+              report: Optional[Callable] = None) -> Union[str, List[dict]]:
     """
     Convenience wrapper — detects input type from file extension automatically.
 
     Example:
         pages = load_file("lecture_notes.pdf")   # auto-detected as pdf → per-page list
         text  = load_file("scanned_doc.png")     # auto-detected as image → string
+
+    figures and report apply to PDFs only (see load_pdf) and are ignored for
+    the other types, so callers can pass them without checking the extension.
     """
     _, ext = os.path.splitext(path.lower())
     input_type = EXTENSION_MAP.get(ext)
@@ -595,4 +940,6 @@ def load_file(path: str) -> Union[str, List[dict]]:
             raise FileNotFoundError(f"Text file not found: {path}")
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             return load_text(f.read())
+    if input_type == "pdf":
+        return load_pdf(path, figures=figures, report=report)
     return load_input(path, input_type)

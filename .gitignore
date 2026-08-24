@@ -13,3 +13,4 @@ data/uploads/
 .ipynb_checkpoints/
 .claude/
 Claude.md
+data/cache/

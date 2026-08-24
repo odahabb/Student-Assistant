@@ -71,6 +71,10 @@ CHUNKING = "sentence"
 # Hybrid retrieval: BM25 keyword scores mixed with the embeddings.
 HYBRID = True
 QUESTIONS_PER_TOPIC = 2
+# Read the pictures on pages whose text layer is thin or empty — diagrams,
+# charts, screenshots, and slides exported as images. Off in the library
+# (loader.load_pdf), on here, because a student's slides are largely pictures.
+FIGURES = "auto"
 STUDY_DIR = "_study"
 NO_ANSWER = "I couldn't find an answer to that in this subject's materials."
 
@@ -208,10 +212,18 @@ def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
     chunks, per_document, failures = [], [], []
     for done, path in enumerate(paths):
         report(done=done, total=len(paths), current=path.name,
-               stage="reading")
+               stage="reading", pictures=None)
+
+        def picture_progress(read, total_pictures, page):
+            """Reading pictures is the slow part; show it page by page."""
+            report(done=done, total=len(paths), current=path.name,
+                   stage="pictures",
+                   pictures={"done": read, "total": total_pictures, "page": page})
+
         try:
             with MODEL_LOCK:
-                loaded = load_file(str(path))
+                loaded = load_file(str(path), figures=FIGURES,
+                                   report=picture_progress)
                 file_chunks = preprocess(loaded, source_file=path.name,
                                          chunking=CHUNKING)
         except Exception as exc:  # a bad upload shouldn't sink the subject
@@ -224,7 +236,8 @@ def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
 
     vectors = keywords = None
     if chunks:
-        report(done=len(paths), total=len(paths), current=None, stage="embedding")
+        report(done=len(paths), total=len(paths), current=None,
+               stage="embedding", pictures=None)
         with MODEL_LOCK:
             embeddings = embed(chunks)
         vectors = faiss.IndexFlatL2(embeddings.shape[1])
@@ -264,7 +277,11 @@ def index_status(name: str, start: bool = True) -> dict:
         if not sig:
             return {"state": "empty"}
         if index is not None and index.signature == sig:
-            return {"state": "ready", "chunks": len(index.chunks),
+            # Nothing readable came out of any document: the subject cannot
+            # answer anything, and saying "ready" would invite a question that
+            # crashes on an empty index.
+            state = "ready" if index.chunks else "unreadable"
+            return {"state": state, "chunks": len(index.chunks),
                     "documents": index.per_document, "failures": index.failures,
                     "seconds": round(index.seconds, 1)}
         if job is not None and (job["signature"] == sig or job["state"] == "indexing"):
@@ -274,7 +291,8 @@ def index_status(name: str, start: bool = True) -> dict:
         if not start:
             return {"state": "stale"}
         job = {"state": "indexing", "signature": sig, "done": 0,
-               "total": len(sig), "current": None, "stage": "queued"}
+               "total": len(sig), "current": None, "stage": "queued",
+               "pictures": None}
         _building[name] = job
     threading.Thread(target=_build_in_background, args=(name, sig),
                      daemon=True).start()
@@ -305,6 +323,10 @@ def forget(name: str) -> None:
 def describe(chunk) -> dict:
     return {"file": getattr(chunk, "source_file", None),
             "page": getattr(chunk, "page", None),
+            "page_end": getattr(chunk, "page_end", None),
+            "pages": getattr(chunk, "pages", None),
+            "timecode": getattr(chunk, "timecode", None),
+            "from_image": bool(getattr(chunk, "from_image", False)),
             "section": getattr(chunk, "section", None),
             "text": str(chunk)}
 
@@ -566,6 +588,8 @@ def answer_question(name: str, qid: str, answer: str) -> dict:
             "mastery_before": before, "mastery": progress.mastery(item.topic_id),
             "next_level": progress.next_level(item.topic_id),
             "source": {"file": item.source_file, "page": item.page,
+                       "pages": str(item.page) if item.page else None,
+                       "timecode": None, "from_image": False,
                        "section": item.section, "text": item.passage}}
 
 

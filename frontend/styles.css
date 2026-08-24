@@ -440,7 +440,14 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 .card-source summary { cursor: pointer; font-size: 13px; color: var(--ink-3); list-style: none; display: flex; align-items: center; gap: 6px; }
 .card-source summary::before { content: "›"; font-size: 17px; transition: transform .15s; line-height: 1; }
 .card-source[open] summary::before { transform: rotate(90deg); }
-.card-source .passage { margin-top: 10px; }
+.card-source .from-image {
+  display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
+  padding: 1px 8px 1px 5px; border-radius: 999px; font-size: 11.5px;
+  background: var(--amber-soft); color: var(--amber);
+}
+.from-image svg { width: 13px; height: 13px; }
+
+.passage { margin-top: 10px; }
 
 .writing { text-align: center; padding: 56px 20px; color: var(--ink-2); }
 .writing .pencil { width: 120px; height: 44px; margin: 0 auto 16px; position: relative; }
@@ -540,6 +547,13 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 .drawer-head > div { flex: 1; min-width: 0; }
 .drawer h3 { font-size: 21px; margin-top: 4px; overflow-wrap: anywhere; }
 .drawer .btn { align-self: flex-start; }
+.from-image {
+  display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
+  padding: 1px 8px 1px 5px; border-radius: 999px; font-size: 11.5px;
+  background: var(--amber-soft); color: var(--amber);
+}
+.from-image svg { width: 13px; height: 13px; }
+
 .passage {
   margin: 0; padding: 16px 18px; border-radius: 10px; background: var(--card-2);
   border-left: 3px solid var(--accent); font: 16px/1.62 var(--serif); color: var(--ink);

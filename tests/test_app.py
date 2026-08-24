@@ -169,12 +169,47 @@ class IndexTests(ServiceTestCase):
 
     def test_unreadable_document_is_reported_not_fatal(self):
         name = self.make_subject(files=("good.pdf", "bad.pdf"))
-        with mock.patch.object(service, "load_file",
-                               side_effect=lambda p: (_ for _ in ()).throw(
-                                   RuntimeError("broken")) if p.endswith("bad.pdf") else []):
+        def read(path, **kwargs):
+            if path.endswith("bad.pdf"):
+                raise RuntimeError("broken")
+            return []
+
+        with mock.patch.object(service, "load_file", side_effect=read):
             status = self.wait_ready(name)
         self.assertEqual(status["state"], "ready")
         self.assertEqual(status["failures"], [{"name": "bad.pdf", "error": "broken"}])
+
+    def test_a_subject_whose_documents_all_fail_is_unreadable_not_ready(self):
+        name = self.make_subject(files=("scan.pdf",))
+
+        def broken(path, **kwargs):
+            raise ValueError("No readable text in scan.pdf")
+
+        with mock.patch.object(service, "load_file", side_effect=broken):
+            status = self.wait_ready(name)
+        self.assertEqual(status["state"], "unreadable")
+        self.assertEqual(status["chunks"], 0)
+        response = self.client.post(f"/api/subjects/{name}/ask",
+                                    json={"question": "anything?"})
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("None of this subject's documents could be read",
+                      response.json()["detail"])
+
+    def test_one_broken_document_does_not_stop_the_others(self):
+        name = self.make_subject(files=("good.pdf", "broken.pdf"))
+
+        def read(path, **kwargs):
+            if path.endswith("broken.pdf"):
+                raise ValueError("could not be opened as a PDF")
+            return []
+
+        with mock.patch.object(service, "load_file", side_effect=read):
+            status = self.wait_ready(name)
+        self.assertEqual(status["state"], "ready")
+        self.assertEqual([f["name"] for f in status["failures"]], ["broken.pdf"])
+        events = read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                              json={"question": "How many hours?"}))
+        self.assertEqual(events[-1]["answer"], "680,000 hours")
 
     def test_asking_before_the_index_is_ready_is_409(self):
         name = self.make_subject()

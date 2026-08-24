@@ -55,8 +55,10 @@ async def bad_request(_: Request, exc: ValueError):
 
 @app.exception_handler(service.IndexNotReady)
 async def not_ready(_: Request, exc: service.IndexNotReady):
-    return JSONResponse({"detail": "The subject's documents are still being read.",
-                         "status": exc.status}, status_code=409)
+    detail = ("None of this subject's documents could be read."
+              if exc.status.get("state") == "unreadable"
+              else "The subject's documents are still being read.")
+    return JSONResponse({"detail": detail, "status": exc.status}, status_code=409)
 
 
 class NewSubject(BaseModel):

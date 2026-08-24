@@ -182,7 +182,9 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
     """
     if isinstance(source, str):
         return [{"source_file": source_file, "page": None, "section": None,
-                 "text": source}]
+                 "text": source, "kind": "page", "title": None,
+                 "divider": False, "start": None, "end": None,
+                 "from_image": False}]
 
     if isinstance(source, dict):
         source = [source]
@@ -205,8 +207,175 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
             "page": entry.get("page"),
             "section": entry.get("section"),
             "text": entry["text"],
+            # Set by loader.load_pdf for slides and load_audio_segments for
+            # recordings; absent for ordinary pages and plain strings.
+            "kind": entry.get("kind", "page"),
+            "title": entry.get("title"),
+            "divider": entry.get("divider", False),
+            "start": entry.get("start"),
+            "end": entry.get("end"),
+            "from_image": entry.get("from_image", False),
         })
     return pages
+
+
+# Packing units that are smaller than a chunk
+#
+# A page of prose is bigger than a chunk, so chunking it means splitting. A
+# slide and a spoken sentence are far smaller, so chunking them means the
+# opposite: packing them together until they are worth embedding, and breaking
+# where the medium says one topic ends and the next begins.
+
+SLIDE_TOPIC_BREAK = 0.5      # a new title ends a chunk once it is half full
+AUDIO_PAUSE_SECONDS = 2.0    # a pause this long is where a speaker changes topic
+AUDIO_PAUSE_BREAK = 0.5      # ... and it ends a chunk once it is half full
+
+
+def _tokens(tokenizer, text: str) -> int:
+    return len(tokenizer.encode(text, add_special_tokens=False))
+
+
+# Bullets from symbol fonts (Wingdings and friends) arrive as private-use
+# characters such as U+F06C. They carry no meaning for the embedder, for BM25
+# or for the reader, so they go before anything else sees them.
+_SYMBOL_GLYPH = re.compile(r"[-•●▪■]+")
+
+
+def _collapse(text: str) -> str:
+    return re.sub(r"\s+", " ", _SYMBOL_GLYPH.sub(" ", text)).strip()
+
+
+def _packed_chunk(units: List[dict], section: Optional[str]) -> Chunk:
+    """One chunk out of several consecutive slides."""
+    text = " ".join(_collapse(u["text"]) for u in units if u["text"].strip())
+    pages = [u["page"] for u in units if u["page"] is not None]
+    return Chunk(
+        text,
+        source_file=units[0]["source_file"],
+        page=pages[0] if pages else None,
+        section=section,
+        page_end=pages[-1] if len(pages) > 1 and pages[-1] != pages[0] else None,
+        from_image=any(u.get("from_image") for u in units),
+    )
+
+
+def _oversized(tokenizer, unit: dict, section: Optional[str], chunk_tokens: int,
+               overlap: int) -> Iterator[Chunk]:
+    """A single slide or segment longer than a whole chunk: split it as prose."""
+    for window in _sentence_windows(tokenizer, _collapse(unit["text"]),
+                                    chunk_tokens, overlap):
+        chunk = _packed_chunk([unit], section)
+        yield Chunk(window, source_file=chunk.source_file, page=chunk.page,
+                    section=section, start=unit.get("start"), end=unit.get("end"),
+                    from_image=chunk.from_image)
+
+
+def _pack_slides(tokenizer, units: List[dict], chunk_tokens: int,
+                 overlap: int) -> List[Chunk]:
+    """
+    Pack a deck's slides into chunks of at most chunk_tokens.
+
+    Slides are packed in order until the chunk is full, or until a new title
+    arrives once the chunk is already half full, so a chunk covers one part of
+    the talk rather than an arbitrary run of slides. A divider — a slide
+    holding only its title — is never embedded on its own: it becomes the
+    section label for the slides that follow it, which is what gives a deck
+    with no PDF outline and no numbered headings real topics to quiz on.
+    """
+    chunks: List[Chunk] = []
+    buffer: List[dict] = []
+    buffered = 0
+    label: Optional[str] = None
+    started_with: Optional[str] = None
+
+    def flush():
+        nonlocal buffer, buffered
+        if buffer:
+            chunks.append(_packed_chunk(buffer, label or started_with
+                                        or buffer[0]["section"]))
+        buffer, buffered = [], 0
+
+    for unit in units:
+        if not unit["text"].strip():
+            continue
+        if unit["divider"]:
+            flush()
+            label = unit["title"]
+            started_with = None
+            continue
+
+        size = _tokens(tokenizer, _collapse(unit["text"]))
+        if size > chunk_tokens:
+            flush()
+            section = label or unit["title"] or unit["section"]
+            chunks.extend(_oversized(tokenizer, unit, section, chunk_tokens, overlap))
+            continue
+
+        new_topic = (unit["title"] and started_with and unit["title"] != started_with
+                     and buffered >= chunk_tokens * SLIDE_TOPIC_BREAK)
+        if buffer and (buffered + size > chunk_tokens or new_topic):
+            flush()
+        if not buffer:
+            started_with = unit["title"]
+        buffer.append(unit)
+        buffered += size
+
+    flush()
+    return chunks
+
+
+def _pack_audio(tokenizer, units: List[dict], chunk_tokens: int,
+                overlap: int) -> List[Chunk]:
+    """
+    Pack a transcript's segments into chunks of at most chunk_tokens.
+
+    A recording has no headings to cut at, so the breaks come from the
+    speaker: a pause of AUDIO_PAUSE_SECONDS or more ends a chunk once it is
+    half full, on the assumption that a lecturer pauses between points. Each
+    chunk keeps the time it was spoken, so an answer can cite the moment.
+    """
+    chunks: List[Chunk] = []
+    buffer: List[dict] = []
+    buffered = 0
+    part = 1
+
+    def flush():
+        nonlocal buffer, buffered, part
+        if buffer:
+            start, end = buffer[0]["start"], buffer[-1]["end"]
+            def mmss(t):
+                return f"{int(t or 0) // 60}:{int(t or 0) % 60:02d}"
+            chunks.append(Chunk(
+                " ".join(_collapse(u["text"]) for u in buffer),
+                source_file=buffer[0]["source_file"],
+                page=None,
+                section=f"Part {part} ({mmss(start)}-{mmss(end)})",
+                start=start, end=end))
+            part += 1
+        buffer, buffered = [], 0
+
+    for i, unit in enumerate(units):
+        if not unit["text"].strip():
+            continue
+        size = _tokens(tokenizer, _collapse(unit["text"]))
+        if size > chunk_tokens:
+            flush()
+            section = f"Part {part}"
+            chunks.extend(_oversized(tokenizer, unit, section, chunk_tokens, overlap))
+            part += 1
+            continue
+        if buffer and buffered + size > chunk_tokens:
+            flush()
+        buffer.append(unit)
+        buffered += size
+
+        following = units[i + 1] if i + 1 < len(units) else None
+        pause = ((following["start"] or 0) - (unit["end"] or 0)) if following else 0
+        if pause >= AUDIO_PAUSE_SECONDS and buffered >= chunk_tokens * AUDIO_PAUSE_BREAK:
+            flush()
+
+    flush()
+    return chunks
 
 
 def _window(tokenizer, cleaned: str, chunk_tokens: int,
@@ -426,9 +595,21 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
     # an otherwise-fine PDF isn't an extraction failure.
     combined = " ".join(page["text"] for page in pages)
     if len(combined.strip()) < 20:
-        raise ValueError("Input text is too short — OCR likely failed")
+        name = pages[0]["source_file"] if pages else None
+        raise ValueError(
+            f"No readable text in {name or 'this file'} — a scanned document "
+            f"or a slide deck of pictures has no text layer to read.")
 
     tokenizer = _get_model().tokenizer
+
+    # Slides and spoken segments are smaller than a chunk, so they are packed
+    # rather than split, and the chunking mode does not apply to them: there
+    # is nothing to cut inside a six-word slide. See _pack_slides/_pack_audio.
+    kinds = {page["kind"] for page in pages}
+    if kinds == {"slide"}:
+        return _pack_slides(tokenizer, pages, chunk_tokens, overlap)
+    if kinds == {"audio"}:
+        return _pack_audio(tokenizer, pages, chunk_tokens, overlap)
 
     chunks: List[Chunk] = []
     for page in pages:

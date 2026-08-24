@@ -108,7 +108,11 @@ function typeIcon(filename) {
 
 function sourceLabel(src) {
   const parts = [src.file || "Unknown file"];
-  if (src.page) parts.push(`p. ${src.page}`);
+  // Slides pack several to a chunk and recordings have no pages at all, so a
+  // source says "slides 12-15" or "12:03-15:40" rather than always "p. 4".
+  if (src.timecode) parts.push(src.timecode);
+  else if (src.pages && src.pages.includes("-")) parts.push(`slides ${src.pages}`);
+  else if (src.page) parts.push(`p. ${src.page}`);
   return parts.join(" · ");
 }
 
@@ -321,9 +325,19 @@ function schedulePoll() {
 function renderIndexing() {
   const box = $("#indexing");
   const s = state.status;
-  if (!s || (s.state !== "indexing" && s.state !== "error")) { box.hidden = true; return; }
+  const failures = s?.failures || [];
+  const broken = s && (s.state === "error" || s.state === "unreadable" || failures.length);
+  if (!s || (s.state !== "indexing" && !broken)) { box.hidden = true; return; }
   box.hidden = false;
-  box.classList.toggle("error", s.state === "error");
+  box.classList.toggle("error", !!broken);
+  if (s.state === "unreadable" || (failures.length && s.state !== "indexing")) {
+    box.replaceChildren(icon("cross"), el("div", {},
+      el("strong", { text: s.state === "unreadable"
+        ? "None of these documents could be read."
+        : `Couldn't read ${failures.length} of ${(s.documents || []).length + failures.length} documents.` }),
+      ...failures.map((f) => el("p", { class: "meta", text: `${f.name} — ${f.error}` }))));
+    return;
+  }
   if (s.state === "error") {
     box.replaceChildren(icon("cross"), el("div", {},
       el("strong", { text: "Couldn't build the index." }), el("p", { class: "meta", text: s.error })));
@@ -332,10 +346,17 @@ function renderIndexing() {
   const done = s.done || 0;
   const total = s.total || 1;
   let line;
-  if (s.stage === "embedding") line = "Embedding passages and building the search index…";
+  if (s.stage === "pictures" && s.pictures) {
+    const p = s.pictures;
+    line = `Reading pictures in ${s.current} — ${Math.min(p.done + 1, p.total)} of ${p.total}`
+      + (p.page ? ` (page ${p.page})` : "");
+  }
+  else if (s.stage === "embedding") line = "Embedding passages and building the search index…";
   else if (s.current) line = `Reading ${s.current} (${Math.min(done + 1, total)} of ${total})`;
   else line = "Getting ready…";
-  const slowNote = s.slow?.length
+  const slowNote = s.stage === "pictures"
+    ? "Pages whose text is thin or missing are read as pictures: text recognition first, the vision model only when that finds nothing."
+    : s.slow?.length
     ? "Images and audio go through a vision or speech model first, which can take a minute or more."
     : "The first time also loads the models, so it takes a little longer.";
   const progress = s.stage === "embedding" ? 0.92 : (done / total) * 0.9;
@@ -400,7 +421,9 @@ async function renderAsk() {
   const name = state.current;
   const ready = state.status?.state === "ready";
   $("#question").disabled = !ready;
-  $("#question").placeholder = ready ? `Ask about ${name}…` : "Waiting for the documents to be read…";
+  $("#question").placeholder = ready ? `Ask about ${name}…`
+    : state.status?.state === "unreadable" ? "Nothing readable in this subject yet"
+    : "Waiting for the documents to be read…";
   updateSend();
   if (!(name in state.chats)) {
     state.chats[name] = [];
@@ -591,12 +614,19 @@ let activeCite = null;
 function openSource(src, i, highlight, trigger, eyebrow) {
   $("#drawer-eyebrow").textContent = eyebrow || `Source ${i + 1}`;
   $("#drawer-title").textContent = src.section || src.file || "Passage";
-  $("#drawer-meta").textContent = [src.file, src.page ? `page ${src.page}` : null].filter(Boolean).join(" · ");
+  const where = src.timecode ? `at ${src.timecode}`
+    : src.pages && src.pages.includes("-") ? `slides ${src.pages}`
+    : src.page ? `page ${src.page}` : null;
+  $("#drawer-meta").replaceChildren(
+    [src.file, where].filter(Boolean).join(" · "),
+    src.from_image ? el("span", { class: "from-image", title:
+      "This text was read out of a picture by the vision model, so it may be approximate" },
+      icon("image"), "read from a picture") : null);
   $("#drawer-text").replaceChildren(highlighted(src.text, highlight));
   const link = $("#drawer-open");
   link.hidden = !src.file;
   if (src.file) link.href = docUrl(state.current, src.file, src.page);
-  link.lastChild.textContent = src.page ? ` Open the document at page ${src.page}` : " Open the document";
+  link.lastChild.textContent = src.page ? ` Open the document at page ${src.page}` : " Open the file";
   document.querySelectorAll(".cite.active, .source-chip.active").forEach((n) => n.classList.remove("active"));
   if (trigger) trigger.classList.add("active");
   activeCite = trigger;
