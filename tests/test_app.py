@@ -7,6 +7,7 @@ loaded and nothing is downloaded.
 import json
 import os
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -210,6 +211,29 @@ class IndexTests(ServiceTestCase):
         events = read_events(self.client.post(f"/api/subjects/{name}/ask",
                                               json={"question": "How many hours?"}))
         self.assertEqual(events[-1]["answer"], "680,000 hours")
+
+    def test_questions_work_while_the_pictures_are_still_being_read(self):
+        name = self.make_subject(files=("deck.pdf",))
+        reading = threading.Event()
+        release = threading.Event()
+
+        def read(path, figures="off", **kwargs):
+            if figures == "auto":          # the slow second pass
+                reading.set()
+                release.wait(5)
+            return []
+
+        with mock.patch.object(service, "load_file", side_effect=read):
+            self.client.get(f"/api/subjects/{name}/status")      # starts the build
+            self.assertTrue(reading.wait(5), "second pass never started")
+            status = self.client.get(f"/api/subjects/{name}/status").json()
+            self.assertEqual(status["state"], "ready")
+            self.assertIsNotNone(status["enriching"])
+            events = read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                                  json={"question": "How many hours?"}))
+            self.assertEqual(events[-1]["answer"], "680,000 hours")
+            release.set()
+            self.wait_ready(name)
 
     def test_asking_before_the_index_is_ready_is_409(self):
         name = self.make_subject()

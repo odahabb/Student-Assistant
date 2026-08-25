@@ -198,7 +198,8 @@ function renderSidebar() {
     if (failures.has(d.name)) {
       status = el("span", { class: "state fail", title: failures.get(d.name), text: "couldn't read" });
     } else if (info) {
-      status = el("span", { class: "state", title: `${info.chunks} passages`,
+      status = el("span", { class: `state${info.note ? " warn" : ""}`,
+        title: info.note ? `${info.chunks} passages — ${info.note}` : `${info.chunks} passages`,
         text: info.pages ? `${info.pages} p` : `${info.chunks} ¶` });
     } else if (indexing) {
       status = el("span", { class: "state", text: state.status.current === d.name ? "reading…" : "queued" });
@@ -300,19 +301,26 @@ async function selectSubject(name, view) {
 async function refreshSubject(status, reloadList = true) {
   if (reloadList) await loadSubjects();
   const previous = state.status?.state;
+  const previousChunks = state.status?.chunks;
   state.status = status;
   if (status.state !== "ready") { delete state.topics[state.current]; }
   renderSidebar();
   renderMain();
   schedulePoll();
   if (previous === "indexing" && status.state === "ready") {
-    toast(`Ready — ${status.chunks} passages indexed in ${status.seconds}s.`);
+    toast(`Ready — ${status.chunks} passages indexed in ${status.seconds}s.`
+          + (status.enriching ? " Pictures are still being read." : ""));
+  }
+  if (previousChunks && status.state === "ready" && !status.enriching
+      && status.chunks !== previousChunks) {
+    toast(`Finished reading the pictures — ${status.chunks} passages now indexed.`);
+    delete state.topics[state.current];
   }
 }
 
 function schedulePoll() {
   clearTimeout(state.pollTimer);
-  if (state.status?.state !== "indexing") return;
+  if (state.status?.state !== "indexing" && !state.status?.enriching) return;
   const name = state.current;
   state.pollTimer = setTimeout(async () => {
     try {
@@ -327,6 +335,20 @@ function renderIndexing() {
   const s = state.status;
   const failures = s?.failures || [];
   const broken = s && (s.state === "error" || s.state === "unreadable" || failures.length);
+  if (s?.enriching && !broken) {
+    // Answers already work; this is the slow second pass over the pictures.
+    const e = s.enriching;
+    const p = e.pictures;
+    box.hidden = false;
+    box.classList.remove("error");
+    box.replaceChildren(
+      el("div", { class: "spinner small" }),
+      el("strong", { text: "Answers are ready — still reading the pictures" }),
+      el("p", { class: "meta", text: e.current
+        ? `${e.current}${p ? ` — page ${p.page} of ${p.total} pictures` : ""}`
+        : "Diagrams and picture-only slides are being read in the background." }));
+    return;
+  }
   if (!s || (s.state !== "indexing" && !broken)) { box.hidden = true; return; }
   box.hidden = false;
   box.classList.toggle("error", !!broken);

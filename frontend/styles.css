@@ -171,6 +171,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 .doc a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 .doc .state { font-size: 11px; color: var(--ink-3); }
 .doc .state.fail { color: var(--bad); }
+.doc .state.warn { color: var(--amber); }
 .doc .remove { width: 26px; height: 26px; opacity: 0; }
 .doc:hover .remove, .doc .remove:focus-visible { opacity: 1; }
 .doc .remove svg { width: 15px; height: 15px; }
@@ -223,6 +224,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 .indexing .bar { grid-column: 2; height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; margin-top: 6px; }
 .indexing .bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .4s ease; }
 .indexing.error { border-color: var(--bad); }
+.spinner.small { width: 16px; height: 16px; border-width: 2px; }
 .spinner {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2.5px solid var(--line-2); border-top-color: var(--accent);

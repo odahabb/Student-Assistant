@@ -76,6 +76,9 @@ QUESTIONS_PER_TOPIC = 2
 # (loader.load_pdf), on here, because a student's slides are largely pictures.
 FIGURES = "auto"
 STUDY_DIR = "_study"
+# Above this many passages from one file, the interface says so: a single
+# huge upload is slow to index and outweighs everything else in retrieval.
+LARGE_DOCUMENT_CHUNKS = 3000
 NO_ANSWER = "I couldn't find an answer to that in this subject's materials."
 
 MODEL_LOCK = threading.Lock()
@@ -198,7 +201,8 @@ _building: Dict[str, dict] = {}
 _state_lock = threading.Lock()
 
 
-def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
+def build_index(name: str, sig, report=lambda **_: None,
+                figures: str = "off") -> SubjectIndex:
     """
     Ingest every document in a subject into one combined index.
 
@@ -206,6 +210,10 @@ def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
     single fixed path, since several subjects coexist and would otherwise
     overwrite each other's store. Chunking, embedding and retrieval are
     unchanged; only where the index lives differs.
+
+    figures="auto" also reads the pictures on pages with little or no text,
+    which is slow; _build_in_background does that as a second pass so the
+    subject can be asked questions in the meantime.
     """
     started = time.time()
     paths = documents(name)
@@ -221,18 +229,34 @@ def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
                    pictures={"done": read, "total": total_pictures, "page": page})
 
         try:
+            if figures == "auto" and path.suffix.lower() == ".pdf":
+                # The picture pass takes minutes, so it takes the model lock
+                # one page at a time; a question asked meanwhile waits for a
+                # page, not for the whole document.
+                loaded = load_file(str(path), figures=figures,
+                                   report=picture_progress, lock=MODEL_LOCK)
+            else:
+                with MODEL_LOCK:
+                    loaded = load_file(str(path), figures=figures,
+                                       report=picture_progress)
             with MODEL_LOCK:
-                loaded = load_file(str(path), figures=FIGURES,
-                                   report=picture_progress)
                 file_chunks = preprocess(loaded, source_file=path.name,
                                          chunking=CHUNKING)
         except Exception as exc:  # a bad upload shouldn't sink the subject
-            failures.append({"name": path.name, "error": str(exc)})
+            # One readable line: some libraries raise pages of diagnostics.
+            reason = " ".join(str(exc).split())[:200] or exc.__class__.__name__
+            failures.append({"name": path.name, "error": reason})
             continue
         chunks.extend(file_chunks)
         pages = [c.page for c in file_chunks if c.page is not None]
-        per_document.append({"name": path.name, "chunks": len(file_chunks),
-                             "pages": max(pages) if pages else None})
+        entry = {"name": path.name, "chunks": len(file_chunks),
+                 "pages": max(pages) if pages else None}
+        if len(file_chunks) > LARGE_DOCUMENT_CHUNKS:
+            # Indexed in full, but the student should know why this upload
+            # took minutes and why it dominates the subject's answers.
+            entry["note"] = (f"very large — {len(file_chunks)} passages, which "
+                             f"may crowd out your other documents")
+        per_document.append(entry)
 
     vectors = keywords = None
     if chunks:
@@ -248,19 +272,57 @@ def build_index(name: str, sig, report=lambda **_: None) -> SubjectIndex:
 
 
 def _build_in_background(name: str, sig) -> None:
+    """
+    Build a subject's index in two passes.
+
+    The first pass reads text only and takes seconds, and the subject can be
+    asked questions as soon as it lands. The second pass reads the pictures on
+    pages whose text layer is thin — minutes on a deck of diagrams — and
+    replaces the index when it finishes. Waiting for the pictures before
+    answering anything would mean a student uploading a term's slides could
+    not ask a question for the best part of an hour.
+    """
     job = _building[name]
 
     def report(**fields):
         job.update(fields)
 
-    try:
-        index = build_index(name, sig, report)
+    def publish(index) -> bool:
+        """
+        Store the finished index, unless the documents changed while it was
+        being built — a stale index would answer from files the student has
+        already replaced.
+        """
         with _state_lock:
+            if _building.get(name) is not job:
+                return False           # a newer build has taken over
+            if signature(name) != sig:
+                _building.pop(name, None)
+                return False
             _indexes[name] = index
-            _building.pop(name, None)
+            return True
+
+    try:
+        index = build_index(name, sig, report, figures="off")
+        if not publish(index):
+            return
+        if FIGURES != "auto" or not index.chunks:
+            with _state_lock:
+                if _building.get(name) is job:
+                    _building.pop(name, None)
+            return
+        job.update(state="enriching", stage="pictures", done=0,
+                   current=None, pictures=None)
+
+        enriched = build_index(name, sig, report, figures=FIGURES)
+        if publish(enriched):
+            with _state_lock:
+                if _building.get(name) is job:
+                    _building.pop(name, None)
     except Exception as exc:
         with _state_lock:
-            job.update(state="error", error=str(exc))
+            if _building.get(name) is job:
+                job.update(state="error", error=str(exc))
 
 
 def index_status(name: str, start: bool = True) -> dict:
@@ -281,13 +343,22 @@ def index_status(name: str, start: bool = True) -> dict:
             # answer anything, and saying "ready" would invite a question that
             # crashes on an empty index.
             state = "ready" if index.chunks else "unreadable"
-            return {"state": state, "chunks": len(index.chunks),
-                    "documents": index.per_document, "failures": index.failures,
-                    "seconds": round(index.seconds, 1)}
-        if job is not None and (job["signature"] == sig or job["state"] == "indexing"):
+            status = {"state": state, "chunks": len(index.chunks),
+                      "documents": index.per_document, "failures": index.failures,
+                      "seconds": round(index.seconds, 1)}
+            if job is not None and job.get("state") == "enriching":
+                # Answers work already; the pictures are still being read.
+                status["enriching"] = {"current": job.get("current"),
+                                       "pictures": job.get("pictures"),
+                                       "done": job.get("done"),
+                                       "total": job.get("total")}
+            return status
+        if job is not None and job["signature"] == sig:
             status = {k: v for k, v in job.items() if k != "signature"}
             status["slow"] = slow
             return status
+        # Any job left here is for an older set of documents. Its own publish
+        # step will see that and drop its result, so a fresh build starts now.
         if not start:
             return {"state": "stale"}
         job = {"state": "indexing", "signature": sig, "done": 0,

@@ -17,9 +17,10 @@ The web app organises material into **subjects**. Each subject has three
 views over one shared index:
 
 - **Ask** — chat with the subject's documents. Answers appear as they are
-  written, and each one lists the three passages it was written from (file,
-  page, section); opening one shows the passage with the answer highlighted
-  and links to that page of the document.
+  written, and each one lists the three passages it was written from — a page,
+  a range of slides, or a moment in a recording ("12:03-15:40"). Opening one
+  shows the passage with the answer highlighted, says when the text was read
+  out of a picture, and links to that page of the document.
 - **Quiz** — questions written from a chosen or recommended section, shown as
   index cards. Difficulty adapts to past answers: multiple choice → short
   answer with a hint → short answer. Keyboard: `N` new question, `1`–`4`
@@ -31,15 +32,27 @@ The interface is a FastAPI server (`backend/api.py`) over a service layer
 (`backend/service.py`), with a hand-written HTML/CSS/JavaScript page in
 `frontend/` (no build step, no third-party scripts or fonts). The server
 listens on 127.0.0.1 only, so documents and questions stay on the machine.
-Indexing runs in the background with progress shown in the page; model calls
-are serialised with a lock, and answers are streamed as server-sent events.
+Indexing runs in the background in two passes: text first, which takes
+seconds and makes the subject answerable, then the pictures on pages with
+thin or missing text, which take minutes on a deck of diagrams. The picture
+pass holds the model lock one page at a time, so a question asked meanwhile
+waits for a page rather than for the whole document. Answers are streamed as
+server-sent events.
+
+**Reading pictures.** A slide that is one big diagram has no text layer, so
+it is rendered at 150 dpi and read: EasyOCR first (about 7 s a page), and
+Qwen2-VL only when OCR finds almost nothing and the picture fills the page
+(about a minute a page, capped at 8 pages per document). Results are cached
+by page image, so re-indexing never repeats the work, and chunks built from
+them are marked as read from a picture — the vision model describes a chart
+rather than reading its values exactly.
 
 ## How it works
 
 | Step | Module | What it does | Model |
 |---|---|---|---|
-| 1. Load | `loader.py` | Extracts text per modality. PDFs keep page numbers and are tagged with their section (from the PDF outline, numbered/"Lecture N" headings, or page groups). | PyMuPDF · **Qwen2-VL-2B-Instruct** for images (falls back to **EasyOCR + BLIP**) · **Whisper** (base) for audio |
-| 2. Preprocess | `preprocessor.py` | Cleans text, strips page-1 author/affiliation lines, and splits each page into chunks of at most 220 tokens: fixed windows with 40-token overlap (the library default), sentence-aware (the app's choice), heading-aware, or semantic (breaks where neighbouring sentences are least similar). | bert-base-uncased tokenizer; MiniLM for semantic breaks |
+| 1. Load | `loader.py` | Extracts text per modality and records what structure each one has. PDFs keep page numbers and sections (PDF outline, numbered/"Lecture N" headings, or page groups); slide decks are detected and each slide's title read from its largest type; pages whose text layer is thin or empty are rendered and read as pictures; audio keeps Whisper's segments and timestamps. | PyMuPDF · **Qwen2-VL-2B-Instruct** for images (falls back to **EasyOCR + BLIP**) · **Whisper** (base) for audio |
+| 2. Preprocess | `preprocessor.py` | Cleans text and produces chunks of at most 220 tokens. A page of prose is *split*: fixed windows with 40-token overlap (the library default), sentence-aware (the app's choice), heading-aware, or semantic. A slide or a spoken segment is smaller than a chunk, so it is *packed* instead — slides up to the limit, breaking at a new title, with title-only slides becoming the section label; segments up to the limit, breaking at pauses of two seconds or more. | bert-base-uncased tokenizer; MiniLM for semantic breaks |
 | 3. Embed | `embedder.py` | Encodes chunks as 384-d unit vectors. | **bge-small-en-v1.5** in the app; **all-MiniLM-L6-v2** is the original model and the library default |
 | 4. Store | `vector_store.py` | FAISS `IndexFlatL2` plus chunk text and metadata. | — |
 | 5. Retrieve | `retriever.py`, `sparse.py` | Top-k (k = 3) chunks for a question. The app uses hybrid retrieval: embedding similarity and BM25 keyword scores, each min-max scaled and mixed 0.4 / 0.6. | same embedding model |
@@ -83,11 +96,13 @@ wheel, and `optimum[openvino]` / `openvino` for the NPU path.
 python -m unittest discover -s tests -t .
 ```
 
-127 tests cover loading and section detection, all four chunking modes,
-boilerplate stripping, context budgeting, storage, dense and hybrid
-retrieval, device fallback, quiz generation and grading, the recommender, and
-the web server (subjects, uploads, background indexing, streamed answers,
-quiz and progress endpoints). They stub out the
+164 tests cover loading and section detection, slide detection and titles,
+picture reading and its cache, Whisper segments, all four chunking modes,
+slide and audio packing, boilerplate stripping, context budgeting, storage,
+dense and hybrid retrieval, device fallback, quiz generation and grading, the
+recommender, the web server (subjects, uploads, two-pass indexing, streamed
+answers, quiz and progress endpoints), and what happens when an upload is
+empty, corrupt, password-protected, binary or not what its extension claims. They stub out the
 models, so they run in a few seconds without downloading anything.
 
 ## Evaluation
@@ -143,10 +158,10 @@ Student Assistant/
 │   ├── api.py                    FastAPI server for the web app
 │   ├── service.py                subjects, indexing, asking, quiz, progress
 │   ├── pipeline/
-│   │   ├── loader.py             input loading + PDF section detection
+│   │   ├── loader.py             input loading, slide/section detection, picture reading
 │   │   ├── device.py             torch device selection (gpu / cpu / npu)
 │   │   ├── chunk.py              Chunk type (text + file, page, section)
-│   │   ├── preprocessor.py       cleaning, boilerplate stripping, chunking
+│   │   ├── preprocessor.py       cleaning, chunking, slide/audio packing
 │   │   ├── embedder.py           bge-small / MiniLM embeddings
 │   │   ├── vector_store.py       FAISS index save / load
 │   │   ├── retriever.py          top-k retrieval (dense or hybrid)

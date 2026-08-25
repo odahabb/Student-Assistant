@@ -92,6 +92,20 @@ class PictureReadingTests(unittest.TestCase):
                             report=lambda done, total, page: seen.append((done, total)))
         self.assertEqual(seen, [(0, 1), (1, 1)])
 
+    def test_the_lock_is_released_between_pages(self):
+        import threading
+        lock = threading.Lock()
+        held_during_read = []
+
+        def read(page, number, allow_vision=True):
+            held_during_read.append(lock.locked())
+            return "words read from this picture", "ocr"
+
+        with mock.patch.object(loader, "_read_page_picture", side_effect=read):
+            loader.load_pdf(self.blank_page_deck(), figures="auto", lock=lock)
+        self.assertEqual(held_during_read, [True])      # held while reading
+        self.assertFalse(lock.locked())                 # released afterwards
+
     def test_a_failing_vision_model_does_not_lose_the_document(self):
         with mock.patch.object(loader, "_read_page_picture",
                                side_effect=RuntimeError("out of memory")):
@@ -313,6 +327,25 @@ class BadUploadTests(unittest.TestCase):
         doc.close()
         with self.assertRaisesRegex(ValueError, "password-protected"):
             loader.load_pdf(path)
+
+    def test_a_file_of_null_bytes_is_not_text(self):
+        with self.assertRaisesRegex(ValueError, "no readable text"):
+            loader.load_text("\x00" * 500)
+
+    def test_a_corrupt_image_says_so_in_plain_words(self):
+        path = self.file_with(b"\x89PNG\r\n\x1a\n" + b"junk" * 50, suffix=".png")
+        with self.assertRaisesRegex(ValueError, "could not be opened as an image"):
+            loader.load_image(path)
+
+    def test_an_image_too_small_to_hold_anything(self):
+        import io
+
+        from PIL import Image
+        buffer = io.BytesIO()
+        Image.new("RGB", (1, 1), (255, 0, 0)).save(buffer, format="PNG")
+        path = self.file_with(buffer.getvalue(), suffix=".png")
+        with self.assertRaisesRegex(ValueError, "too small"):
+            loader.load_image(path)
 
     def test_an_unsupported_extension(self):
         with self.assertRaisesRegex(ValueError, "Cannot auto-detect"):

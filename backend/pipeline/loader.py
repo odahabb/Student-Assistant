@@ -424,6 +424,16 @@ FIGURE_CACHE = os.path.join(
     "data", "cache", "figures")
 
 
+class _nothing:
+    """A do-nothing stand-in for a lock the caller did not supply."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
 def _picture_share(page) -> float:
     """Share of the page covered by pictures, 0.0 when it has none."""
     try:
@@ -528,7 +538,7 @@ def _read_page_picture(page, page_number: int, allow_vision: bool = True) -> tup
 
 # Individual loaders
 
-def load_pdf(path: str, figures: str = "off", report=None) -> List[dict]:
+def load_pdf(path: str, figures: str = "off", report=None, lock=None) -> List[dict]:
     """
     Extract text from a PDF file page by page using PyMuPDF.
 
@@ -554,6 +564,10 @@ def load_pdf(path: str, figures: str = "off", report=None) -> List[dict]:
     default because it costs seconds to a minute per page, and because every
     result recorded before it existed was measured without it. report(done,
     total, page) is called as those pages are read, for a progress display.
+
+    lock, if given, is held around each picture — one page at a time, never
+    the whole document — so that a caller sharing the models can answer a
+    question between pages instead of queueing behind the entire file.
     """
     try:
         import fitz
@@ -568,9 +582,11 @@ def load_pdf(path: str, figures: str = "off", report=None) -> List[dict]:
     log.info(f"Loading PDF → {path}")
     try:
         doc = fitz.open(path)
-    except Exception as e:
-        raise ValueError(
-            f"{os.path.basename(path)} could not be opened as a PDF ({e})")
+    except Exception:
+        # PyMuPDF's message repeats the whole temporary path; the name and the
+        # reason are what the student needs.
+        raise ValueError(f"{os.path.basename(path)} could not be opened as a "
+                         f"PDF — it may be corrupt, or not a PDF at all")
 
     try:
         if getattr(doc, "needs_pass", False) and not doc.authenticate(""):
@@ -607,8 +623,9 @@ def load_pdf(path: str, figures: str = "off", report=None) -> List[dict]:
                 may_describe = (vision_left > 0
                                 and _picture_share(doc[i]) >= FIGURE_VISION_MIN_AREA)
                 try:
-                    text, method = _read_page_picture(doc[i], i + 1,
-                                                      allow_vision=may_describe)
+                    with (lock or _nothing()):
+                        text, method = _read_page_picture(doc[i], i + 1,
+                                                          allow_vision=may_describe)
                     if method == "vision":
                         vision_left -= 1
                 except Exception as e:  # never let a picture stop the upload
@@ -716,6 +733,9 @@ def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
     return "\n".join(lines)
 
 
+IMAGE_MIN_PIXELS = 32        # smaller than this holds nothing to read
+
+
 def load_image(path: str) -> str:
     """
     Extract content from an image, primarily using Qwen2-VL-2B-Instruct to
@@ -736,6 +756,22 @@ def load_image(path: str) -> str:
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Image not found: {path}")
+
+    # Open it once here so a corrupt or absurdly small file fails with a
+    # sentence, rather than inside a model as "Truncated File Read".
+    name = os.path.basename(path)
+    try:
+        from PIL import Image
+        with Image.open(path) as image:
+            image.verify()
+        with Image.open(path) as image:
+            width, height = image.size
+    except Exception as e:
+        raise ValueError(f"{name} could not be opened as an image "
+                         f"(corrupt or truncated file: {e})")
+    if width < IMAGE_MIN_PIXELS or height < IMAGE_MIN_PIXELS:
+        raise ValueError(f"{name} is only {width}x{height} pixels — too small "
+                         f"to hold anything to read")
 
     log.info(f"Processing image → {path}")
 
@@ -825,9 +861,13 @@ def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
     try:
         result = model.transcribe(path)
     except Exception as e:
+        # Whisper re-raises ffmpeg's entire banner on a bad file; the student
+        # needs the one useful sentence, not forty lines of build flags.
+        reason = str(e).strip().splitlines()[-1][:120] if str(e).strip() else ""
         raise ValueError(
-            f"{os.path.basename(path)} could not be transcribed ({e}). "
-            f"Whisper needs ffmpeg on the PATH and a readable audio track.")
+            f"{os.path.basename(path)} could not be transcribed — it may not "
+            f"contain a readable audio track"
+            + (f" ({reason})" if reason else "") + ".")
 
     source_file = os.path.basename(path)
     segments = [
@@ -853,6 +893,12 @@ def load_text(raw: str) -> str:
         raise TypeError(f"Expected string, got {type(raw)}")
     if not raw.strip():
         raise ValueError("Input text is empty")
+    # A file of null bytes or other control characters reads as "text" but
+    # holds nothing anyone can search; indexing it only pollutes the subject.
+    readable = sum(1 for ch in raw if ch.isprintable() or ch in "\n\r\t")
+    if readable < len(raw) * 0.5:
+        raise ValueError("This file holds no readable text — it looks binary "
+                         "rather than a document")
     log.info(f"Plain text received — {len(raw)} characters")
     return raw
 
@@ -913,7 +959,7 @@ EXTENSION_MAP = {
 }
 
 def load_file(path: str, figures: str = "off",
-              report: Optional[Callable] = None) -> Union[str, List[dict]]:
+              report: Optional[Callable] = None, lock=None) -> Union[str, List[dict]]:
     """
     Convenience wrapper — detects input type from file extension automatically.
 
@@ -941,5 +987,5 @@ def load_file(path: str, figures: str = "off",
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             return load_text(f.read())
     if input_type == "pdf":
-        return load_pdf(path, figures=figures, report=report)
+        return load_pdf(path, figures=figures, report=report, lock=lock)
     return load_input(path, input_type)
