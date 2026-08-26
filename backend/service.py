@@ -396,6 +396,7 @@ def describe(chunk) -> dict:
             "page": getattr(chunk, "page", None),
             "page_end": getattr(chunk, "page_end", None),
             "pages": getattr(chunk, "pages", None),
+            "kind": getattr(chunk, "kind", "page"),
             "timecode": getattr(chunk, "timecode", None),
             "from_image": bool(getattr(chunk, "from_image", False)),
             "section": getattr(chunk, "section", None),

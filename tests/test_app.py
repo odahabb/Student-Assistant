@@ -141,11 +141,16 @@ class SubjectTests(ServiceTestCase):
         self.client.delete(f"/api/subjects/{name}/documents/whisper.pdf")
         self.assertEqual(self.client.get("/api/subjects").json()[0]["documents"], [])
 
-    def test_page_is_served(self):
+    def test_page_is_served_and_never_cached_stale(self):
         page = self.client.get("/")
         self.assertEqual(page.status_code, 200)
         self.assertIn("Study Assistant", page.text)
-        self.assertEqual(self.client.get("/app.js").status_code, 200)
+        script = self.client.get("/app.js")
+        self.assertEqual(script.status_code, 200)
+        # An updated server must not be met by yesterday's script.
+        self.assertEqual(script.headers["cache-control"], "no-cache")
+        self.assertEqual(self.client.get("/api/subjects").headers["cache-control"],
+                         "no-store")
 
 
 class IndexTests(ServiceTestCase):

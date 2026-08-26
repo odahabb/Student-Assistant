@@ -40,6 +40,11 @@ async def no_caching(request: Request, call_next):
     response = await call_next(request)
     if request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
+    else:
+        # The page and its script must be checked on every load: a browser
+        # holding yesterday's app.js against today's server is a confusing
+        # way to find out the app was updated.
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 

@@ -110,8 +110,9 @@ function sourceLabel(src) {
   const parts = [src.file || "Unknown file"];
   // Slides pack several to a chunk and recordings have no pages at all, so a
   // source says "slides 12-15" or "12:03-15:40" rather than always "p. 4".
+  const many = src.pages && src.pages.includes("-");
   if (src.timecode) parts.push(src.timecode);
-  else if (src.pages && src.pages.includes("-")) parts.push(`slides ${src.pages}`);
+  else if (src.kind === "slide") parts.push(many ? `slides ${src.pages}` : `slide ${src.page}`);
   else if (src.page) parts.push(`p. ${src.page}`);
   return parts.join(" · ");
 }
@@ -345,7 +346,8 @@ function renderIndexing() {
       el("div", { class: "spinner small" }),
       el("strong", { text: "Answers are ready — still reading the pictures" }),
       el("p", { class: "meta", text: e.current
-        ? `${e.current}${p ? ` — page ${p.page} of ${p.total} pictures` : ""}`
+        ? `${e.current}${p ? ` — picture ${Math.min(p.done + 1, p.total)} of ${p.total}`
+                              + (p.page ? ` (page ${p.page})` : "") : ""}`
         : "Diagrams and picture-only slides are being read in the background." }));
     return;
   }
@@ -637,7 +639,8 @@ function openSource(src, i, highlight, trigger, eyebrow) {
   $("#drawer-eyebrow").textContent = eyebrow || `Source ${i + 1}`;
   $("#drawer-title").textContent = src.section || src.file || "Passage";
   const where = src.timecode ? `at ${src.timecode}`
-    : src.pages && src.pages.includes("-") ? `slides ${src.pages}`
+    : src.kind === "slide"
+      ? (src.pages && src.pages.includes("-") ? `slides ${src.pages}` : `slide ${src.page}`)
     : src.page ? `page ${src.page}` : null;
   $("#drawer-meta").replaceChildren(
     [src.file, where].filter(Boolean).join(" · "),

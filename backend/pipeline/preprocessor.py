@@ -254,6 +254,7 @@ def _packed_chunk(units: List[dict], section: Optional[str]) -> Chunk:
         source_file=units[0]["source_file"],
         page=pages[0] if pages else None,
         section=section,
+        kind=units[0].get("kind", "page"),
         page_end=pages[-1] if len(pages) > 1 and pages[-1] != pages[0] else None,
         from_image=any(u.get("from_image") for u in units),
     )
@@ -266,7 +267,8 @@ def _oversized(tokenizer, unit: dict, section: Optional[str], chunk_tokens: int,
                                     chunk_tokens, overlap):
         chunk = _packed_chunk([unit], section)
         yield Chunk(window, source_file=chunk.source_file, page=chunk.page,
-                    section=section, start=unit.get("start"), end=unit.get("end"),
+                    section=section, kind=unit.get("kind", "page"),
+                    start=unit.get("start"), end=unit.get("end"),
                     from_image=chunk.from_image)
 
 
@@ -348,7 +350,7 @@ def _pack_audio(tokenizer, units: List[dict], chunk_tokens: int,
             chunks.append(Chunk(
                 " ".join(_collapse(u["text"]) for u in buffer),
                 source_file=buffer[0]["source_file"],
-                page=None,
+                page=None, kind="audio",
                 section=f"Part {part} ({mmss(start)}-{mmss(end)})",
                 start=start, end=end))
             part += 1

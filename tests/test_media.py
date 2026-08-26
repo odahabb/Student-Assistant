@@ -238,6 +238,13 @@ class SlidePackingTests(unittest.TestCase):
         self.assertEqual({c.page for c in chunks}, {1})
         self.assertEqual({c.section for c in chunks}, {"Details"})
 
+    def test_a_slide_chunk_knows_it_is_a_slide(self):
+        units = self.slides((1, "Selection", "Selection picks the fittest members", False))
+        chunk = preprocessor.preprocess(units, chunk_tokens=40, overlap=5,
+                                        chunking="sentence")[0]
+        self.assertEqual(chunk.kind, "slide")
+        self.assertEqual(chunk.to_record()["kind"], "slide")
+
     def test_picture_text_marks_the_chunk_it_lands_in(self):
         units = self.slides((1, "Fitness", "Fitness landscape with two peaks", False))
         units[0]["from_image"] = True
@@ -271,6 +278,7 @@ class AudioPackingTests(unittest.TestCase):
         self.assertIsNotNone(chunks[0].timecode)
         self.assertIsNone(chunks[0].page)
         self.assertTrue(chunks[0].section.startswith("Part 1 (0:00-"))
+        self.assertEqual(chunks[0].kind, "audio")
 
     def test_a_long_pause_ends_a_chunk(self):
         body = " ".join(f"w{j}" for j in range(35))

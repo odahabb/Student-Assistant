@@ -29,6 +29,8 @@ class Chunk(str):
     section     : title of the document section the chunk belongs to (see
                   loader._page_sections); None when the input had no sections.
                   The quiz layer groups chunks into topics by it.
+    kind        : "page", "slide" or "audio" — what the source is, so the
+                  interface can say "slide 12" rather than "page 12".
     page_end    : last page/slide when a chunk covers several of them (slide
                   decks pack consecutive slides together); None otherwise, and
                   then the chunk covers `page` alone.
@@ -46,6 +48,7 @@ class Chunk(str):
                 page: Optional[int] = None,
                 section: Optional[str] = None,
                 page_end: Optional[int] = None,
+                kind: str = "page",
                 start: Optional[float] = None,
                 end: Optional[float] = None,
                 from_image: bool = False) -> "Chunk":
@@ -54,6 +57,7 @@ class Chunk(str):
         obj.page = page
         obj.section = section
         obj.page_end = page_end
+        obj.kind = kind
         obj.start = start
         obj.end = end
         obj.from_image = from_image
@@ -89,6 +93,8 @@ class Chunk(str):
                   "page": self.page, "section": self.section}
         # Only written when set, so records for ordinary text documents keep
         # the shape they had before slides and audio carried extra metadata.
+        if self.kind != "page":
+            record["kind"] = self.kind
         if self.page_end is not None:
             record["page_end"] = self.page_end
         if self.start is not None:
@@ -115,6 +121,7 @@ class Chunk(str):
             page=record.get("page"),
             section=record.get("section"),
             page_end=record.get("page_end"),
+            kind=record.get("kind", "page"),
             start=record.get("start"),
             end=record.get("end"),
             from_image=record.get("from_image", False),
