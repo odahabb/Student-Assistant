@@ -10,9 +10,10 @@ via the SA_DEVICE env var (see backend/pipeline/device.py).
 """
 
 import logging
+import os
 import re
 import threading
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 from transformers import AutoTokenizer
 
@@ -22,9 +23,44 @@ log = logging.getLogger(__name__)
 
 MODEL_NAME = "google/flan-t5-large"
 
+# Two answering styles, because the two places an answer is used want
+# opposite things.
+#
+#   "short"   — FLAN-T5-Large, extractive: a span, a number, a few words.
+#               This is what the quiz compares a student's answer against and
+#               what every Chapter 5 measurement was taken on.
+#   "explain" — a small instruction-tuned model writing a short paragraph, for
+#               the chat view, where a student asking "what is a fitness
+#               function?" wants the idea explained rather than a phrase
+#               lifted off a slide. FLAN-T5 cannot do this: asked for three to
+#               four sentences it returns one of ten words, and sampling does
+#               not change that, because its distribution is too peaked.
+#
+# SA_ANSWER_STYLE selects it. The library default stays "short" so the
+# evaluation scripts keep measuring the configuration they were written for;
+# backend/service.py turns on "explain" for the application.
+ANSWER_STYLE = os.environ.get("SA_ANSWER_STYLE", "short").lower()
+CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
+# Enough freedom to phrase an explanation, not enough to wander off the
+# passages: every claim is still supposed to come from the context.
+CHAT_TEMPERATURE = 0.6
+CHAT_TOP_P = 0.9
+CHAT_MAX_TOKENS = 260
+
+CHAT_SYSTEM = (
+    "You are helping a student revise from their own course material. Answer "
+    "the question using only the passages provided, which come from documents "
+    "the student uploaded. Write three to five sentences of plain prose that "
+    "explain the idea, rather than copying the wording of the passages. Do not "
+    "add facts that are not in the passages. If the passages do not answer the "
+    "question, say so in one sentence."
+)
+
 _tokenizer = None
 _model = None
 _model_is_ov = False
+_chat_tokenizer = None
+_chat_model = None
 
 
 def _get_model():
@@ -47,6 +83,93 @@ def _get_model():
     _model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
     _model.to(get_torch_device())
     return _tokenizer, _model
+
+
+def _get_chat_model():
+    """
+    Lazy-load the instruction-tuned model used for explanations. Loaded only
+    when SA_ANSWER_STYLE=explain, so the quiz and the evaluation scripts never
+    pay for it.
+    """
+    global _chat_tokenizer, _chat_model
+    if _chat_model is not None:
+        return _chat_tokenizer, _chat_model
+
+    import torch
+    from transformers import AutoModelForCausalLM
+
+    log.info(f"Loading {CHAT_MODEL_NAME} (first use)...")
+    device = get_torch_device()
+    _chat_tokenizer = AutoTokenizer.from_pretrained(CHAT_MODEL_NAME)
+    _chat_model = AutoModelForCausalLM.from_pretrained(
+        CHAT_MODEL_NAME,
+        torch_dtype=torch.float16 if device == "xpu" else torch.float32,
+        low_cpu_mem_usage=True,
+    )
+    try:
+        _chat_model.to(device)
+    except Exception as e:      # an unusable GPU must not cost the answer
+        log.warning(f"Could not place the chat model on {device} ({e}) — using cpu")
+        _chat_model.to("cpu")
+    return _chat_tokenizer, _chat_model
+
+
+def _chat_inputs(query: str, context_chunks: List[str]):
+    """The question and its passages, in the model's chat format."""
+    tokenizer, model = _get_chat_model()
+    if isinstance(context_chunks, str):
+        context_chunks = [context_chunks]
+    passages = "\n\n".join(f"[{i + 1}] {chunk}"
+                           for i, chunk in enumerate(context_chunks))
+    messages = [
+        {"role": "system", "content": CHAT_SYSTEM},
+        {"role": "user", "content": f"Passages:\n{passages}\n\nQuestion: {query}"},
+    ]
+    text = tokenizer.apply_chat_template(messages, tokenize=False,
+                                         add_generation_prompt=True)
+    return tokenizer([text], return_tensors="pt").to(model.device)
+
+
+def _chat_settings() -> dict:
+    return {"max_new_tokens": CHAT_MAX_TOKENS, "do_sample": True,
+            "temperature": CHAT_TEMPERATURE, "top_p": CHAT_TOP_P}
+
+
+def explain(query: str, context_chunks: List[str]) -> str:
+    """A short paragraph answering the question from the retrieved passages."""
+    tokenizer, model = _get_chat_model()
+    inputs = _chat_inputs(query, context_chunks)
+    output = model.generate(**inputs, **_chat_settings())
+    answer = tokenizer.decode(output[0][inputs["input_ids"].shape[1]:],
+                              skip_special_tokens=True)
+    return _fix_number_spacing(answer).strip()
+
+
+def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
+    """explain(), piece by piece, for the web interface."""
+    from transformers import TextIteratorStreamer
+
+    tokenizer, model = _get_chat_model()
+    inputs = _chat_inputs(query, context_chunks)
+    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True,
+                                    skip_special_tokens=True)
+    failure = []
+
+    def run():
+        try:
+            model.generate(**inputs, **_chat_settings(), streamer=streamer)
+        except Exception as exc:
+            failure.append(exc)
+            streamer.end()
+
+    worker = threading.Thread(target=run, daemon=True)
+    worker.start()
+    try:
+        yield from streamer
+    finally:
+        worker.join()
+    if failure:
+        raise failure[0]
 
 
 MAX_INPUT_TOKENS = 1024
@@ -200,6 +323,10 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     piece as the model produces it, for the web interface. Joining the pieces
     and passing them through _fix_number_spacing gives generate()'s output.
     """
+    if ANSWER_STYLE == "explain":
+        yield from explain_stream(query, context_chunks)
+        return
+
     from transformers import TextIteratorStreamer
 
     tokenizer, model = _get_model()
@@ -233,8 +360,19 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
 
 def generate(query: str, context_chunks: List[str]) -> str:
     """
-    Build a prompt from the query and context chunks, run inference on CPU
-    using flan-t5-large, and return the generated answer string.
+    Answer the query from the retrieved chunks, in whichever style
+    SA_ANSWER_STYLE selects (see ANSWER_STYLE above).
+    """
+    if ANSWER_STYLE == "explain":
+        return explain(query, context_chunks)
+    return answer_short(query, context_chunks)
+
+
+def answer_short(query: str, context_chunks: List[str]) -> str:
+    """
+    The extractive answer: flan-t5-large, greedy, a span or a few words.
+    Used by the quiz layer, which compares a reference answer with a
+    student's, and by the evaluation scripts, whose numbers describe it.
     """
     tokenizer, _ = _get_model()
 

@@ -56,7 +56,7 @@ rather than reading its values exactly.
 | 3. Embed | `embedder.py` | Encodes chunks as 384-d unit vectors. | **bge-small-en-v1.5** in the app; **all-MiniLM-L6-v2** is the original model and the library default |
 | 4. Store | `vector_store.py` | FAISS `IndexFlatL2` plus chunk text and metadata. | — |
 | 5. Retrieve | `retriever.py`, `sparse.py` | Top-k (k = 3) chunks for a question. The app uses hybrid retrieval: embedding similarity and BM25 keyword scores, each min-max scaled and mixed 0.4 / 0.6. | same embedding model |
-| 6. Generate | `generator.py` | Answers from the retrieved chunks, sharing the 1,024-token input budget across them by rank. | **FLAN-T5-Large** |
+| 6. Generate | `generator.py` | Two answering styles. *Explain* (the chat view): three to five sentences of prose from the retrieved passages, sampled at temperature 0.6. *Short* (the quiz and every evaluation script): an extractive span, sharing the 1,024-token input budget across chunks by rank. | **Qwen2.5-1.5B-Instruct** for explanations; **FLAN-T5-Large** for short answers |
 | 7. Quiz | `quiz.py` | Groups chunks into topics (sections), writes questions, keeps only those whose answer survives a round-trip retrieval check, and grades answers. | FLAN-T5-Large; all-MiniLM-L6-v2 for grading |
 | 8. Recommend | `recommender.py` | Per-topic ability estimate (online Rasch / Elo update), next-question difficulty, and revision ranking. | — |
 
@@ -81,6 +81,14 @@ and questions are written on demand. Quiz questions and progress are saved in
 
 **Embedding model.** `SA_EMBEDDER` selects `bge-small` (the app's default,
 chosen in the embedding-model comparison below), `multi-qa` or `minilm`.
+
+**Answer style.** `SA_ANSWER_STYLE` selects `short` (the library default:
+FLAN-T5-Large, extractive, what the evaluation scripts measure) or `explain`
+(Qwen2.5-1.5B-Instruct writing a short paragraph, which the app turns on for
+the chat view). The quiz always uses short answers, because it compares a
+reference answer with what the student types. FLAN-T5 cannot produce the
+paragraph: asked for three to four sentences it returns one of ten words, and
+sampling does not change that. `SA_CHAT_MODEL` overrides the model used.
 
 **Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU), `cpu` or
 `npu` (OpenVINO, generator and embedder only). The app defaults to `cpu`;

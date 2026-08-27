@@ -255,8 +255,11 @@ def generate_item(chunk, answer_fn: Optional[Callable] = None,
     Returns (item, None) on success or (None, reason) on rejection.
     """
     if answer_fn is None or question_fn is None:
-        from backend.pipeline.generator import complete, generate
-        answer_fn = answer_fn or generate
+        # answer_short, not generate: a quiz needs a reference answer short
+        # enough to compare with what the student types, whatever style the
+        # chat view is answering in.
+        from backend.pipeline.generator import answer_short, complete
+        answer_fn = answer_fn or answer_short
         question_fn = question_fn or (lambda prompt: complete(prompt, max_new_tokens=48))
 
     question = question_fn(QUESTION_PROMPT.format(passage=str(chunk))).strip()

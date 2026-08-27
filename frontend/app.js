@@ -222,7 +222,11 @@ function renderFooter() {
   $("#side-foot").replaceChildren(
     el("div", {}, "Embeddings ", el("b", { text: s.embedder }), " · ", el("b", { text: `${s.chunking} chunks` })),
     el("div", {}, "Retrieval ", el("b", { text: s.hybrid ? "hybrid (BM25 + dense)" : "dense" }), ` · top ${s.top_k}`),
-    el("div", {}, "Answers by ", el("b", { text: "flan-t5-large" }), " on ", el("b", { text: s.device.toUpperCase() })),
+    el("div", {}, "Answers by ", el("b", { text: s.answer_model || "flan-t5-large" }),
+       " on ", el("b", { text: s.device.toUpperCase() })),
+    s.answer_style === "explain"
+      ? el("div", {}, "Quiz answers by ", el("b", { text: s.quiz_model }))
+      : null,
   );
   $("#dropzone-hint").textContent = "PDF, images, audio or text";
   $("#file-input").accept = s.extensions.map((e) => `.${e}`).join(",");

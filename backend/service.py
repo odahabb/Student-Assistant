@@ -43,6 +43,9 @@ os.environ.setdefault("SA_DEVICE", "cpu")
 # bge-small-en-v1.5 answered 18/25 evaluation questions end to end against 12
 # for all-MiniLM-L6-v2 (data/eval/generation_analysis_bge-small.json).
 os.environ.setdefault("SA_EMBEDDER", "bge-small")
+# The chat view explains in a paragraph; the quiz still uses short answers
+# (see generator.ANSWER_STYLE).
+os.environ.setdefault("SA_ANSWER_STYLE", "explain")
 
 import faiss
 import numpy as np
@@ -702,9 +705,15 @@ def progress_summary(name: str) -> dict:
 
 
 def settings() -> dict:
+    from backend.pipeline import generator
     from backend.pipeline.device import get_torch_device, should_use_npu
+    explaining = generator.ANSWER_STYLE == "explain"
     return {"embedder": model_key(), "chunking": CHUNKING, "hybrid": HYBRID,
             "top_k": TOP_K,
+            "answer_model": (generator.CHAT_MODEL_NAME.split("/")[-1] if explaining
+                             else generator.MODEL_NAME.split("/")[-1]),
+            "quiz_model": generator.MODEL_NAME.split("/")[-1],
+            "answer_style": generator.ANSWER_STYLE,
             "device": "npu" if should_use_npu() else get_torch_device(),
             "extensions": SUPPORTED_EXTENSIONS,
             "levels": quiz.LEVELS,

@@ -61,7 +61,7 @@ from backend.pipeline.preprocessor import preprocess  # noqa: E402
 from backend.pipeline.embedder import embed, model_key  # noqa: E402
 from backend.pipeline.retriever import DENSE_WEIGHT, retrieve  # noqa: E402
 from backend.pipeline import sparse  # noqa: E402
-from backend.pipeline.generator import generate  # noqa: E402
+from backend.pipeline.generator import ANSWER_STYLE, generate  # noqa: E402
 
 RAW_DIR = ROOT / "data" / "raw"
 EVAL_DIR = ROOT / "data" / "eval"
@@ -74,10 +74,14 @@ EMBEDDER = model_key()
 # "--retrieval keyword" uses BM25 alone.
 RETRIEVAL = (sys.argv[sys.argv.index("--retrieval") + 1]
              if "--retrieval" in sys.argv else "dense")
+# SA_ANSWER_STYLE=explain measures the paragraph answers the chat view gives
+# instead of FLAN-T5's extractive spans (generator.ANSWER_STYLE).
 OUT_PATH = EVAL_DIR / ("generation_analysis"
                        + ("" if CHUNKING == "window" else f"_{CHUNKING}")
                        + ("" if EMBEDDER == "minilm" else f"_{EMBEDDER}")
-                       + ("" if RETRIEVAL == "dense" else f"_{RETRIEVAL}") + ".json")
+                       + ("" if RETRIEVAL == "dense" else f"_{RETRIEVAL}")
+                       + ("" if ANSWER_STYLE == "short" else f"_{ANSWER_STYLE}")
+                       + ".json")
 
 DOCUMENTS = [
     "embedding.pdf",
@@ -109,6 +113,36 @@ def normalise(text: str) -> str:
 
 def numbers_in(text: str):
     return set(re.findall(r'\d+(?:\.\d+)?', normalise(text)))
+
+
+# Stop words carry no claim, so they say nothing about whether an answer
+# stuck to its passages.
+_FUNCTION_WORDS = {
+    "the", "a", "an", "and", "or", "but", "if", "of", "to", "in", "on", "for",
+    "with", "that", "this", "these", "those", "is", "are", "was", "were", "be",
+    "been", "being", "it", "its", "as", "by", "from", "at", "which", "into",
+    "can", "may", "might", "will", "would", "should", "such", "than", "then",
+    "they", "their", "them", "there", "here", "when", "while", "how", "what",
+    "each", "other", "more", "most", "some", "any", "all", "also", "based",
+    "using", "used", "use", "have", "has", "had", "not", "no", "so", "we",
+}
+
+
+def grounded_share(answer: str, context: str) -> float:
+    """
+    Share of the answer's content words that appear in the retrieved passages.
+
+    A blunt instrument: it cannot tell a paraphrase from an invention, and a
+    wrong claim made in the passages' own vocabulary scores well. It is
+    reported as a symptom — an answer far below the rest is worth reading —
+    not as a measure of faithfulness.
+    """
+    words = [w for w in normalise(answer).split()
+             if len(w) > 3 and w not in _FUNCTION_WORDS]
+    if not words:
+        return 1.0
+    haystack = set(normalise(context).split())
+    return round(sum(1 for w in words if w in haystack) / len(words), 3)
 
 
 def token_f1(a: str, b: str) -> float:
@@ -145,6 +179,12 @@ def judge(expected: str, produced: str) -> dict:
         "expected_in_answer": bool(exp) and exp in got,
         "answer_in_expected": bool(got) and len(got) >= 2 and got in exp,
         "token_f1": round(token_f1(expected, produced), 3),
+        # Every content word of the expected answer appears somewhere in the
+        # output. A paragraph that explains the right fact passes this where
+        # strict containment fails on wording ("CoT" vs "chain-of-thought").
+        "expected_words_present": all(
+            w in set(normalise(produced).split())
+            for w in normalise(expected).split() if len(w) > 2) if expected else False,
         "expected_numbers": sorted(expected_numbers),
         "all_expected_numbers_present": bool(expected_numbers)
         and expected_numbers <= numbers_in(produced),
@@ -178,6 +218,12 @@ def build_index():
 
 
 def main():
+    # Passages carry ligatures and dashes that a cp1252 console cannot print,
+    # and losing a finished run to a print statement is a poor trade.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
     print("=" * 78)
     print(f"GENERATION vs RETRIEVAL FAILURE ANALYSIS  (k={TOP_K}, as shipped)")
     print("=" * 78)
@@ -227,6 +273,7 @@ def main():
             "answer_in_context": answer_in_context,
             "generated_answer": answer,
             "answer_correct": answer_correct,
+            "grounded_share": grounded_share(answer, " ".join(map(str, retrieved))),
             "bucket": bucket,
             "match_signals": signals,
             "seconds": round(elapsed, 2),
@@ -287,6 +334,7 @@ def main():
         "k": TOP_K,
         "chunking": CHUNKING,
         "embedder": EMBEDDER,
+        "answer_style": ANSWER_STYLE,
         "retrieval": RETRIEVAL,
         "total_questions": total,
         "bucket_counts": counts,

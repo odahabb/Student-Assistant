@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from backend.pipeline import generator
 from tests.helpers import WhitespaceTokenizer
@@ -44,6 +45,58 @@ class BudgetContextTests(unittest.TestCase):
         tokens = context.split()
         self.assertLessEqual(len(tokens), generator.MAX_INPUT_TOKENS)
         self.assertEqual({t[0] for t in tokens}, {"a", "b", "c"})
+
+
+class AnswerStyleTests(unittest.TestCase):
+    """
+    Which model answers depends on where the answer is going: a paragraph for
+    the chat view, a short span for the quiz and the evaluation scripts.
+    """
+
+    def test_short_is_the_default_so_measurements_keep_meaning(self):
+        self.assertEqual(generator.ANSWER_STYLE, "short")
+
+    def test_explain_style_answers_in_prose(self):
+        with mock.patch.object(generator, "ANSWER_STYLE", "explain"), \
+             mock.patch.object(generator, "explain",
+                               return_value="A fitness function scores a solution.") as explain, \
+             mock.patch.object(generator, "answer_short") as short:
+            answer = generator.generate("What is a fitness function?", ["a passage"])
+        self.assertEqual(answer, "A fitness function scores a solution.")
+        explain.assert_called_once()
+        short.assert_not_called()
+
+    def test_short_style_uses_flan(self):
+        with mock.patch.object(generator, "ANSWER_STYLE", "short"), \
+             mock.patch.object(generator, "answer_short", return_value="a score") as short, \
+             mock.patch.object(generator, "explain") as explain:
+            self.assertEqual(generator.generate("q?", ["a passage"]), "a score")
+        short.assert_called_once()
+        explain.assert_not_called()
+
+    def test_streaming_follows_the_same_style(self):
+        with mock.patch.object(generator, "ANSWER_STYLE", "explain"), \
+             mock.patch.object(generator, "explain_stream",
+                               return_value=iter(["A ", "paragraph."])) as streamer:
+            self.assertEqual(list(generator.stream("q?", ["a passage"])),
+                             ["A ", "paragraph."])
+        streamer.assert_called_once()
+
+    def test_the_quiz_asks_for_a_short_answer_whatever_the_chat_style_is(self):
+        from backend.pipeline import quiz
+        with mock.patch.object(generator, "ANSWER_STYLE", "explain"), \
+             mock.patch.object(generator, "answer_short",
+                               return_value="680,000 hours") as short, \
+             mock.patch.object(generator, "complete",
+                               return_value="How many hours of audio were used?"), \
+             mock.patch.object(generator, "explain") as explain:
+            item, reason = quiz.generate_item(
+                "Whisper was trained on 680,000 hours of audio collected from "
+                "the web, which is far more than earlier systems used.")
+        self.assertIsNotNone(item, reason)
+        self.assertEqual(item.answer, "680,000 hours")
+        short.assert_called()
+        explain.assert_not_called()
 
 
 class NumberSpacingTests(unittest.TestCase):
