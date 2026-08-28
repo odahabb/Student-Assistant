@@ -12,7 +12,9 @@ const state = {
   current: null,          // selected subject name
   view: "ask",
   status: null,           // index status of the current subject
-  chats: {},              // subject -> messages
+  chats: {},              // subject -> messages of the open conversation
+  chatList: {},           // subject -> [{id, title, updated, exchanges}]
+  chatId: {},             // subject -> id of the open conversation, null when new
   asking: {},             // subject -> true while an answer is streaming
   quiz: {},               // subject -> {question, result, selected, topic}
   topics: {},             // subject -> topic list
@@ -172,14 +174,17 @@ function currentSubject() {
 
 function renderSidebar() {
   const list = $("#subject-list");
-  list.replaceChildren(...state.subjects.map((s) => el("button", {
-    class: "subject",
-    "aria-current": s.name === state.current ? "true" : "false",
-    onclick: () => { selectSubject(s.name); closeNav(); },
+  list.replaceChildren(...state.subjects.map((s) => el("div", {
+    class: "subject" + (s.name === state.current ? " current" : ""),
   },
-    el("span", { class: "swatch", style: `background: hsl(${hue(s.name)} 38% 52%)` }),
-    el("span", { class: "name", text: s.name }),
-    el("span", { class: "n", text: s.documents.length || "" }),
+    el("button", { class: "subject-open",
+      "aria-current": s.name === state.current ? "true" : "false",
+      onclick: () => { selectSubject(s.name); closeNav(); } },
+      el("span", { class: "swatch", style: `background: hsl(${hue(s.name)} 38% 52%)` }),
+      el("span", { class: "name", text: s.name }),
+      el("span", { class: "n", text: s.documents.length || "" })),
+    el("button", { class: "icon-btn remove", "aria-label": `Delete ${s.name}`,
+      onclick: () => deleteSubject(s) }, icon("trash")),
   )));
   if (!state.subjects.length) {
     list.append(el("p", { class: "meta", style: "margin: 0 8px", text: "No subjects yet." }));
@@ -230,6 +235,27 @@ function renderFooter() {
   );
   $("#dropzone-hint").textContent = "PDF, images, audio or text";
   $("#file-input").accept = s.extensions.map((e) => `.${e}`).join(",");
+}
+
+async function deleteSubject(subject) {
+  const documents = subject.documents.length;
+  const ok = await confirmDialog(`Delete “${subject.name}”?`,
+    `This deletes the subject with ${documents} document${documents === 1 ? "" : "s"}, `
+    + "its conversations, its quiz questions and its progress. It cannot be undone.",
+    "Delete subject");
+  if (!ok) return;
+  try {
+    await api(subjectUrl(subject.name), { method: "DELETE" });
+    for (const store of [state.chats, state.chatList, state.chatId, state.quiz,
+                         state.topics, state.asking]) {
+      delete store[subject.name];
+    }
+    await loadSubjects();
+    if (state.current === subject.name) {
+      await selectSubject(state.subjects[0]?.name ?? null);
+    }
+    toast(`Deleted “${subject.name}”.`);
+  } catch (e) { fail(e); }
 }
 
 async function createSubject(event) {
@@ -292,7 +318,7 @@ async function selectSubject(name, view) {
   setHash();
   renderSidebar();
   renderMain();
-  if (!name) return;
+  if (!name) { renderSidebar(); return; }
   try {
     const subject = await api(subjectUrl(name));
     if (state.current !== name) return;
@@ -453,12 +479,101 @@ async function renderAsk() {
     : state.status?.state === "unreadable" ? "Nothing readable in this subject yet"
     : "Waiting for the documents to be read…";
   updateSend();
-  if (!(name in state.chats)) {
-    state.chats[name] = [];
-    try { state.chats[name] = await api(subjectUrl(name, "/chat")); } catch (e) { fail(e); }
+  if (!(name in state.chatList)) {
+    state.chatList[name] = [];
+    try {
+      state.chatList[name] = await api(subjectUrl(name, "/chats"));
+    } catch (e) { fail(e); }
     if (state.current !== name || state.view !== "ask") return;
+    // Open the conversation last used, or start a fresh one.
+    await openChat(name, state.chatList[name][0]?.id ?? null);
+    return;
   }
+  drawChatBar();
   drawConversation();
+}
+
+// ------------------------------------------------------------ conversations
+
+async function openChat(name, chatId) {
+  state.chatId[name] = chatId;
+  state.chats[name] = [];
+  if (chatId) {
+    try {
+      state.chats[name] = (await api(subjectUrl(name, `/chats/${chatId}`))).messages;
+    } catch (e) {
+      // Deleted in another tab, or gone from disk: fall back to a new one.
+      state.chatId[name] = null;
+      if (e.status !== 404) fail(e);
+    }
+  }
+  if (state.current !== name) return;
+  closeChatMenu();
+  drawChatBar();
+  drawConversation();
+}
+
+function currentChatTitle() {
+  const id = state.chatId[state.current];
+  const found = (state.chatList[state.current] || []).find((c) => c.id === id);
+  return found ? found.title : "New conversation";
+}
+
+function drawChatBar() {
+  const name = state.current;
+  const chats = state.chatList[name] || [];
+  $("#chat-title").textContent = currentChatTitle();
+  $("#chat-menu-button").disabled = chats.length === 0;
+  $("#clear-chat").hidden = !state.chatId[name];
+  const menu = $("#chat-menu");
+  menu.replaceChildren(...chats.map((c) => el("div", {
+    class: "chat-row" + (c.id === state.chatId[name] ? " current" : ""),
+  },
+    el("button", { class: "chat-open", onclick: () => openChat(name, c.id) },
+      el("span", { class: "chat-row-title", text: c.title }),
+      el("span", { class: "chat-row-meta", text:
+        `${c.exchanges} question${c.exchanges === 1 ? "" : "s"}`
+        + (c.updated ? ` · ${ago(c.updated)}` : "") })),
+    el("button", { class: "icon-btn remove", "aria-label": `Delete ${c.title}`,
+      onclick: () => deleteChat(c) }, icon("trash")),
+  )));
+  if (!chats.length) {
+    menu.append(el("p", { class: "meta", style: "margin: 6px 10px",
+                          text: "No conversations yet." }));
+  }
+}
+
+function toggleChatMenu() {
+  const menu = $("#chat-menu");
+  const open = menu.hidden;
+  menu.hidden = !open;
+  $("#chat-menu-button").setAttribute("aria-expanded", String(open));
+}
+
+function closeChatMenu() {
+  $("#chat-menu").hidden = true;
+  $("#chat-menu-button").setAttribute("aria-expanded", "false");
+}
+
+function newChat() {
+  // The conversation is only written once it has a question in it, so an
+  // abandoned "New conversation" never clutters the list.
+  openChat(state.current, null);
+  $("#question").focus();
+}
+
+async function deleteChat(chat) {
+  const name = state.current;
+  const ok = await confirmDialog("Delete this conversation?",
+    `“${chat.title}” and its ${chat.exchanges} question(s) will be deleted. `
+    + "Your documents and quiz progress are kept.", "Delete");
+  if (!ok) return;
+  try {
+    await api(subjectUrl(name, `/chats/${chat.id}`), { method: "DELETE" });
+    state.chatList[name] = (state.chatList[name] || []).filter((c) => c.id !== chat.id);
+    if (state.chatId[name] === chat.id) await openChat(name, state.chatList[name][0]?.id ?? null);
+    else { drawChatBar(); }
+  } catch (e) { fail(e); }
 }
 
 function drawConversation() {
@@ -579,7 +694,7 @@ async function ask(event) {
   try {
     const response = await fetch(subjectUrl(name, "/ask"), {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, chat: state.chatId[name] }),
     });
     if (!response.ok) {
       let detail = response.statusText;
@@ -604,6 +719,7 @@ async function ask(event) {
         else if (payload.type === "token") pending.content += payload.text;
         else if (payload.type === "done") {
           Object.assign(pending, { content: payload.answer, seconds: payload.seconds, time: Date.now() / 1000, pending: false });
+          if (payload.chat) rememberChat(name, payload.chat);
         } else if (payload.type === "error") throw new Error(payload.detail);
         const wrap = node();
         if (wrap) {
@@ -624,15 +740,27 @@ async function ask(event) {
   }
 }
 
+function rememberChat(name, chat) {
+  const list = state.chatList[name] || (state.chatList[name] = []);
+  const existing = list.find((c) => c.id === chat.id);
+  if (existing) {
+    Object.assign(existing, chat);
+    existing.exchanges = (existing.exchanges || 0) + 1;
+  } else {
+    list.unshift({ ...chat, exchanges: 1 });
+  }
+  list.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  state.chatId[name] = chat.id;
+  if (state.current === name) drawChatBar();
+}
+
 async function clearChat() {
-  if (!state.current) return;
-  const ok = await confirmDialog("Clear this conversation?", "The questions and answers for this subject will be deleted. Your quiz progress is kept.", "Clear");
-  if (!ok) return;
-  try {
-    await api(subjectUrl(state.current, "/chat"), { method: "DELETE" });
-    state.chats[state.current] = [];
-    drawConversation();
-  } catch (e) { fail(e); }
+  const name = state.current;
+  const id = state.chatId[name];
+  if (!name || !id) return;
+  const chat = (state.chatList[name] || []).find((c) => c.id === id)
+    || { id, title: currentChatTitle(), exchanges: state.chats[name].length / 2 };
+  await deleteChat(chat);
 }
 
 // ---------------------------------------------------------------- drawer
@@ -1052,6 +1180,14 @@ function wire() {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(); }
   });
   $("#clear-chat").addEventListener("click", clearChat);
+  $("#new-chat").addEventListener("click", newChat);
+  $("#chat-menu-button").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleChatMenu();
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".chat-picker")) closeChatMenu();
+  });
 
   $("#new-question").addEventListener("click", newQuestion);
   $("#topic-select").addEventListener("change", (e) => { quizState().topic = e.target.value; });
@@ -1063,7 +1199,7 @@ function wire() {
   $("#scrim").addEventListener("click", closeNav);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closeDrawer(); closeNav(); }
+    if (e.key === "Escape") { closeDrawer(); closeNav(); closeChatMenu(); }
     quizKeys(e);
   });
   window.addEventListener("hashchange", () => {

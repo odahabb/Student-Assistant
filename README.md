@@ -76,8 +76,9 @@ Then open http://127.0.0.1:8000 (`SA_PORT` changes the port). Create a
 subject in the sidebar, upload documents (PDF, PNG/JPG/TIFF/BMP,
 MP3/MP4/WAV/M4A, TXT), then ask questions or open the Quiz view. The first
 answer and the first quiz question on a topic are slow because models load
-and questions are written on demand. Quiz questions and progress are saved in
-`data/projects/<subject>/_study/`.
+and questions are written on demand. Everything a subject remembers is saved
+in `data/projects/<subject>/_study/`: conversations in `chats/`, quiz
+questions in `quiz_pool.json`, answers in `progress.json`.
 
 **Embedding model.** `SA_EMBEDDER` selects `bge-small` (the app's default,
 chosen in the embedding-model comparison below), `multi-qa` or `minilm`.

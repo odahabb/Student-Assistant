@@ -58,6 +58,12 @@ async def bad_request(_: Request, exc: ValueError):
     return JSONResponse({"detail": str(exc)}, status_code=400)
 
 
+@app.exception_handler(RuntimeError)
+async def server_problem(_: Request, exc: RuntimeError):
+    # Something the student can act on, rather than "Internal Server Error".
+    return JSONResponse({"detail": str(exc)}, status_code=500)
+
+
 @app.exception_handler(service.IndexNotReady)
 async def not_ready(_: Request, exc: service.IndexNotReady):
     detail = ("None of this subject's documents could be read."
@@ -72,6 +78,8 @@ class NewSubject(BaseModel):
 
 class Question(BaseModel):
     question: str
+    # Which conversation to add this exchange to; a new one when absent.
+    chat: Optional[str] = None
 
 
 class QuizRequest(BaseModel):
@@ -112,6 +120,13 @@ def get_subject(name: str):
     return {**subject_summary(name), "index": service.index_status(name)}
 
 
+@app.delete("/api/subjects/{name}")
+def delete_subject(name: str):
+    """Delete a subject and everything in it. The page confirms first."""
+    service.delete_subject(name)
+    return {"ok": True}
+
+
 @app.get("/api/subjects/{name}/status")
 def get_status(name: str):
     return service.index_status(name)
@@ -150,13 +165,29 @@ def delete_document(name: str, filename: str):
 
 # Asking
 
-@app.get("/api/subjects/{name}/chat")
-def get_chat(name: str):
-    return service.chat_history(name)
+@app.get("/api/subjects/{name}/chats")
+def list_chats(name: str):
+    return service.chat_list(name)
 
 
-@app.delete("/api/subjects/{name}/chat")
-def clear_chat(name: str):
+@app.post("/api/subjects/{name}/chats", status_code=201)
+def new_chat(name: str):
+    return service.create_chat(name)
+
+
+@app.get("/api/subjects/{name}/chats/{chat_id}")
+def get_chat(name: str, chat_id: str):
+    return service.chat(name, chat_id)
+
+
+@app.delete("/api/subjects/{name}/chats/{chat_id}")
+def delete_chat(name: str, chat_id: str):
+    service.delete_chat(name, chat_id)
+    return {"ok": True}
+
+
+@app.delete("/api/subjects/{name}/chats")
+def clear_chats(name: str):
     service.clear_chat(name)
     return {"ok": True}
 
@@ -167,7 +198,7 @@ def _event(payload: dict) -> str:
 
 @app.post("/api/subjects/{name}/ask")
 async def ask(name: str, body: Question):
-    events = service.ask(name, body.question)
+    events = service.ask(name, body.question, body.chat)
     # Run retrieval before answering, so a missing subject or an index that
     # isn't ready yet comes back as a normal error rather than a broken stream.
     first = await run_in_threadpool(next, events)

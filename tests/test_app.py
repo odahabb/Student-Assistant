@@ -141,6 +141,43 @@ class SubjectTests(ServiceTestCase):
         self.client.delete(f"/api/subjects/{name}/documents/whisper.pdf")
         self.assertEqual(self.client.get("/api/subjects").json()[0]["documents"], [])
 
+    def test_deleting_a_subject_removes_everything_in_it(self):
+        name = self.make_subject(files=("whisper.pdf",))
+        self.wait_ready(name)
+        service._write_json(service.study_path(name, "progress.json"), {"attempts": []})
+        self.assertEqual(self.client.delete(f"/api/subjects/{name}").status_code, 200)
+        self.assertFalse((self.projects / name).exists())
+        self.assertEqual(self.client.get("/api/subjects").json(), [])
+        self.assertNotIn(name, service._indexes)
+        self.assertEqual(self.client.get(f"/api/subjects/{name}").status_code, 404)
+
+    def test_a_folder_that_will_not_delete_still_stops_being_a_subject(self):
+        # Windows holds a handle on a folder inside OneDrive for a moment
+        # after its files go; the subject must disappear anyway.
+        name = self.make_subject()
+        with mock.patch.object(service.shutil, "rmtree",
+                               side_effect=PermissionError("Access is denied")):
+            self.assertEqual(self.client.delete(f"/api/subjects/{name}").status_code, 200)
+        self.assertEqual(self.client.get("/api/subjects").json(), [])
+        left = [p.name for p in self.projects.iterdir()]
+        self.assertEqual(len(left), 1)
+        self.assertTrue(left[0].startswith(service.DELETED_PREFIX), left)
+
+    def test_a_leftover_folder_is_swept_up_by_the_next_delete(self):
+        leftover = self.projects / f"{service.DELETED_PREFIX}Old-123"
+        leftover.mkdir()
+        (leftover / "notes.pdf").write_bytes(b"x")
+        name = self.make_subject()
+        self.client.delete(f"/api/subjects/{name}")
+        self.assertEqual(list(self.projects.iterdir()), [])
+
+    def test_deleting_one_subject_leaves_the_others(self):
+        self.make_subject(name="Speech")
+        self.make_subject(name="Vision")
+        self.client.delete("/api/subjects/Speech")
+        self.assertEqual([s["name"] for s in self.client.get("/api/subjects").json()],
+                         ["Vision"])
+
     def test_page_is_served_and_never_cached_stale(self):
         page = self.client.get("/")
         self.assertEqual(page.status_code, 200)
@@ -272,11 +309,80 @@ class AskTests(ServiceTestCase):
         self.assertEqual(events[0]["sources"][0]["section"], "Section 1")
         self.assertEqual(events[-1]["answer"], "680,000 hours")
 
-        history = self.client.get(f"/api/subjects/{name}/chat").json()
+        chats = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual(len(chats), 1)
+        self.assertEqual(chats[0]["id"], events[-1]["chat"]["id"])
+        history = self.client.get(
+            f"/api/subjects/{name}/chats/{chats[0]['id']}").json()["messages"]
         self.assertEqual([m["role"] for m in history], ["user", "assistant"])
         self.assertEqual(history[1]["content"], "680,000 hours")
-        self.client.delete(f"/api/subjects/{name}/chat")
-        self.assertEqual(self.client.get(f"/api/subjects/{name}/chat").json(), [])
+        self.client.delete(f"/api/subjects/{name}/chats")
+        self.assertEqual(self.client.get(f"/api/subjects/{name}/chats").json(), [])
+
+    def test_a_conversation_is_named_after_its_first_question(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        events = read_events(self.client.post(
+            f"/api/subjects/{name}/ask",
+            json={"question": "How many hours of audio was Whisper trained on?"}))
+        chat_id = events[-1]["chat"]["id"]
+        self.assertEqual(events[-1]["chat"]["title"],
+                         "How many hours of audio was Whisper trained…")
+        # A second question in the same conversation leaves the title alone.
+        read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                     json={"question": "And what about images?",
+                                           "chat": chat_id}))
+        chats = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual(len(chats), 1)
+        self.assertEqual(chats[0]["title"], "How many hours of audio was Whisper trained…")
+        self.assertEqual(chats[0]["exchanges"], 2)
+
+    def test_conversations_are_separate_and_deletable(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        first = read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                             json={"question": "About Whisper?"}))
+        second = read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                              json={"question": "About images?"}))
+        one, two = first[-1]["chat"]["id"], second[-1]["chat"]["id"]
+        self.assertNotEqual(one, two)
+        chats = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual([c["title"] for c in chats], ["About images?", "About Whisper?"])
+
+        self.assertEqual(self.client.delete(
+            f"/api/subjects/{name}/chats/{one}").status_code, 200)
+        remaining = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual([c["id"] for c in remaining], [two])
+        self.assertEqual(self.client.get(
+            f"/api/subjects/{name}/chats/{one}").status_code, 404)
+
+    def test_an_empty_conversation_can_be_started_and_named_later(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        created = self.client.post(f"/api/subjects/{name}/chats").json()
+        self.assertEqual(created["title"], "New conversation")
+        read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                     json={"question": "What about audio?",
+                                           "chat": created["id"]}))
+        chats = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual([c["title"] for c in chats], ["What about audio?"])
+
+    def test_asking_in_a_conversation_that_is_gone_is_404(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        response = self.client.post(f"/api/subjects/{name}/ask",
+                                    json={"question": "Q?", "chat": "deadbeef"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_an_older_single_chat_file_becomes_a_conversation(self):
+        name = self.make_subject()
+        service._write_json(service.study_path(name, "chat.json"), [
+            {"role": "user", "content": "How long was the training set?", "time": 1.0},
+            {"role": "assistant", "content": "680,000 hours", "time": 2.0}])
+        chats = self.client.get(f"/api/subjects/{name}/chats").json()
+        self.assertEqual([c["title"] for c in chats],
+                         ["How long was the training set?"])
+        self.assertFalse(service.study_path(name, "chat.json").exists())
 
     def test_empty_answer_says_so(self):
         name = self.make_subject()

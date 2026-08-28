@@ -26,6 +26,7 @@ Two pieces of shared state matter:
 """
 
 import json
+import logging
 import os
 import random
 import re
@@ -86,6 +87,8 @@ NO_ANSWER = "I couldn't find an answer to that in this subject's materials."
 
 MODEL_LOCK = threading.Lock()
 
+log = logging.getLogger(__name__)
+
 _ILLEGAL_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
@@ -95,10 +98,16 @@ class NotFound(LookupError):
 
 # Subjects and documents on disk
 
+# A folder that could not be removed outright is renamed with this prefix and
+# swept later; it is not a subject any more (see delete_subject).
+DELETED_PREFIX = ".deleted-"
+
+
 def subject_names() -> List[str]:
     if not PROJECTS_DIR.is_dir():
         return []
-    return sorted((p.name for p in PROJECTS_DIR.iterdir() if p.is_dir()),
+    return sorted((p.name for p in PROJECTS_DIR.iterdir()
+                   if p.is_dir() and not p.name.startswith(".")),
                   key=str.lower)
 
 
@@ -406,15 +415,179 @@ def describe(chunk) -> dict:
             "text": str(chunk)}
 
 
-def chat_history(name: str) -> List[dict]:
-    path = study_path(name, "chat.json")
-    if path.exists():
-        return json.loads(path.read_text(encoding="utf-8"))
-    return []
+# Conversations
+#
+# A subject holds any number of conversations, one JSON file each under
+# <subject>/_study/chats/. A student revising a term's material asks about
+# several things, and keeping those threads apart is the difference between a
+# record they can come back to and one long scroll.
+
+CHATS_DIR = "chats"
+TITLE_MAX_WORDS = 8
+TITLE_MAX_CHARS = 60
+
+
+def _chats_dir(name: str) -> Path:
+    return subject_path(name) / STUDY_DIR / CHATS_DIR
+
+
+def _chat_path(name: str, chat_id: str) -> Path:
+    if not re.fullmatch(r"[0-9a-f]{8,32}", chat_id or ""):
+        raise NotFound(f"No conversation called {chat_id!r}")
+    path = _chats_dir(name) / f"{chat_id}.json"
+    if not path.exists():
+        raise NotFound(f"No conversation called {chat_id!r}")
+    return path
+
+
+def chat_title(question: str) -> str:
+    """
+    A conversation's title, taken from the question that started it: enough of
+    it to recognise the thread in a list, without a paragraph in the sidebar.
+    """
+    words = question.strip().split()
+    title = " ".join(words[:TITLE_MAX_WORDS])
+    if len(title) > TITLE_MAX_CHARS:
+        title = title[:TITLE_MAX_CHARS].rsplit(" ", 1)[0]
+    if len(words) > TITLE_MAX_WORDS or len(title) < len(question.strip()):
+        title = title.rstrip(" ,.;:") + "…"
+    return title or "New conversation"
+
+
+def _migrate_single_chat(name: str) -> None:
+    """
+    Move the one-chat-per-subject file written by earlier versions into the
+    conversations folder, so an existing subject keeps its history.
+    """
+    legacy = study_path(name, "chat.json")
+    if not legacy.exists():
+        return
+    try:
+        messages = json.loads(legacy.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        messages = []
+    if messages:
+        first = next((m["content"] for m in messages if m.get("role") == "user"), "")
+        record = {"id": uuid.uuid4().hex, "title": chat_title(first),
+                  "created": messages[0].get("time", time.time()),
+                  "updated": messages[-1].get("time", time.time()),
+                  "messages": messages}
+        _write_json(_chats_dir(name) / f"{record['id']}.json", record)
+    legacy.unlink(missing_ok=True)
+
+
+def chat_list(name: str) -> List[dict]:
+    """Every conversation in a subject, most recently used first."""
+    _migrate_single_chat(name)
+    folder = _chats_dir(name)
+    if not folder.is_dir():
+        return []
+    chats = []
+    for path in folder.glob("*.json"):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):     # a half-written file must not hide the rest
+            continue
+        chats.append({"id": record.get("id", path.stem),
+                      "title": record.get("title") or "New conversation",
+                      "created": record.get("created"),
+                      "updated": record.get("updated"),
+                      "exchanges": sum(1 for m in record.get("messages", [])
+                                       if m.get("role") == "user")})
+    return sorted(chats, key=lambda c: c.get("updated") or 0, reverse=True)
+
+
+def create_chat(name: str) -> dict:
+    """Start an empty conversation; it takes its title from the first question."""
+    subject_path(name)
+    record = {"id": uuid.uuid4().hex, "title": "New conversation",
+              "created": time.time(), "updated": time.time(), "messages": []}
+    _write_json(_chats_dir(name) / f"{record['id']}.json", record)
+    return {k: v for k, v in record.items() if k != "messages"} | {"exchanges": 0}
+
+
+def chat(name: str, chat_id: str) -> dict:
+    """One conversation, with its messages."""
+    _migrate_single_chat(name)
+    record = json.loads(_chat_path(name, chat_id).read_text(encoding="utf-8"))
+    record.setdefault("messages", [])
+    return record
+
+
+def chat_history(name: str, chat_id: Optional[str] = None) -> List[dict]:
+    """The messages of one conversation, or of the most recent one."""
+    if chat_id is None:
+        chats = chat_list(name)
+        if not chats:
+            return []
+        chat_id = chats[0]["id"]
+    return chat(name, chat_id)["messages"]
+
+
+def delete_chat(name: str, chat_id: str) -> None:
+    _chat_path(name, chat_id).unlink()
 
 
 def clear_chat(name: str) -> None:
-    study_path(name, "chat.json").unlink(missing_ok=True)
+    """Delete every conversation in a subject."""
+    _migrate_single_chat(name)
+    folder = _chats_dir(name)
+    if folder.is_dir():
+        for path in folder.glob("*.json"):
+            path.unlink(missing_ok=True)
+
+
+def _sweep_deleted() -> None:
+    """Remove folders left behind by an earlier delete that could not finish."""
+    if not PROJECTS_DIR.is_dir():
+        return
+    for path in PROJECTS_DIR.iterdir():
+        if path.is_dir() and path.name.startswith(DELETED_PREFIX):
+            try:
+                shutil.rmtree(path, ignore_errors=True)
+            except OSError:      # still held; it will be swept next time
+                pass
+
+
+def delete_subject(name: str) -> None:
+    """
+    Delete a subject: its documents, its conversations, its quiz questions and
+    its progress. Nothing here is recoverable, so the interface asks first.
+
+    On Windows a folder inside a synchronised OneDrive tree can refuse to be
+    removed for a moment even once it is empty, because the sync client still
+    holds a handle on it. Deleting the subject must not fail for that: after a
+    few attempts the folder is renamed out of the way — it stops being a
+    subject immediately — and swept up on the next delete.
+    """
+    folder = subject_path(name)
+    forget(name)
+    with _quiz_lock:
+        for qid in [q for q, issued in _issued.items() if issued["subject"] == name]:
+            del _issued[qid]
+    _sweep_deleted()
+
+    for attempt in range(3):
+        try:
+            shutil.rmtree(folder)
+            return
+        except OSError as exc:
+            if attempt == 2:
+                log.warning(f"Could not remove {folder} ({exc}) — renaming it instead")
+            else:
+                time.sleep(0.2)
+
+    aside = PROJECTS_DIR / f"{DELETED_PREFIX}{folder.name}-{int(time.time())}"
+    try:
+        folder.rename(aside)
+    except OSError as exc:
+        raise RuntimeError(
+            f"{name} could not be deleted — another program is using its "
+            f"folder ({exc}). Close anything reading those files and try again.")
+    try:                          # gone from the student's view either way
+        shutil.rmtree(aside, ignore_errors=True)
+    except OSError:
+        pass
 
 
 def _stream_answer(question: str, context: list) -> Iterator[str]:
@@ -427,17 +600,20 @@ def _tidy(text: str) -> str:
     return _fix_number_spacing(text).strip()
 
 
-def ask(name: str, question: str) -> Iterator[dict]:
+def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dict]:
     """
     Answer a question, as a series of events:
       {"type": "sources", "sources": [...]}   once retrieval is done
       {"type": "token", "text": ...}          as the answer is written
-      {"type": "done", "answer": ..., "seconds": ...}
-    The finished exchange is appended to the subject's chat history.
+      {"type": "done", "answer": ..., "seconds": ..., "chat": {...}}
+    The finished exchange is appended to the conversation given by chat_id, or
+    to a new one, which takes its title from this question.
     """
     question = question.strip()
     if not question:
         raise ValueError("Ask a question first.")
+    if chat_id is not None:
+        _chat_path(name, chat_id)      # fail before answering, not after
     index = ready_index(name)
     started = time.time()
     with MODEL_LOCK:
@@ -452,12 +628,21 @@ def ask(name: str, question: str) -> Iterator[dict]:
     answer = _tidy("".join(pieces)) or NO_ANSWER
     seconds = round(time.time() - started, 1)
 
-    history = chat_history(name)
-    history.append({"role": "user", "content": question, "time": started})
-    history.append({"role": "assistant", "content": answer, "sources": sources,
-                    "seconds": seconds, "time": time.time()})
-    _write_json(study_path(name, "chat.json"), history)
-    yield {"type": "done", "answer": answer, "seconds": seconds}
+    record = (chat(name, chat_id) if chat_id is not None
+              else {"id": uuid.uuid4().hex, "title": "", "created": started,
+                    "messages": []})
+    record["messages"].append({"role": "user", "content": question, "time": started})
+    record["messages"].append({"role": "assistant", "content": answer,
+                               "sources": sources, "seconds": seconds,
+                               "time": time.time()})
+    # A conversation is named after the question that started it.
+    if not record.get("title") or record["title"] == "New conversation":
+        record["title"] = chat_title(question)
+    record["updated"] = time.time()
+    _write_json(_chats_dir(name) / f"{record['id']}.json", record)
+    yield {"type": "done", "answer": answer, "seconds": seconds,
+           "chat": {"id": record["id"], "title": record["title"],
+                    "updated": record["updated"]}}
 
 
 # Quiz
