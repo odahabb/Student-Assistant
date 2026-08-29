@@ -13,7 +13,10 @@ revise next. Everything runs locally; nothing is sent to an external API.
 
 ## Features
 
-The web app organises material into **subjects**. Each subject has three
+The web app organises material into **subjects**, laid out like a project
+workspace: a grid of subjects, then one subject at a time with a composer to
+start a conversation, a list of recent conversations, and a rail of what that
+subject holds (materials, quiz, progress, index). Each subject has three
 views over one shared index:
 
 - **Ask** — chat with the subject's documents. Answers appear as they are
@@ -30,7 +33,10 @@ views over one shared index:
 
 The interface is a FastAPI server (`backend/api.py`) over a service layer
 (`backend/service.py`), with a hand-written HTML/CSS/JavaScript page in
-`frontend/` (no build step, no third-party scripts or fonts). The server
+`frontend/` (no build step, no third-party scripts or fonts). The page is
+addressed by the location hash — `#/` for the grid, `#/s/<subject>`,
+`#/s/<subject>/c/<conversation>`, `#/s/<subject>/quiz|progress` — so any
+screen can be linked to or reloaded. The server
 listens on 127.0.0.1 only, so documents and questions stay on the machine.
 Indexing runs in the background in two passes: text first, which takes
 seconds and makes the subject answerable, then the pictures on pages with
@@ -73,7 +79,7 @@ python -m backend.api
 ```
 
 Then open http://127.0.0.1:8000 (`SA_PORT` changes the port). Create a
-subject in the sidebar, upload documents (PDF, PNG/JPG/TIFF/BMP,
+subject on the Subjects page, upload documents (PDF, PNG/JPG/TIFF/BMP,
 MP3/MP4/WAV/M4A, TXT), then ask questions or open the Quiz view. The first
 answer and the first quiz question on a topic are slow because models load
 and questions are written on demand. Everything a subject remembers is saved
@@ -105,14 +111,16 @@ wheel, and `optimum[openvino]` / `openvino` for the NPU path.
 python -m unittest discover -s tests -t .
 ```
 
-164 tests cover loading and section detection, slide detection and titles,
+182 tests cover loading and section detection, slide detection and titles,
 picture reading and its cache, Whisper segments, all four chunking modes,
 slide and audio packing, boilerplate stripping, context budgeting, storage,
-dense and hybrid retrieval, device fallback, quiz generation and grading, the
-recommender, the web server (subjects, uploads, two-pass indexing, streamed
-answers, quiz and progress endpoints), and what happens when an upload is
-empty, corrupt, password-protected, binary or not what its extension claims. They stub out the
-models, so they run in a few seconds without downloading anything.
+dense and hybrid retrieval, device fallback, answer styles, quiz generation
+and grading, the recommender, the web server (subjects and what the grid
+shows, uploads, two-pass indexing, streamed answers, conversations and their
+titles, deleting conversations and subjects, quiz and progress endpoints),
+and what happens when an upload is empty, corrupt, password-protected, binary
+or not what its extension claims. They stub out the models, so they run in a
+few seconds without downloading anything.
 
 ## Evaluation
 

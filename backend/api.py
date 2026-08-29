@@ -107,7 +107,13 @@ def get_settings():
 
 @app.get("/api/subjects")
 def list_subjects():
-    return [subject_summary(n) for n in service.subject_names()]
+    return [service.subject_overview(n) for n in service.subject_names()]
+
+
+@app.get("/api/chats")
+def recent_chats(limit: int = 12):
+    """Recent conversations across all subjects, for the sidebar."""
+    return service.recent_chats(limit)
 
 
 @app.post("/api/subjects", status_code=201)

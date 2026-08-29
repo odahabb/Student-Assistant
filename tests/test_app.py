@@ -105,6 +105,35 @@ class SubjectTests(ServiceTestCase):
         names = [s["name"] for s in self.client.get("/api/subjects").json()]
         self.assertEqual(names, ["Biology", "Statistics 101"])
 
+    def test_the_subject_list_carries_what_the_grid_shows(self):
+        name = self.make_subject(files=("a.pdf", "b.pdf"))
+        self.wait_ready(name)
+        read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                     json={"question": "How many hours?"}))
+        card = self.client.get("/api/subjects").json()[0]
+        self.assertEqual(card["name"], name)
+        self.assertEqual(len(card["documents"]), 2)
+        self.assertEqual(card["chats"], 1)
+        self.assertEqual(card["state"], "ready")
+        self.assertIsNotNone(card["updated"])
+
+    def test_listing_subjects_does_not_start_indexing_them(self):
+        self.make_subject(files=("a.pdf",))
+        with mock.patch.object(service, "build_index") as build:
+            card = self.client.get("/api/subjects").json()[0]
+        build.assert_not_called()
+        self.assertEqual(card["state"], "stale")
+
+    def test_recent_conversations_span_subjects(self):
+        for name in ("Speech", "Vision"):
+            self.make_subject(name=name)
+            self.wait_ready(name)
+            read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                         json={"question": f"About {name}?"}))
+        recent = self.client.get("/api/chats?limit=5").json()
+        self.assertEqual([c["subject"] for c in recent], ["Vision", "Speech"])
+        self.assertEqual(recent[0]["title"], "About Vision?")
+
     def test_unusable_name_is_rejected(self):
         response = self.client.post("/api/subjects", json={"name": "///"})
         self.assertEqual(response.status_code, 400)

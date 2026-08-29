@@ -38,10 +38,16 @@
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M17 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-caret" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h3.5l2 2H18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 4.5h6l4 4V17a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 8 17z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.5 7.5V19A2.5 2.5 0 0 0 8 21.5h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="19" r="1.7" fill="currentColor"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
 </svg>
 
 <div class="shell" id="shell">
-  <aside class="sidebar" id="sidebar" aria-label="Subjects and materials">
+  <aside class="sidebar" id="sidebar" aria-label="Navigation">
     <div class="brand">
       <span class="brand-mark"><svg><use href="#i-mark"/></svg></span>
       <div>
@@ -51,24 +57,19 @@
       <button class="icon-btn only-mobile" id="close-sidebar" aria-label="Close menu"><svg><use href="#i-close"/></svg></button>
     </div>
 
+    <nav class="side-nav">
+      <button class="side-link" id="nav-new"><svg><use href="#i-plus"/></svg> New conversation</button>
+      <button class="side-link" id="nav-subjects"><svg><use href="#i-grid"/></svg> Subjects</button>
+    </nav>
+
     <section class="side-section">
       <h2 class="side-heading">Subjects</h2>
       <nav id="subject-list" class="subject-list"></nav>
-      <form id="new-subject" class="new-subject" autocomplete="off">
-        <input id="new-subject-name" placeholder="New subject…" aria-label="New subject name" maxlength="80">
-        <button class="icon-btn" aria-label="Create subject"><svg><use href="#i-plus"/></svg></button>
-      </form>
     </section>
 
-    <section class="side-section materials" id="materials" hidden>
-      <h2 class="side-heading">Materials <span class="count" id="doc-count"></span></h2>
-      <ul id="doc-list" class="doc-list"></ul>
-      <label class="dropzone" id="dropzone" tabindex="0">
-        <input type="file" id="file-input" multiple hidden>
-        <svg><use href="#i-upload"/></svg>
-        <span><strong>Add documents</strong><br><small id="dropzone-hint">PDF, images, audio or text</small></span>
-      </label>
-      <button class="link-btn" id="use-samples" hidden>Use the sample papers</button>
+    <section class="side-section">
+      <h2 class="side-heading">Recents</h2>
+      <nav id="recent-list" class="recent-list"></nav>
     </section>
 
     <div class="side-foot" id="side-foot"></div>
@@ -78,54 +79,56 @@
   <main class="main" id="main">
     <header class="topbar">
       <button class="icon-btn only-mobile" id="open-sidebar" aria-label="Open menu"><svg><use href="#i-menu"/></svg></button>
-      <div class="title-block">
-        <h1 id="subject-title">Study Assistant</h1>
-        <p id="subject-meta" class="meta"></p>
-      </div>
-      <div class="tabs" role="tablist" id="tabs" hidden>
-        <button role="tab" data-view="ask"><svg><use href="#i-chat"/></svg><span>Ask</span></button>
-        <button role="tab" data-view="quiz"><svg><use href="#i-card"/></svg><span>Quiz</span></button>
-        <button role="tab" data-view="progress"><svg><use href="#i-chart"/></svg><span>Progress</span></button>
-      </div>
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
       <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark mode"><svg><use href="#i-moon"/></svg></button>
     </header>
 
     <div id="indexing" class="indexing" hidden></div>
 
-    <!-- Nothing selected / no documents -->
-    <section id="view-welcome" class="view welcome" hidden>
-      <div class="welcome-card">
-        <div class="welcome-mark"><svg><use href="#i-mark"/></svg></div>
-        <h2 id="welcome-title">A quiet place to study your own notes</h2>
-        <p id="welcome-text">Create a subject, add your lecture notes, papers, slides, photos or recordings, then ask questions about them or let the assistant quiz you.</p>
-        <ol class="steps">
-          <li><strong>Add material.</strong> PDFs are read directly; images go through a vision model and audio through Whisper.</li>
-          <li><strong>Ask.</strong> Answers are written from the passages that match your question, and every answer shows where it came from.</li>
-          <li><strong>Practise.</strong> Quiz questions are written from your documents and get harder or easier as you answer.</li>
-        </ol>
+    <!-- The subjects grid -->
+    <section id="view-subjects" class="view page" hidden>
+      <div class="page-head">
+        <h1>Subjects</h1>
+        <form id="new-subject" class="new-subject" autocomplete="off">
+          <input id="new-subject-name" placeholder="Name a new subject…" aria-label="New subject name" maxlength="80">
+          <button class="btn primary"><svg><use href="#i-plus"/></svg> New subject</button>
+        </form>
+      </div>
+      <div class="subject-grid" id="subject-grid"></div>
+    </section>
+
+    <!-- One subject: start a conversation, pick up an old one -->
+    <section id="view-subject" class="view page" hidden>
+      <div class="subject-layout">
+        <div class="subject-main">
+          <h1 id="subject-name"></h1>
+          <p class="meta" id="subject-meta"></p>
+
+          <form class="composer start" id="composer">
+            <div class="composer-box">
+              <textarea id="question" rows="2" placeholder="Ask a question…" aria-label="Your question"></textarea>
+              <button class="send" id="send" aria-label="Ask"><svg><use href="#i-send"/></svg></button>
+            </div>
+            <p class="composer-note">Answers come only from this subject's documents · <kbd>Enter</kbd> to ask</p>
+          </form>
+
+          <div class="section-title"><h2>Recents</h2></div>
+          <div class="chat-rows" id="chat-rows"></div>
+        </div>
+
+        <aside class="rail" id="rail"></aside>
       </div>
     </section>
 
-    <!-- Ask -->
-    <section id="view-ask" class="view ask" hidden>
-      <div class="chat-bar">
-        <div class="chat-picker">
-          <button id="chat-menu-button" class="chat-current" aria-haspopup="true" aria-expanded="false">
-            <svg><use href="#i-chat"/></svg>
-            <span id="chat-title">New conversation</span>
-            <svg class="caret"><use href="#i-caret"/></svg>
-          </button>
-          <div class="chat-menu" id="chat-menu" hidden></div>
-        </div>
-        <button class="btn small" id="new-chat"><svg><use href="#i-plus"/></svg> New conversation</button>
-      </div>
+    <!-- A conversation -->
+    <section id="view-chat" class="view ask" hidden>
       <div class="conversation" id="conversation" aria-live="polite"></div>
-      <form class="composer" id="composer">
+      <form class="composer" id="thread-composer">
         <div class="composer-box">
-          <textarea id="question" rows="1" placeholder="Ask about this subject…" aria-label="Your question"></textarea>
-          <button class="send" id="send" aria-label="Ask"><svg><use href="#i-send"/></svg></button>
+          <textarea id="thread-question" rows="1" placeholder="Ask a follow-up…" aria-label="Your question"></textarea>
+          <button class="send" id="thread-send" aria-label="Ask"><svg><use href="#i-send"/></svg></button>
         </div>
-        <p class="composer-note">Answers come only from this subject's documents. <kbd>Enter</kbd> to ask · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line · <button type="button" class="link-btn" id="clear-chat">Delete this conversation</button></p>
+        <p class="composer-note">Answers come only from this subject's documents · <kbd>Enter</kbd> to ask · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line</p>
       </form>
     </section>
 
@@ -157,9 +160,11 @@
       <button class="icon-btn" id="drawer-close" aria-label="Close"><svg><use href="#i-close"/></svg></button>
     </header>
     <blockquote id="drawer-text" class="passage"></blockquote>
-    <a class="btn ghost" id="drawer-open" target="_blank" rel="noopener"><svg><use href="#i-external"/></svg> Open the document</a>
+    <a class="btn ghost" id="drawer-open" target="_blank" rel="noopener"><svg><use href="#i-external"/></svg> Open the file</a>
   </aside>
 </div>
+
+<input type="file" id="file-input" multiple hidden>
 
 <dialog id="confirm" class="dialog">
   <form method="dialog">

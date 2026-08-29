@@ -497,6 +497,39 @@ def chat_list(name: str) -> List[dict]:
     return sorted(chats, key=lambda c: c.get("updated") or 0, reverse=True)
 
 
+def subject_overview(name: str) -> dict:
+    """
+    What the subjects grid shows for one subject: its documents, how many
+    conversations it holds, when it was last used, and whether its index is
+    already built. Deliberately cheap — listing subjects must not start
+    indexing every one of them.
+    """
+    docs = documents(name)
+    chats = chat_list(name)
+    times = [c["updated"] for c in chats if c.get("updated")]
+    times += [p.stat().st_mtime for p in docs]
+    status = index_status(name, start=False)
+    return {
+        "name": name,
+        "documents": [{"name": p.name, "size": p.stat().st_size,
+                       "type": p.suffix.lower().lstrip(".")} for p in docs],
+        "chats": len(chats),
+        "updated": max(times) if times else None,
+        "state": status.get("state"),
+        "chunks": status.get("chunks"),
+    }
+
+
+def recent_chats(limit: int = 12) -> List[dict]:
+    """The most recently used conversations across every subject."""
+    chats = []
+    for name in subject_names():
+        for record in chat_list(name):
+            chats.append({**record, "subject": name})
+    chats.sort(key=lambda c: c.get("updated") or 0, reverse=True)
+    return chats[:limit]
+
+
 def create_chat(name: str) -> dict:
     """Start an empty conversation; it takes its title from the first question."""
     subject_path(name)
