@@ -26,6 +26,26 @@ class TopicTests(unittest.TestCase):
             "a.pdf › Intro", "a.pdf › Methods", "talk.m4a › Whole document"])
         self.assertEqual(topics[0].chunk_indices, [0, 2])
 
+    def test_whole_file_topics_cover_every_section_of_a_document(self):
+        chunks = [
+            Chunk(LONG, "a.pdf", 1, "Intro"),
+            Chunk(LONG, "a.pdf", 2, "Methods"),
+            Chunk(LONG, "a.pdf", 3, "Intro"),
+            Chunk(LONG, "talk.m4a"),
+        ]
+        topics = quiz.build_topics(chunks, whole_documents=True)
+        self.assertEqual([t.id for t in topics], [
+            "a.pdf › Everything in this file", "a.pdf › Intro", "a.pdf › Methods",
+            "talk.m4a › Whole document"])
+        self.assertEqual(topics[0].chunk_indices, [0, 1, 2])
+        self.assertEqual(topics[0].scope, "document")
+        self.assertEqual(topics[1].scope, "section")
+
+    def test_a_document_with_one_section_gets_no_extra_topic(self):
+        chunks = [Chunk(LONG, "a.pdf", 1, "Intro"), Chunk(LONG, "a.pdf", 2, "Intro")]
+        self.assertEqual([t.id for t in quiz.build_topics(chunks, whole_documents=True)],
+                         ["a.pdf › Intro"])
+
     def test_reference_sections_short_chunks_and_bibliographies_are_skipped(self):
         chunks = [
             Chunk(LONG, "a.pdf", 9, "References"),

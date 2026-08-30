@@ -49,6 +49,9 @@ LEVELS = {
 }
 
 WHOLE_DOCUMENT = "Whole document"
+# A topic that spans a whole file rather than one of its sections, so the
+# student can revise a PDF end to end instead of a section at a time.
+WHOLE_FILE = "Everything in this file"
 SKIPPED_SECTIONS = re.compile(
     r"^(references|bibliography|works cited|acknowledge?ments?)$", re.IGNORECASE)
 
@@ -104,6 +107,8 @@ class Topic:
     source_file: Optional[str]
     section: str
     chunk_indices: List[int] = field(default_factory=list)
+    # "section" — one section of one document; "document" — the whole file.
+    scope: str = "section"
 
 
 def topic_id(source_file: Optional[str], section: Optional[str]) -> str:
@@ -117,11 +122,16 @@ def usable_for_quiz(chunk) -> bool:
             and not looks_like_reference_list(chunk))
 
 
-def build_topics(chunks: Sequence) -> List[Topic]:
+def build_topics(chunks: Sequence, whole_documents: bool = False) -> List[Topic]:
     """
     Group a subject's chunks into topics — one per (document, section) — in
     the order they first appear. Reference lists and very short chunks are
     left out; a topic with no usable chunk is dropped.
+
+    With whole_documents, each multi-section file also gets a topic covering
+    all of its chunks, listed before its sections, so a quiz can range over a
+    whole PDF. The evaluation script leaves this off: Chapter 5's numbers
+    describe one question per section.
     """
     topics: Dict[str, Topic] = {}
     for i, chunk in enumerate(chunks):
@@ -133,7 +143,30 @@ def build_topics(chunks: Sequence) -> List[Topic]:
         if tid not in topics:
             topics[tid] = Topic(tid, source_file, section)
         topics[tid].chunk_indices.append(i)
-    return list(topics.values())
+    if not whole_documents:
+        return list(topics.values())
+    return with_document_topics(topics.values())
+
+
+def with_document_topics(section_topics: Sequence[Topic]) -> List[Topic]:
+    """
+    Put a whole-file topic in front of each document's section topics. A file
+    with only one section already is that topic, so it is left alone.
+    """
+    by_document: Dict[Optional[str], List[Topic]] = {}
+    for topic in section_topics:
+        by_document.setdefault(topic.source_file, []).append(topic)
+
+    taken = {t.id for t in section_topics}
+    out: List[Topic] = []
+    for source_file, sections in by_document.items():
+        tid = topic_id(source_file, WHOLE_FILE)
+        if len(sections) > 1 and tid not in taken:
+            out.append(Topic(tid, source_file, WHOLE_FILE,
+                             sorted(i for t in sections for i in t.chunk_indices),
+                             scope="document"))
+        out.extend(sections)
+    return out
 
 
 # Grading

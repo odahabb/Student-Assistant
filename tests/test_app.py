@@ -49,7 +49,8 @@ def fake_stream(question, context):
 
 def fake_item(chunk, retrieve_fn=None, **kwargs):
     n = int(str(chunk).rsplit("part ", 1)[1].rstrip(")"))
-    return quiz.QuizItem(topic_id="", question=f"How many hours were used, version {n}?",
+    return quiz.QuizItem(topic_id=quiz.topic_id(chunk.source_file, chunk.section),
+                         question=f"How many hours were used, version {n}?",
                          answer=f"{681 + n} hours in {chunk.source_file[0]}", source_file=chunk.source_file,
                          page=chunk.page, section=chunk.section,
                          passage=str(chunk)), None
@@ -458,11 +459,43 @@ class QuizTests(ServiceTestCase):
         return self.client.post(f"/api/subjects/{self.name}/quiz/answer",
                                 json={"id": question["id"], "answer": text})
 
-    def test_topics_are_document_sections(self):
+    def test_topics_are_whole_files_and_their_sections(self):
         topics = self.client.get(f"/api/subjects/{self.name}/topics").json()
         self.assertEqual([t["id"] for t in topics],
+                         ["a.pdf › Everything in this file",
+                          "a.pdf › Section 1", "a.pdf › Section 2",
+                          "b.pdf › Everything in this file",
+                          "b.pdf › Section 1", "b.pdf › Section 2"])
+        self.assertEqual(topics[0]["scope"], "document")
+        self.assertEqual(topics[1]["scope"], "section")
+
+    def test_a_whole_file_topic_asks_about_any_section_of_that_file(self):
+        seen = set()
+        for _ in range(4):
+            question = self.ask_question("a.pdf › Everything in this file")
+            seen.add(question["topic"])
+            self.answer(question, "wrong")
+        # Questions are filed under the section they came from, never under
+        # the whole-file topic, so mastery stays per section.
+        self.assertTrue(seen <= {"a.pdf › Section 1", "a.pdf › Section 2"}, seen)
+        progress = self.client.get(f"/api/subjects/{self.name}/progress").json()
+        self.assertEqual([r["id"] for r in progress["topics"]],
                          ["a.pdf › Section 1", "a.pdf › Section 2",
                           "b.pdf › Section 1", "b.pdf › Section 2"])
+        self.assertEqual(sum(r["answered"] for r in progress["topics"]), 4)
+
+    def test_a_whole_file_topic_does_not_repeat_a_section_question(self):
+        # The file's two sections hold one question each. Asking a section
+        # first must not make the whole-file topic write the same one again.
+        first = self.ask_question("a.pdf › Section 1")
+        self.answer(first, "wrong")
+        second = self.ask_question("a.pdf › Everything in this file")
+        self.assertNotEqual(second["question"], first["question"])
+        self.assertEqual(second["topic"], "a.pdf › Section 2")
+
+    def test_recommendations_never_point_at_a_whole_file(self):
+        question = self.ask_question()
+        self.assertNotIn("Everything in this file", question["topic"])
 
     def test_first_question_is_multiple_choice_without_the_answer(self):
         question = self.ask_question("a.pdf › Section 2")

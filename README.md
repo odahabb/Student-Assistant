@@ -63,7 +63,7 @@ rather than reading its values exactly.
 | 4. Store | `vector_store.py` | FAISS `IndexFlatL2` plus chunk text and metadata. | — |
 | 5. Retrieve | `retriever.py`, `sparse.py` | Top-k (k = 3) chunks for a question. The app uses hybrid retrieval: embedding similarity and BM25 keyword scores, each min-max scaled and mixed 0.4 / 0.6. | same embedding model |
 | 6. Generate | `generator.py` | Two answering styles. *Explain* (the chat view): three to five sentences of prose from the retrieved passages, sampled at temperature 0.6. *Short* (the quiz and every evaluation script): an extractive span, sharing the 1,024-token input budget across chunks by rank. | **Qwen2.5-1.5B-Instruct** for explanations; **FLAN-T5-Large** for short answers |
-| 7. Quiz | `quiz.py` | Groups chunks into topics (sections), writes questions, keeps only those whose answer survives a round-trip retrieval check, and grades answers. | FLAN-T5-Large; all-MiniLM-L6-v2 for grading |
+| 7. Quiz | `quiz.py` | Groups chunks into topics — one per section, plus one per whole file — writes questions, keeps only those whose answer survives a round-trip retrieval check, and grades answers. | FLAN-T5-Large; all-MiniLM-L6-v2 for grading |
 | 8. Recommend | `recommender.py` | Per-topic ability estimate (online Rasch / Elo update), next-question difficulty, and revision ranking. | — |
 
 `chunk.py` defines `Chunk`, a `str` carrying `source_file`, `page` and

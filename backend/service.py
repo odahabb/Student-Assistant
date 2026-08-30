@@ -731,9 +731,18 @@ def topic_label(topic_id: str) -> str:
     return topic_id.replace(" › ", " — ")
 
 
+def subject_topics(chunks) -> List[quiz.Topic]:
+    """
+    The topics a student can be quizzed on: every section, plus a whole-file
+    topic for each document with more than one section.
+    """
+    return quiz.build_topics(chunks, whole_documents=True)
+
+
 def topics(name: str) -> List[dict]:
-    return [{"id": t.id, "document": t.source_file, "section": t.section}
-            for t in quiz.build_topics(ready_index(name).chunks)]
+    return [{"id": t.id, "document": t.source_file, "section": t.section,
+             "scope": t.scope}
+            for t in subject_topics(ready_index(name).chunks)]
 
 
 def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
@@ -745,7 +754,12 @@ def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
     tried = pool["tried"].setdefault(topic.id, set())
     untried = [i for i in topic.chunk_indices if i not in tried]
     random.Random(len(tried)).shuffle(untried)
-    known = {quiz.normalize(i.question) for i in items}
+    # A whole-file topic draws on the same chunks as that file's sections, so
+    # compare against every question already written from this document.
+    known = {quiz.normalize(i.question)
+             for group in pool["items"].values() for i in group
+             if i.source_file == topic.source_file} | {
+        quiz.normalize(i.question) for i in items}
 
     added = 0
     for i in untried[:add * 3]:
@@ -756,7 +770,10 @@ def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
             item, _ = quiz.generate_item(index.chunks[i], retrieve_fn=index.find)
         if item is None or quiz.normalize(item.question) in known:
             continue
-        item.topic_id = topic.id
+        if topic.scope != "document":
+            # A question from a whole-file topic keeps the section it came
+            # from, so mastery and levels stay per section.
+            item.topic_id = topic.id
         items.append(item)
         known.add(quiz.normalize(item.question))
         added += 1
@@ -789,14 +806,18 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
     could be written.
     """
     index = ready_index(name)
-    by_id = {t.id: t for t in quiz.build_topics(index.chunks)}
+    by_id = {t.id: t for t in subject_topics(index.chunks)}
     if topic is not None and topic not in by_id:
         raise NotFound(f"No topic called {topic!r}")
 
     with _quiz_lock:   # two tabs asking at once would write the pool twice
         progress = load_progress(name)
         if topic is None:
-            candidates = [r.topic_id for r in progress.recommend(by_id, n=len(by_id))]
+            # Recommend sections, not whole files: a file is only ever chosen
+            # deliberately, and its mastery is the average of its sections.
+            sections = [t.id for t in by_id.values() if t.scope == "section"]
+            candidates = [r.topic_id
+                          for r in progress.recommend(sections, n=len(sections))]
         else:
             candidates = [topic]
 
