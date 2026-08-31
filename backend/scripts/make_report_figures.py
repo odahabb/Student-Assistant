@@ -299,7 +299,7 @@ def architecture():
     lane(mid, "Question")
     box(0, mid, "Question", "typed in the Ask view")
     box(1, mid, "Retrieve", "top 3 chunks\n(same embedder)")
-    box(2, mid, "Generate", "FLAN-T5-Large with\nrank-weighted context")
+    box(2, mid, "Generate", "Qwen2.5-1.5B-Instruct with\nrank-weighted context")
     box(3, mid, "Answer and sources", "file · page · section")
     row(mid)
     store_x = cols[3] + w / 2
@@ -308,8 +308,8 @@ def architecture():
          "searched by", (store_x - 1.5, 40.5), ha="right")
 
     lane(low, "Study")
-    box(0, low, "Topics", "chunks grouped by\ndocument section")
-    box(1, low, "Write question", "FLAN-T5-Large +\nround-trip check")
+    box(0, low, "Topics", "chunks grouped by\nsection, and by file")
+    box(1, low, "Write question", "Qwen2.5-1.5B-Instruct +\nround-trip check")
     box(2, low, "Grade answer", "rules + MiniLM\nsimilarity")
     box(3, low, "Mastery model", "Rasch / Elo per topic:\nnext level, revise next",
         fill=store_fill, edge=INK_2)

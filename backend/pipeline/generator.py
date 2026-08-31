@@ -4,7 +4,9 @@ Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
 Step 6 of pipeline: GENERATION
-Generates an answer from retrieved context using google/flan-t5-large.
+Generates an answer from retrieved context using Qwen2.5-1.5B-Instruct — the
+same instruction-tuned model that writes the quiz questions, so the system
+loads one language model rather than two.
 Runs on CPU by default; supports optional Intel Arc GPU / NPU acceleration
 via the SA_DEVICE env var (see backend/pipeline/device.py).
 """
@@ -21,26 +23,42 @@ from backend.pipeline.device import get_torch_device, should_use_npu
 
 log = logging.getLogger(__name__)
 
-MODEL_NAME = "google/flan-t5-large"
+MODEL_NAME = os.environ.get("SA_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 
 # Two answering styles, because the two places an answer is used want
-# opposite things.
+# opposite things. Both are now the same model under different instructions
+# and decoding settings, so only one set of weights is ever in memory.
 #
-#   "short"   — FLAN-T5-Large, extractive: a span, a number, a few words.
-#               This is what the quiz compares a student's answer against and
-#               what every Chapter 5 measurement was taken on.
-#   "explain" — a small instruction-tuned model writing a short paragraph, for
-#               the chat view, where a student asking "what is a fitness
-#               function?" wants the idea explained rather than a phrase
-#               lifted off a slide. FLAN-T5 cannot do this: asked for three to
-#               four sentences it returns one of ten words, and sampling does
-#               not change that, because its distribution is too peaked.
+#   "short"   — extractive: a span, a number, a few words, decoded greedily.
+#               This is what the quiz compares a student's answer against.
+#   "explain" — a short paragraph, sampled, for the chat view, where a student
+#               asking "what is a fitness function?" wants the idea explained
+#               rather than a phrase lifted off a slide.
 #
 # SA_ANSWER_STYLE selects it. The library default stays "short" so the
 # evaluation scripts keep measuring the configuration they were written for;
 # backend/service.py turns on "explain" for the application.
+#
+# Until 2026-09-21 the short style and the quiz ran on google/flan-t5-large.
+# Chapter 5's recorded numbers describe that model; SA_MODEL=google/flan-t5-large
+# reproduces them (the seq2seq class is still selected automatically).
 ANSWER_STYLE = os.environ.get("SA_ANSWER_STYLE", "short").lower()
-CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
+CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", MODEL_NAME)
+
+SHORT_SYSTEM = (
+    "You answer comprehension questions about passages from a student's own "
+    "course material. Reply with the words from the passage that answer the "
+    "question — a name, a number, a date or a short phrase — and nothing "
+    "else: no sentence, no explanation, no label. Give every part the question "
+    "asks for, and write numbers and units exactly as the passage does. Answer "
+    "unanswerable only when the passages genuinely do not contain the answer."
+)
+SHORT_MAX_TOKENS = 48
+
+INSTRUCTION_SYSTEM = (
+    "Follow the instruction exactly and reply with the requested text only, "
+    "with no preamble, label or explanation."
+)
 # Enough freedom to phrase an explanation, not enough to wander off the
 # passages: every claim is still supposed to come from the context.
 CHAT_TEMPERATURE = 0.6
@@ -56,62 +74,107 @@ CHAT_SYSTEM = (
     "question, say so in one sentence."
 )
 
-_tokenizer = None
-_model = None
+# Loaded models, by name. Short answers, quiz questions and explanations all
+# use MODEL_NAME, so they share one set of weights; SA_CHAT_MODEL can still
+# point the chat view at a different one.
+_loaded = {}
+_load_lock = threading.Lock()
 _model_is_ov = False
-_chat_tokenizer = None
-_chat_model = None
+
+
+def _is_seq2seq(name: str) -> bool:
+    """
+    Encoder-decoder families, which load through a different class and have no
+    chat template. Only flan-t5 is expected here, as the reproduction path for
+    Chapter 5's measurements.
+    """
+    return "t5" in name.lower()
+
+
+def _load(name: str):
+    """Tokenizer and model for `name`, loaded once and kept."""
+    global _model_is_ov
+    with _load_lock:
+        if name in _loaded:
+            return _loaded[name]
+
+        import torch
+
+        log.info(f"Loading {name} (first use)...")
+        device = get_torch_device()
+        tokenizer = AutoTokenizer.from_pretrained(name)
+        seq2seq = _is_seq2seq(name)
+
+        if should_use_npu():
+            try:
+                if seq2seq:
+                    from optimum.intel.openvino import OVModelForSeq2SeqLM as OVModel
+                else:
+                    from optimum.intel.openvino import OVModelForCausalLM as OVModel
+                model = OVModel.from_pretrained(name, export=True, device="NPU")
+                _model_is_ov = True
+                _loaded[name] = (tokenizer, model)
+                return _loaded[name]
+            except Exception as e:
+                log.warning(f"NPU generator load failed ({e}), falling back to torch CPU/GPU")
+
+        if seq2seq:
+            from transformers import AutoModelForSeq2SeqLM as AutoModel
+        else:
+            from transformers import AutoModelForCausalLM as AutoModel
+        model = AutoModel.from_pretrained(
+            name,
+            torch_dtype=torch.float16 if device == "xpu" else torch.float32,
+            low_cpu_mem_usage=True,
+        )
+        try:
+            model.to(device)
+        except Exception as e:      # an unusable GPU must not cost the answer
+            log.warning(f"Could not place {name} on {device} ({e}) — using cpu")
+            model.to("cpu")
+        _loaded[name] = (tokenizer, model)
+        return _loaded[name]
 
 
 def _get_model():
-    global _tokenizer, _model, _model_is_ov
-    if _model is not None:
-        return _tokenizer, _model
-
-    _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-    if should_use_npu():
-        try:
-            from optimum.intel.openvino import OVModelForSeq2SeqLM
-            _model = OVModelForSeq2SeqLM.from_pretrained(MODEL_NAME, export=True, device="NPU")
-            _model_is_ov = True
-            return _tokenizer, _model
-        except Exception as e:
-            log.warning(f"NPU generator load failed ({e}), falling back to torch CPU/GPU")
-
-    from transformers import AutoModelForSeq2SeqLM
-    _model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
-    _model.to(get_torch_device())
-    return _tokenizer, _model
+    return _load(MODEL_NAME)
 
 
 def _get_chat_model():
-    """
-    Lazy-load the instruction-tuned model used for explanations. Loaded only
-    when SA_ANSWER_STYLE=explain, so the quiz and the evaluation scripts never
-    pay for it.
-    """
-    global _chat_tokenizer, _chat_model
-    if _chat_model is not None:
-        return _chat_tokenizer, _chat_model
+    return _load(CHAT_MODEL_NAME)
 
-    import torch
-    from transformers import AutoModelForCausalLM
 
-    log.info(f"Loading {CHAT_MODEL_NAME} (first use)...")
-    device = get_torch_device()
-    _chat_tokenizer = AutoTokenizer.from_pretrained(CHAT_MODEL_NAME)
-    _chat_model = AutoModelForCausalLM.from_pretrained(
-        CHAT_MODEL_NAME,
-        torch_dtype=torch.float16 if device == "xpu" else torch.float32,
-        low_cpu_mem_usage=True,
-    )
-    try:
-        _chat_model.to(device)
-    except Exception as e:      # an unusable GPU must not cost the answer
-        log.warning(f"Could not place the chat model on {device} ({e}) — using cpu")
-        _chat_model.to("cpu")
-    return _chat_tokenizer, _chat_model
+def _prompt_inputs(tokenizer, model, messages: List[dict]):
+    """
+    Messages in the model's chat format, ready to generate from. A seq2seq
+    model has no chat template, so its instructions are flattened into the
+    plain prompt it was trained on.
+    """
+    if tokenizer.chat_template:
+        text = tokenizer.apply_chat_template(messages, tokenize=False,
+                                             add_generation_prompt=True)
+    else:
+        text = "\n\n".join(m["content"] for m in messages)
+    device = "cpu" if _model_is_ov else getattr(model, "device", "cpu")
+    return tokenizer([text], return_tensors="pt",
+                     truncation=True, max_length=MAX_PROMPT_TOKENS).to(device)
+
+
+def _decode_reply(tokenizer, inputs, output) -> str:
+    """
+    The generated text alone. A decoder-only model's output repeats the
+    prompt; a seq2seq model's does not.
+    """
+    tokens = output[0]
+    if tokens.shape[-1] > inputs["input_ids"].shape[1] and _looks_like_prompt(
+            tokens, inputs["input_ids"][0]):
+        tokens = tokens[inputs["input_ids"].shape[1]:]
+    return tokenizer.decode(tokens, skip_special_tokens=True).strip()
+
+
+def _looks_like_prompt(output_tokens, prompt_tokens) -> bool:
+    n = prompt_tokens.shape[0]
+    return bool((output_tokens[:n] == prompt_tokens).all())
 
 
 def _chat_inputs(query: str, context_chunks: List[str]):
@@ -125,9 +188,7 @@ def _chat_inputs(query: str, context_chunks: List[str]):
         {"role": "system", "content": CHAT_SYSTEM},
         {"role": "user", "content": f"Passages:\n{passages}\n\nQuestion: {query}"},
     ]
-    text = tokenizer.apply_chat_template(messages, tokenize=False,
-                                         add_generation_prompt=True)
-    return tokenizer([text], return_tensors="pt").to(model.device)
+    return _prompt_inputs(tokenizer, model, messages)
 
 
 def _chat_settings() -> dict:
@@ -140,9 +201,7 @@ def explain(query: str, context_chunks: List[str]) -> str:
     tokenizer, model = _get_chat_model()
     inputs = _chat_inputs(query, context_chunks)
     output = model.generate(**inputs, **_chat_settings())
-    answer = tokenizer.decode(output[0][inputs["input_ids"].shape[1]:],
-                              skip_special_tokens=True)
-    return _fix_number_spacing(answer).strip()
+    return _fix_number_spacing(_decode_reply(tokenizer, inputs, output))
 
 
 def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
@@ -172,7 +231,13 @@ def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
         raise failure[0]
 
 
+# The budget shared out among the retrieved passages. Qwen2.5 could take far
+# more, but keeping the figure means the trimming behaviour Chapter 5
+# describes is unchanged, and a short prompt is a fast prompt on a laptop.
 MAX_INPUT_TOKENS = 1024
+# A hard ceiling on the whole prompt, including the system message and the
+# chat template around it.
+MAX_PROMPT_TOKENS = 2048
 _CONTEXT_SAFETY_MARGIN = 10
 
 
@@ -290,31 +355,34 @@ def _budget_context(tokenizer, query: str, context_chunks: List[str]) -> str:
 
 def _fix_number_spacing(text: str) -> str:
     """
-    flan-t5's tokenizer splits digits into subword pieces, and decoding those
-    back can leave stray spaces around punctuation inside numbers and times
-    (e.g. "0. 28", "11 : 39 a. m.", "$ 975. 00"). Collapse spacing immediately
-    around '.', ',', and ':' when both sides are digits.
+    A sentencepiece tokenizer splits digits into subword pieces, and decoding
+    those back can leave stray spaces around punctuation inside numbers and
+    times (e.g. "0. 28", "11 : 39 a. m.", "$ 975. 00"). Collapse spacing
+    immediately around '.', ',', and ':' when both sides are digits. Qwen's
+    tokenizer does not do this, but chunk text decoded elsewhere in the
+    pipeline can still reach an answer through the passages.
     """
     text = re.sub(r'(\d)\s*([.,:])\s*(\d)', r'\1\2\3', text)
     text = re.sub(r'([$#])\s+(\d)', r'\1\2', text)
     return text
 
 
-def complete(prompt: str, max_new_tokens: int = 128) -> str:
+def complete(prompt: str, max_new_tokens: int = 128,
+             system: str = INSTRUCTION_SYSTEM) -> str:
     """
-    Run flan-t5-large on an arbitrary prompt (greedy decoding) and return the
-    decoded output. Shared by generate() and the quiz layer, which prompts the
-    same model to write questions. Prompts longer than the model's input limit
-    are truncated from the end, so callers should keep their passage short.
+    Run the model on an arbitrary instruction (greedy decoding) and return
+    what it replied. Shared by answer_short() and the quiz layer, which
+    prompts the same model to write questions. Prompts longer than the input
+    limit are truncated from the end, so callers should keep their passage
+    short.
     """
     tokenizer, model = _get_model()
-
-    device = "cpu" if _model_is_ov else get_torch_device()
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True,
-                       max_length=MAX_INPUT_TOKENS).to(device)
-    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens)
-
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+    inputs = _prompt_inputs(tokenizer, model,
+                            [{"role": "system", "content": system},
+                             {"role": "user", "content": prompt}])
+    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens,
+                             do_sample=False)
+    return _decode_reply(tokenizer, inputs, outputs)
 
 
 def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
@@ -330,18 +398,16 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     from transformers import TextIteratorStreamer
 
     tokenizer, model = _get_model()
-    context = _budget_context(tokenizer, query, context_chunks)
-    prompt = f"Question: {query}\nContext: {context}\nAnswer:"
-
-    device = "cpu" if _model_is_ov else get_torch_device()
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True,
-                       max_length=MAX_INPUT_TOKENS).to(device)
-    streamer = TextIteratorStreamer(tokenizer, skip_special_tokens=True)
+    inputs = _short_inputs(tokenizer, model, query, context_chunks)
+    streamer = TextIteratorStreamer(tokenizer,
+                                    skip_prompt=not _is_seq2seq(MODEL_NAME),
+                                    skip_special_tokens=True)
     failure = []
 
     def run():
         try:
-            model.generate(**inputs, max_new_tokens=128, streamer=streamer)
+            model.generate(**inputs, max_new_tokens=SHORT_MAX_TOKENS,
+                           do_sample=False, streamer=streamer)
         except Exception as exc:
             failure.append(exc)
             streamer.end()   # otherwise the loop below waits forever
@@ -368,15 +434,40 @@ def generate(query: str, context_chunks: List[str]) -> str:
     return answer_short(query, context_chunks)
 
 
-def answer_short(query: str, context_chunks: List[str]) -> str:
+def _short_inputs(tokenizer, model, query: str, context_chunks: List[str]):
     """
-    The extractive answer: flan-t5-large, greedy, a span or a few words.
-    Used by the quiz layer, which compares a reference answer with a
-    student's, and by the evaluation scripts, whose numbers describe it.
+    The extractive prompt: the same "Question / Context / Answer" wording
+    flan-t5 was given, now carried as the user turn of a chat prompt under
+    SHORT_SYSTEM, which is what keeps an instruction-tuned model from
+    answering in a sentence.
     """
-    tokenizer, _ = _get_model()
-
     context = _budget_context(tokenizer, query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
+    return _prompt_inputs(tokenizer, model,
+                          [{"role": "system", "content": SHORT_SYSTEM},
+                           {"role": "user", "content": prompt}])
 
-    return _fix_number_spacing(complete(prompt, max_new_tokens=128))
+
+def answer_short(query: str, context_chunks: List[str]) -> str:
+    """
+    The extractive answer: greedy decoding, a span or a few words. Used by the
+    quiz layer, which compares a reference answer with a student's, and by the
+    evaluation scripts, whose numbers describe it.
+    """
+    tokenizer, model = _get_model()
+    inputs = _short_inputs(tokenizer, model, query, context_chunks)
+    outputs = model.generate(**inputs, max_new_tokens=SHORT_MAX_TOKENS,
+                             do_sample=False)
+    return _fix_number_spacing(_tidy_short(_decode_reply(tokenizer, inputs, outputs)))
+
+
+def _tidy_short(answer: str) -> str:
+    """
+    Drop the wrapping an instruction-tuned model adds to a short answer: a
+    repeated "Answer:" label, surrounding quotes, a trailing full stop.
+    """
+    answer = re.sub(r"^\s*(answer|a)\s*[:\-]\s*", "", answer, flags=re.IGNORECASE)
+    answer = answer.strip().strip('"“”')
+    if answer.count(".") == 1 and answer.endswith("."):
+        answer = answer[:-1]
+    return answer.strip()

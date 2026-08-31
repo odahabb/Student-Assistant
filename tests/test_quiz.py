@@ -60,6 +60,22 @@ class TopicTests(unittest.TestCase):
         self.assertFalse(quiz.looks_like_reference_list(LONG))
 
 
+class CleanQuestionTests(unittest.TestCase):
+    def test_labels_quotes_and_extra_lines_are_dropped(self):
+        for raw, clean in [
+                ("Question: What is a fitness function?",
+                 "What is a fitness function?"),
+                ('"Which selection method is used?"',
+                 "Which selection method is used?"),
+                ("Q: When was it published?", "When was it published?"),
+                ("What does URDF describe?\n\nAnswer: the robot",
+                 "What does URDF describe?")]:
+            self.assertEqual(quiz.clean_question(raw), clean)
+
+    def test_empty_output_is_empty(self):
+        self.assertEqual(quiz.clean_question("   "), "")
+
+
 class GradeTests(unittest.TestCase):
     def test_exact_and_contained_answers_are_correct(self):
         for answer in ("F1 score", "the f1-score", "It is the F1 score."):

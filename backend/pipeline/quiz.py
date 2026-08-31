@@ -12,7 +12,7 @@ Question generation reuses the pipeline's own models, so the quiz adds no new
 model to the system:
 
   1. a chunk is picked from a topic;
-  2. flan-t5-large writes a question about a fact in that chunk;
+  2. Qwen2.5-1.5B-Instruct writes a question about a fact in that chunk;
   3. generator.generate() answers the question from that chunk alone — this is
      the reference answer;
   4. round-trip check: the question is answered again through normal
@@ -22,7 +22,7 @@ model to the system:
      makes sense with the passage in view.
 
 Difficulty comes from the answer format rather than the question wording,
-because flan-t5-large does not reliably follow instructions to write harder
+because a 1.5B model does not reliably follow instructions to write harder
 ("why"/"how") questions:
 
   level 1 — multiple choice (recognition)
@@ -58,8 +58,13 @@ SKIPPED_SECTIONS = re.compile(
 MIN_CHUNK_WORDS = 40
 MAX_QUESTION_WORDS = 30
 MAX_ANSWER_WORDS = 12
-QUESTION_PROMPT = ("Write a question about a specific fact stated in the passage "
-                   "below.\n\nPassage: {passage}\n\nQuestion:")
+QUESTION_PROMPT = ("Write one question about a specific fact stated in the "
+                   "passage below. It must be answerable from the passage "
+                   "alone, in a few words. Reply with the question only."
+                   "\n\nPassage: {passage}\n\nQuestion:")
+# An instruction-tuned model likes to label or quote what it was asked for.
+_QUESTION_PREFIX = re.compile(r"^\s*(?:question\s*\d*\s*[:.\-]|q\s*[:.\-])\s*",
+                              re.IGNORECASE)
 GRADE_THRESHOLD = 0.7
 MC_OPTIONS = 4
 
@@ -257,6 +262,16 @@ class QuizItem:
         return cls(**record)
 
 
+def clean_question(text: str) -> str:
+    """
+    The question alone: the first line, without a "Question:" label or
+    surrounding quotes. well_formed() rejects whatever is left if the model
+    wrote something other than a question.
+    """
+    line = str(text).strip().splitlines()[0] if str(text).strip() else ""
+    return _QUESTION_PREFIX.sub("", line).strip().strip('"“”').strip()
+
+
 def well_formed(question: str, answer: str) -> Optional[str]:
     """None if the pair is usable, otherwise the reason it is rejected."""
     q, a = question.strip(), answer.strip()
@@ -295,7 +310,7 @@ def generate_item(chunk, answer_fn: Optional[Callable] = None,
         answer_fn = answer_fn or answer_short
         question_fn = question_fn or (lambda prompt: complete(prompt, max_new_tokens=48))
 
-    question = question_fn(QUESTION_PROMPT.format(passage=str(chunk))).strip()
+    question = clean_question(question_fn(QUESTION_PROMPT.format(passage=str(chunk))))
     answer = answer_fn(question, [chunk]).strip()
     problem = well_formed(question, answer)
     if problem:

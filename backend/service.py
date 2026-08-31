@@ -681,15 +681,20 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
 # Quiz
 
 def _pool_key(sig) -> str:
-    return repr((CHUNKING, model_key(), HYBRID, sig))
+    # The answering model is part of the key: the stored reference answers
+    # were written by it, so a different one must not inherit them. Imported
+    # here rather than at the top, so that nothing loads transformers until a
+    # question is actually asked.
+    from backend.pipeline import generator
+    return repr((CHUNKING, model_key(), HYBRID, generator.MODEL_NAME, sig))
 
 
 def load_pool(name: str, sig) -> dict:
     """
     Saved quiz items by topic id, plus the chunk indices already tried for
-    each topic. Discarded when the documents, chunking mode, embedding model or
-    retrieval mode change, since chunk indices or the round-trip check would
-    differ.
+    each topic. Discarded when the documents, chunking mode, embedding model,
+    retrieval mode or answering model change, since chunk indices, the
+    reference answers or the round-trip check would differ.
     """
     path = study_path(name, "quiz_pool.json")
     if path.exists():

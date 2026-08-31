@@ -290,7 +290,7 @@ function renderFooter() {
        el("b", { text: `${s.chunking} chunks` })),
     el("div", {}, "Retrieval ", el("b", { text: s.hybrid ? "hybrid (BM25 + dense)" : "dense" }),
        ` · top ${s.top_k}`),
-    el("div", {}, "Answers by ", el("b", { text: s.answer_model || "flan-t5-large" }),
+    el("div", {}, "Answers by ", el("b", { text: s.answer_model || "Qwen2.5-1.5B-Instruct" }),
        " on ", el("b", { text: (s.device || "").toUpperCase() })),
     s.answer_style === "explain"
       ? el("div", {}, "Quiz answers by ", el("b", { text: s.quiz_model })) : null,

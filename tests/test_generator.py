@@ -66,7 +66,7 @@ class AnswerStyleTests(unittest.TestCase):
         explain.assert_called_once()
         short.assert_not_called()
 
-    def test_short_style_uses_flan(self):
+    def test_short_style_answers_extractively(self):
         with mock.patch.object(generator, "ANSWER_STYLE", "short"), \
              mock.patch.object(generator, "answer_short", return_value="a score") as short, \
              mock.patch.object(generator, "explain") as explain:
@@ -97,6 +97,32 @@ class AnswerStyleTests(unittest.TestCase):
         self.assertEqual(item.answer, "680,000 hours")
         short.assert_called()
         explain.assert_not_called()
+
+
+class ShortAnswerTidyingTests(unittest.TestCase):
+    """
+    An instruction-tuned model wraps a short answer in the shape of a reply;
+    the quiz compares the answer itself with what the student typed.
+    """
+
+    def test_labels_quotes_and_a_lone_full_stop_are_removed(self):
+        for raw, clean in [("Answer: 680,000 hours", "680,000 hours"),
+                           ('"the roulette wheel"', "the roulette wheel"),
+                           ("A: Turing", "Turing"),
+                           ("a fitness function.", "a fitness function")]:
+            self.assertEqual(generator._tidy_short(raw), clean)
+
+    def test_a_real_sentence_keeps_its_punctuation(self):
+        text = "It scores a solution. It is used for selection."
+        self.assertEqual(generator._tidy_short(text), text)
+
+    def test_the_model_is_used_for_both_styles_by_default(self):
+        self.assertEqual(generator.CHAT_MODEL_NAME, generator.MODEL_NAME)
+        self.assertIn("Qwen", generator.MODEL_NAME)
+
+    def test_only_t5_loads_as_an_encoder_decoder(self):
+        self.assertTrue(generator._is_seq2seq("google/flan-t5-large"))
+        self.assertFalse(generator._is_seq2seq("Qwen/Qwen2.5-1.5B-Instruct"))
 
 
 class NumberSpacingTests(unittest.TestCase):

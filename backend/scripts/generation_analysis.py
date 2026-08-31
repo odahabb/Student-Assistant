@@ -61,7 +61,8 @@ from backend.pipeline.preprocessor import preprocess  # noqa: E402
 from backend.pipeline.embedder import embed, model_key  # noqa: E402
 from backend.pipeline.retriever import DENSE_WEIGHT, retrieve  # noqa: E402
 from backend.pipeline import sparse  # noqa: E402
-from backend.pipeline.generator import ANSWER_STYLE, generate  # noqa: E402
+from backend.pipeline.generator import (ANSWER_STYLE,  # noqa: E402
+                                        CHAT_MODEL_NAME, MODEL_NAME, generate)
 
 RAW_DIR = ROOT / "data" / "raw"
 EVAL_DIR = ROOT / "data" / "eval"
@@ -75,12 +76,18 @@ EMBEDDER = model_key()
 RETRIEVAL = (sys.argv[sys.argv.index("--retrieval") + 1]
              if "--retrieval" in sys.argv else "dense")
 # SA_ANSWER_STYLE=explain measures the paragraph answers the chat view gives
-# instead of FLAN-T5's extractive spans (generator.ANSWER_STYLE).
+# instead of the extractive spans (generator.ANSWER_STYLE).
+# The answering model is part of the configuration too: results recorded
+# before 2026-09-21 were taken on flan-t5-large and carry no model suffix.
+GEN_MODEL_NAME = CHAT_MODEL_NAME if ANSWER_STYLE == "explain" else MODEL_NAME
+MODEL_TAG = "" if "flan-t5" in GEN_MODEL_NAME else (
+    "_" + GEN_MODEL_NAME.split("/")[-1].lower().replace("-instruct", ""))
 OUT_PATH = EVAL_DIR / ("generation_analysis"
                        + ("" if CHUNKING == "window" else f"_{CHUNKING}")
                        + ("" if EMBEDDER == "minilm" else f"_{EMBEDDER}")
                        + ("" if RETRIEVAL == "dense" else f"_{RETRIEVAL}")
                        + ("" if ANSWER_STYLE == "short" else f"_{ANSWER_STYLE}")
+                       + MODEL_TAG
                        + ".json")
 
 DOCUMENTS = [
@@ -335,6 +342,7 @@ def main():
         "chunking": CHUNKING,
         "embedder": EMBEDDER,
         "answer_style": ANSWER_STYLE,
+        "model": GEN_MODEL_NAME,
         "retrieval": RETRIEVAL,
         "total_questions": total,
         "bucket_counts": counts,
