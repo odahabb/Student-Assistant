@@ -88,6 +88,7 @@ OUT_PATH = EVAL_DIR / ("generation_analysis"
                        + ("" if RETRIEVAL == "dense" else f"_{RETRIEVAL}")
                        + ("" if ANSWER_STYLE == "short" else f"_{ANSWER_STYLE}")
                        + MODEL_TAG
+                       + ("" if TOP_K == 3 else f"_k{TOP_K}")
                        + ".json")
 
 DOCUMENTS = [
@@ -97,8 +98,10 @@ DOCUMENTS = [
     "Hallucinations_in_Large_Language_Models_LLMs.pdf",
 ]
 
-# Matches backend/service.py's TOP_K — this measures the configuration that actually ships.
-TOP_K = 3
+# Matches backend/service.py's TOP_K — this measures the configuration that
+# actually ships. "--k N" answers the same questions with N chunks instead,
+# which is how the choice of 3 is checked rather than assumed.
+TOP_K = (int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 3)
 
 BUCKETS = {
     (True, True): "1. retrieved + correct answer",
@@ -232,7 +235,8 @@ def main():
     except Exception:
         pass
     print("=" * 78)
-    print(f"GENERATION vs RETRIEVAL FAILURE ANALYSIS  (k={TOP_K}, as shipped)")
+    print(f"GENERATION vs RETRIEVAL FAILURE ANALYSIS  (k={TOP_K}"
+          + (", as shipped)" if TOP_K == 3 else ")"))
     print("=" * 78)
 
     ground_truth = json.loads(GROUND_TRUTH_PATH.read_text(encoding="utf-8"))

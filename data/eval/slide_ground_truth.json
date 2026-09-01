@@ -1,0 +1,774 @@
+{
+  "note": "Retrieval ground truth over lecture slide decks. Each question was written by the project's own question model from a single slide's text, taken from the loader before any chunking, so the labelled page is a fact about how the question was made. source='picture' means the question was written only from text recovered by reading the rendered page, which the PDF text layer does not contain.",
+  "seed": 11,
+  "decks": 15,
+  "rare_term_share": 0.02,
+  "counts": {
+    "slides": 672,
+    "text_layer_candidates": 147,
+    "picture_candidates": 80,
+    "rejected": {
+      "answer given away by the question": 58,
+      "names nothing rare": 6,
+      "answer too long": 7,
+      "question length out of range": 3
+    },
+    "questions": 51,
+    "by_source": {
+      "text_layer": 38,
+      "picture": 13
+    }
+  },
+  "questions": [
+    {
+      "question": "What is the first step in generating a new generation using genetic algorithms?",
+      "answer": "Generate random population",
+      "source_file": "ai-2-breeding.pdf",
+      "page": 24,
+      "source": "text_layer",
+      "section": "Pages 21–25",
+      "title": "The genetic algorithm",
+      "rare_terms": [
+        "generating",
+        "generation"
+      ],
+      "slide_text": "The genetic algorithm Generate random population Evaluate Get fitness and fitness map data structures Make new generations: For each new creature, Select parents Make new DNA via cross over (careful) Mutate (check for crashes on mutate functions) Make a new creature with this DNA Back to ‘evaluate’ step"
+    },
+    {
+      "question": "How do you read a file into a string?",
+      "answer": "import csv",
+      "source_file": "ai-2-breeding.pdf",
+      "page": 35,
+      "source": "text_layer",
+      "section": "Pages 31–35",
+      "title": "Import from CSV",
+      "rare_terms": [
+        "read",
+        "string"
+      ],
+      "slide_text": "Import from CSV Read file to a string Split on ‘\\n’ Iterate over lines in the file Split line on ‘,’ Iterate over values and convert to float To verify, use np.array_equal"
+    },
+    {
+      "question": "What does \"pool size\" refer to?",
+      "answer": "CPU count",
+      "source_file": "ai-2-fitness-function.pdf",
+      "page": 37,
+      "source": "text_layer",
+      "section": "Pages 36–39",
+      "title": "Step 3: prepare the pool arguments",
+      "rare_terms": [
+        "pool",
+        "size"
+      ],
+      "slide_text": "Step 3: prepare the pool arguments A pool takes a list of list of args, one for each process in the pool: [[arg1,arg2,arg3], [arg1,arg2,arg3]] As pool size (CPU count) is smaller than pop size, We will need multiple sets of pool args: [ [ [arg1,arg2,arg3], […] ] , [ [arg1,arg2,arg3], […]]"
+    },
+    {
+      "question": "What is the first step in running a simulation?",
+      "answer": "set up a pybullet environment in DIRECT mode",
+      "source_file": "ai-2-fitness-function.pdf",
+      "page": 6,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "Running in simulation",
+      "rare_terms": [
+        "running"
+      ],
+      "slide_text": "Running in simulation Simulation class - set up a pybullet environment in DIRECT mode - create the individual - step through time - operate the motors - end the simulation"
+    },
+    {
+      "question": "What does Test-Driven Development involve?",
+      "answer": "writing tests",
+      "source_file": "ai-2-genetic-encoding-practice.pdf",
+      "page": 3,
+      "source": "text_layer",
+      "section": "Pages 1–5",
+      "title": "What is test-driven development?",
+      "rare_terms": [
+        "development",
+        "driven"
+      ],
+      "slide_text": "What is test-driven development? Test Driven Development (TDD) is a practice advocated by agile software development methodologies, in which tests are written in advance of source-code development. These tests, intended to initially fail in the absence of any substantial implementation, effectively constitute a specification of the functionality and behavior of the software code, which can be tested as it is being developed Borle, Neil C., et al. \"Analyzing the effects of test driven development in GitHub.\" Empirical Software Engineering 23.4 (2018): 1931-1958."
+    },
+    {
+      "question": "How are URDFLink objects specified using genome parameters?",
+      "answer": "index, names, parent names, recurrence parameter",
+      "source_file": "ai-2-genetic-encoding-practice.pdf",
+      "page": 38,
+      "source": "text_layer",
+      "section": "Pages 36–40",
+      "title": "Genome to URDFLinks: name, parent name, recur",
+      "rare_terms": [
+        "objects",
+        "parameters",
+        "urdflink"
+      ],
+      "slide_text": "Genome to URDFLinks: name, parent name, recur Use genome parameters to specify URDFLink objects → Use an index to set names → Use developmental process to set parent names Recurrence parameter can be read more directly"
+    },
+    {
+      "question": "What are the labels of the nodes?",
+      "answer": "A, B, C",
+      "source_file": "ai-2-genetic-encoding-practice.pdf",
+      "page": 22,
+      "source": "picture",
+      "section": "Pages 21–25",
+      "title": "Graph structure",
+      "rare_terms": [
+        "nodes"
+      ],
+      "slide_text": "**Graph structure** The graph structure consists of three nodes connected by directed edges. The nodes are labeled as A, B, and C, with the following connections: - Node A is connected to Node B. - Node B is connected to Node C. The directed edges indicate the direction of the relationships between the nodes."
+    },
+    {
+      "question": "What is the expected result of the `test arithmetic` method?",
+      "answer": "4",
+      "source_file": "ai-2-genetic-encoding-practice.pdf",
+      "page": 6,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Python unittest",
+      "rare_terms": [
+        "arithmetic",
+        "method",
+        "result"
+      ],
+      "slide_text": "Python unittest import unittest 1 2 3 class TestSetForOneModule(unittest. TestCase) : 1 def test arithmetic pass(self) : self.assertEqual (2+2 _ 4) def test arithmetic fail(self) : self.assertEqual (2+2 , 3) 10 11 unittest main(argv= [ ignored ' '-v'], exit-False) 12 13"
+    },
+    {
+      "question": "What is the maximum joint effort allowed for this revolute joint?",
+      "answer": "10",
+      "source_file": "ai-2-genetic-encoding-theory.pdf",
+      "page": 7,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Joints",
+      "rare_terms": [
+        "allowed",
+        "effort",
+        "maximum",
+        "revolute"
+      ],
+      "slide_text": "Joints <joint sub2\" type-\"revolute\" > name-\"base to <parent link-\"base link\" /> <child link-\"sub link2\" /> <axis xyz=\"1 0 0 > <limit effort=\"10\" upper=\"0\" lower=\"10\" VA <origin rpy-=\"0 Xyz-\"0 0\" /> 0 0 0.5 <ljoint>"
+    },
+    {
+      "question": "What is the mass of the cylinder?",
+      "answer": "0.25",
+      "source_file": "ai-2-genetic-encoding-theory.pdf",
+      "page": 6,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Links",
+      "rare_terms": [
+        "cylinder",
+        "mass"
+      ],
+      "slide_text": "Links link name-\"base link\"> <visual> <geometryz <cylinder length-\"0.6\" <lgeometry> <lvisual> <collisionz <geometry> <cylinder length=\"0.6\" </geometryz <collisionz <inertial> value=\"0 .25\" /> <mass <inertia ixx=\"0.0003\" iyy <linertial> </link>"
+    },
+    {
+      "question": "What does the schema define in the context of testing component designs?",
+      "answer": "100100",
+      "source_file": "ai-2-intro-to-gas.pdf",
+      "page": 49,
+      "source": "text_layer",
+      "section": "Pages 46–50",
+      "title": "How do schemas relate to testing components in different contexts?",
+      "rare_terms": [
+        "context",
+        "define",
+        "designs",
+        "schema",
+        "testing"
+      ],
+      "slide_text": "How do schemas relate to testing components in different contexts? Let's say we are evolving designs for a drone propeller/ rotor setup The first part of the genetic encoding might represent the cross section of the blade The rest defines how many rotors there are, how big they are, etc. Say we have a schame like: 100100********... -> this defines a hyperplane of rotors with a certain cross section but with anything for the other characteristics of the rotor. So by exploring that hyperplane we test out that particular cross section with all other possible options for the design"
+    },
+    {
+      "question": "What does each codon map to?",
+      "answer": "CGAT",
+      "source_file": "ai-2-intro-to-gas.pdf",
+      "page": 21,
+      "source": "text_layer",
+      "section": "Pages 21–25",
+      "title": "What is the substrate for evolution?",
+      "rare_terms": [
+        "codon",
+        "map"
+      ],
+      "slide_text": "What is the substrate for evolution? The DNA code has 4 letters. CGAT Above that, we have three letter codons Each codon maps to an amino acid Proteins are made of amino acid sequences folded into 3D shapes Proteins make up an organisms core structure and function They also can control the DNA expression pattern"
+    },
+    {
+      "question": "What is implicit parallelism?",
+      "answer": "population model",
+      "source_file": "ai-2-intro-to-gas.pdf",
+      "page": 46,
+      "source": "text_layer",
+      "section": "Pages 46–50",
+      "title": "Hyperplane sampling: In a nutshell, being",
+      "rare_terms": [
+        "implicit",
+        "parallelism"
+      ],
+      "slide_text": "Hyperplane sampling: In a nutshell, being able to break a solution into components and to test those components in multiple combinations with other components Implicit parallelism: in a nutshell, using a population model to maintain, optimise and even recombine multiple solutions at the same time"
+    },
+    {
+      "question": "What type of joint supports 1-DOF motors?",
+      "answer": "SLIDING",
+      "source_file": "ai-2-urdf_pybullet.pdf",
+      "page": 52,
+      "source": "text_layer",
+      "section": "Pages 51–55",
+      "title": "Different types of joints",
+      "rare_terms": [
+        "dof"
+      ],
+      "slide_text": "Different types of joints JOINT_REVOLUTE: rotate JOINT_PRISMATIC: move along an axis JOINT_FIXED: does not move JOINT_SPHERICAL, JOINT_PLANAR “Note that we only support 1-DOF motorized joints at the moment, sliding joint or revolute joints.” getJointInfo"
+    },
+    {
+      "question": "What aspects of programming a GA are typically most challenging?",
+      "answer": "problem-specific",
+      "source_file": "ai-2-urdf_pybullet.pdf",
+      "page": 5,
+      "source": "text_layer",
+      "section": "Pages 1–5",
+      "title": "“The most creative and challenging",
+      "rare_terms": [
+        "aspects",
+        "challenging",
+        "most",
+        "programming",
+        "typically"
+      ],
+      "slide_text": "“The most creative and challenging parts of programming a GA are usually the problem-specific aspects” Harvey, Inman. \"The microbial genetic algorithm.\" European conference on artificial life. Springer, Berlin, Heidelberg, 2009."
+    },
+    {
+      "question": "What are the Four Ps of creativity mentioned in the passage?",
+      "answer": "Product, Process, Press/Environment",
+      "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+      "page": 11,
+      "source": "text_layer",
+      "section": "Pages 11–15",
+      "title": "The four Ps of creativity",
+      "rare_terms": [
+        "four"
+      ],
+      "slide_text": "The four Ps of creativity \"Creativity research offers the Four Ps of creativity: Person/Producer, Product, Process and Press/Environment.” Jordanous, Anna. \"Four PPPPerspectives on computational creativity in theory and in practice.\" Connection"
+    },
+    {
+      "question": "What is the focus of Tatar, Kıvanç, and Philippe Pasquier's study on music systems?",
+      "answer": "musical agents",
+      "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+      "page": 29,
+      "source": "text_layer",
+      "section": "Pages 26–30",
+      "title": "About music systems",
+      "rare_terms": [
+        "pasquier",
+        "philippe",
+        "study",
+        "tatar",
+        "van"
+      ],
+      "slide_text": "About music systems What do they say about music systems in this review paper? Tatar, Kıvanç, and Philippe Pasquier. \"Musical agents: A typology and state of the art towards musical metacreation.\" Journal of New Music Research 48.1 (2019): 56-105."
+    },
+    {
+      "question": "What year did Jordanous conduct her study on computational creativity?",
+      "answer": "2012",
+      "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+      "page": 24,
+      "source": "text_layer",
+      "section": "Pages 21–25",
+      "title": "In 2012, Jordanous came to some challenging conclusions",
+      "rare_terms": [
+        "jordanous",
+        "study"
+      ],
+      "slide_text": "In 2012, Jordanous came to some challenging conclusions about the state of computational creativity research \"The results of this survey clearly demonstrate a critical point: computational systems are being presented as ’creative systems’ without their creativity being justified\" Jordanous, Anna. \"A standardised procedure for evaluating creative systems: Computational creativity evaluation based on what it is to be creative.\" Cognitive Computation 4.3 (2012): 246-279."
+    },
+    {
+      "question": "What is the transition probability between states in the Markov model?",
+      "answer": "music",
+      "source_file": "ai-creativity-wk1_gensys.pdf",
+      "page": 16,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "Markov model",
+      "rare_terms": [
+        "markov",
+        "states",
+        "transition"
+      ],
+      "slide_text": "Markov model Start witn a word sequence: “the problem with the pop music industry is the music” Let’s convert that into a first order model by making a state transition table"
+    },
+    {
+      "question": "What is a key difference between transition tables and more complex methods?",
+      "answer": "more complex model of the sequence",
+      "source_file": "ai-creativity-wk1_gensys.pdf",
+      "page": 21,
+      "source": "text_layer",
+      "section": "Pages 21–25",
+      "title": "How are more complex models different?",
+      "rare_terms": [
+        "complex",
+        "key",
+        "methods",
+        "tables",
+        "transition"
+      ],
+      "slide_text": "How are more complex models different? They have a more complex model of the sequence than a transition table They have a more complex method for picking the next state/ output, including more complex state"
+    },
+    {
+      "question": "What is the first step in the generative process?",
+      "answer": "Pick a random state from observed states",
+      "source_file": "ai-creativity-wk1_gensys.pdf",
+      "page": 19,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "Generative process",
+      "rare_terms": [
+        "generative"
+      ],
+      "slide_text": "Generative process 1) Pick a random state from observed states 2) Select from possible next states, back to 2) 3) If no possible next state, back to 1) The → problem → music → pop Problem → with With → the Pop → music Music → industry Industry → is Is → the"
+    },
+    {
+      "question": "What is the name of the active tool mentioned?",
+      "answer": "SketchRNN",
+      "source_file": "ai-creativity-wk1_gensys.pdf",
+      "page": 6,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Active tool 1: SketchRNN (interactive)",
+      "rare_terms": [
+        "active",
+        "tool"
+      ],
+      "slide_text": "Active tool 1: SketchRNN (interactive) cleModel: butterfly 0 info X random drawing butterfly . start https:IInagenta tensorflow orglassetslsketch demolindexhtml rnn https:Ilmagic-sketchpad.glitch mel"
+    },
+    {
+      "question": "What is the percentage of the layer background?",
+      "answer": "208%",
+      "source_file": "ai-creativity-wk1_gensys.pdf",
+      "page": 5,
+      "source": "picture",
+      "section": "Pages 1–5",
+      "title": "Drawing program example",
+      "rare_terms": [
+        "layer"
+      ],
+      "slide_text": "Drawing program example View Navigation Journal Tools Plugin Help Courier New Bold 16 Math TEX 208% of 1 Layer Background"
+    },
+    {
+      "question": "How much memory was used for training?",
+      "answer": "2",
+      "source_file": "ai-creativity-wk2_gpt2.pdf",
+      "page": 42,
+      "source": "text_layer",
+      "section": "Pages 41–45",
+      "title": "Now run the training",
+      "rare_terms": [
+        "memory"
+      ],
+      "slide_text": "Now run the training I ran the training on my Nvidia 2070 laptop Even with that, I only managed a batch size of 2 It did not seem to train as well on the eurovision dataset as the larger lyrics dataset But it swears less now"
+    },
+    {
+      "question": "How many songs were included in the dataset you obtained?",
+      "answer": "200k",
+      "source_file": "ai-creativity-wk2_gpt2.pdf",
+      "page": 35,
+      "source": "text_layer",
+      "section": "Pages 31–35",
+      "title": "Obtaining some lyrics",
+      "rare_terms": [
+        "dataset",
+        "obtained",
+        "songs"
+      ],
+      "slide_text": "Obtaining some lyrics Lyrics are typically protected by licenses so datasets are not super-available I obtained one with 200k songs from kaggle. The licensing is not clear so I cannot share it But I can share the trained model"
+    },
+    {
+      "question": "What is fine-tuning in GPT-2?",
+      "answer": "extra burst of training",
+      "source_file": "ai-creativity-wk2_gpt2.pdf",
+      "page": 34,
+      "source": "text_layer",
+      "section": "Pages 31–35",
+      "title": "GPT-2",
+      "rare_terms": [
+        "fine",
+        "gpt",
+        "tuning"
+      ],
+      "slide_text": "That’s great, but not very lyrical We can use a technique called fine-tuning Think of it as an extra burst of training on a smaller dataset to bias the network slightly https://commons.wikimedia.org/wiki/ File:Microphone.svg https://commons.wikimedia.org/wiki/File:The_Bar_at_M acArthur_Place_-_Stierch_-_2019_01.jpg Cocktails karaoke GPT-2"
+    },
+    {
+      "question": "What does \"embedding\" refer to in relation to encoded space?",
+      "answer": "normalizing",
+      "source_file": "ai-creativity-wk2_gpt2.pdf",
+      "page": 8,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "A bit more about embedding encoded words",
+      "rare_terms": [
+        "embedding",
+        "encoded"
+      ],
+      "slide_text": "bit more about embedding encoded A words The problem with the music ndustry is the music POp Embedding space 1 normally 256 2D here but Note how related words similar places are in but the feature ignores context"
+    },
+    {
+      "question": "What does \"self-attention\" refer to in this context?",
+      "answer": "context-aware embedding",
+      "source_file": "ai-creativity-wk2_gpt2.pdf",
+      "page": 9,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Self-attention → context aware embeddings",
+      "rare_terms": [
+        "attention",
+        "context",
+        "self"
+      ],
+      "slide_text": "embeddings Self-attention context aware The problem with the pop music ndustry is the music Embedding space 1 2D here but normally 256 pop takes account of all now other words that occurred This is self attention: context a embedding aware The way embeddings combined is are learned embedding This is self-attention space"
+    },
+    {
+      "question": "What is the first step in exploring?",
+      "answer": "Get a set of examples of the thing",
+      "source_file": "ai-creativity-wk3_musicvae.pdf",
+      "page": 33,
+      "source": "text_layer",
+      "section": "Pages 31–35",
+      "title": "How to explore",
+      "rare_terms": [
+        "exploring"
+      ],
+      "slide_text": "How to explore 1) Get a set of examples of the thing 2) Learn a lower dimensional representation of the things (the latent space) 3) Generate a vector (position) in the latent space 4) Translate from the low-D space to the original, high-D space."
+    },
+    {
+      "question": "What year was the paper \"GenJam: A genetic algorithm for generating jazz solos\" published?",
+      "answer": "1994",
+      "source_file": "ai-creativity-wk3_musicvae.pdf",
+      "page": 16,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "1990s: A-life systems, L-systems, genetic algorithms",
+      "rare_terms": [
+        "algorithm",
+        "generating",
+        "genjam",
+        "jazz",
+        "paper",
+        "published"
+      ],
+      "slide_text": "1990s: A-life systems, L-systems, genetic algorithms \"As GenJam plays its solos over the accompaniment of a standard rhythm section, a human mentor gives real-time feedback, which is used to derive fitness values for the individual measures and phrases\" Biles, J. (1994, September). GenJam: A genetic algorithm for generating jazz solos. In ICMC (Vol. 94, pp. 131-137)."
+    },
+    {
+      "question": "What year was the system first described?",
+      "answer": "1987",
+      "source_file": "ai-creativity-wk3_musicvae.pdf",
+      "page": 13,
+      "source": "text_layer",
+      "section": "Pages 11–15",
+      "title": "1980s: more complex techniques",
+      "rare_terms": [
+        "described"
+      ],
+      "slide_text": "1980s: more complex techniques \"A method for automatically composing a new musical work based upon a plurality of existing musical work segments using a programmed linear retrograde recombinant musical composition algorithm\" US Patent #7696426 by David Cope 2006 System originally described in a 1987 paper."
+    },
+    {
+      "question": "What is the name of the MIDI file?",
+      "answer": "GAVOTTEmid",
+      "source_file": "ai-creativity-wk3_musicvae.pdf",
+      "page": 71,
+      "source": "picture",
+      "section": "Pages 71–75",
+      "title": "Example of a general midi file",
+      "rare_terms": [
+        "midi"
+      ],
+      "slide_text": "Example of a general midi file Activities REAPER 20 Jan 20.57 # { Eile Edit Yiew Insert Item Track Options Actions Help [48kHz 24bit WAV : 2/2ch 512spls ~5.3/11 7.100 17.100 33.100 49.100 65.100 81.100 97.100 113.100 129.100 145 000. OOo 0.32,000 , 1.04,000, 1.36 ,000, 2.08 Ooo 2,40,0Q0, 3,12 000, OOo 4,16 000, Violini GAVOTTEmid Violinl IN Violin2 Violin2 GAVOTTEmid In Viola Viola-GAVOTTEmid IN Cello GAVOTTEmid Cello IN e Oboel Oboel-GAVOTTEmid ett Oboez Oboe2 GAVOTTEmid Lett Bassoon - GAVOTTEmid Bassoon Lett Violin] Violini GAVOTTEmid Lett Violin2- GAVOTTEmid Violin2 Lett Viola Viola-GAVOTTE mn IN e Cello GAVOTTE ~mid"
+    },
+    {
+      "question": "What is the role of variance adaptor in speech processing?",
+      "answer": "applies pitch and other modifications",
+      "source_file": "ai-creativity-wk4_diffsinger.pdf",
+      "page": 29,
+      "source": "text_layer",
+      "section": "Pages 26–30",
+      "title": "Speech model",
+      "rare_terms": [
+        "adaptor",
+        "processing",
+        "speech",
+        "variance"
+      ],
+      "slide_text": "Speech model Language data in Mel (like spectral) features out Several stacked models textencoder: for linguistic data speaker embed: for sound data variance adaptor: applies pitch and other modifications diffusion: improves sound somehow?"
+    },
+    {
+      "question": "What was the first example of voice synthesis mentioned in the passage?",
+      "answer": "1960s",
+      "source_file": "ai-creativity-wk4_diffsinger.pdf",
+      "page": 7,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "Super brief history of voice synthesis (DEMO)",
+      "rare_terms": [
+        "voice"
+      ],
+      "slide_text": "Super brief history of voice synthesis 1960s: Mathews, Kelly and Lockbaum at Bell labs: physical model of a tube of moving air. Famously used on 2001 for singing Hal 1970s: LPC (Speak and Spell!) 1980s: phase vocoder 1990s: realtime, variety of techniques, HMM systems (DEMO) 2000s: vocaloid, concatentive spectral synthesis 2010s-20s: deep models"
+    },
+    {
+      "question": "What is the name of the paper?",
+      "answer": "Diffusion acoustic model for singing voice synthesis",
+      "source_file": "ai-creativity-wk4_diffsinger.pdf",
+      "page": 19,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "The overall system Diffsinger 2021",
+      "rare_terms": [
+        "paper"
+      ],
+      "slide_text": "The overall system Diffsinger 2021 Liu, J., Li, C., Ren, Y., Chen, F., Liu, P., & Zhao, Z. (2021). Diffsinger: Diffusion acoustic model for singing voice synthesis. arXiv preprint arXiv:2105.02446."
+    },
+    {
+      "question": "What is the initial commit date of the DiffSinger repository?",
+      "answer": "Jun 2021",
+      "source_file": "ai-creativity-wk4_diffsinger.pdf",
+      "page": 17,
+      "source": "picture",
+      "section": "Pages 16–20",
+      "title": "Process",
+      "rare_terms": [
+        "commit",
+        "diffsinger",
+        "initial"
+      ],
+      "slide_text": "Why GitHub? Team Enterprise Explore Marketplace Pricing Search Process keonlee9420 / DiffSinger Public Notifications Itms Code 82 Pull requests Actions Projects Wiki Security ades Issues OhAA energy 89 main 89 branch tag Go to file Code About rex PyTorch (d Jun 2021 30 2 commits keonlee9420 update pre-trained models with. 2bfcae4 on Singing V glebal Diffusion VJhdal pitch audio Initial commit 8 months ago DiffSpeec ml config Initial commit 8 months ago text-to-spe lyrics demo/LJSpeechInai: update pre-trained models with audio demos months ago speech-syi pitch singing-voi targets hifigan Initial commit months ago non-autore duration img update pre-trained models with audio demos 8 months ago diffsinger energy modifier 90 102 146 112 Makul (prvz transformer conv layers eXkJ & transformer conv lexicon / librigpeech-lexicon LXC textencoder for linguistic data knnb, speaker embed for sound data 5 variance_adaptor applies pitch and other modifications Aagrun_Or8k> {D diffusion: improves sound somehow? EYl Ollalid MEL features transformer + Mpiter conv layers vocoder infer 'oje hifi gan forward 89 Ab RAW AUDIO HiF 0 Ne' Fid LJSpeech-1.1 Initial 15 months ago te; LICENSE Initial 15 months ago READMEmd updated 14 months ago"
+    },
+    {
+      "question": "What is the first step in processing audio files?",
+      "answer": "load in the files",
+      "source_file": "ai-creativity-wk5_all_together.pdf",
+      "page": 19,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "With librosa",
+      "rare_terms": [
+        "audio",
+        "files",
+        "processing"
+      ],
+      "slide_text": "With librosa - load in the files - normalise/ set levels - pad the shorter track with zeros at the start - add together - write to disk - now let’s see that script (mix.py)"
+    },
+    {
+      "question": "What is the current time value?",
+      "answer": "0",
+      "source_file": "ai-creativity-wk5_all_together.pdf",
+      "page": 9,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "Timing",
+      "rare_terms": [
+        "current",
+        "value"
+      ],
+      "slide_text": "Timing now = 0 for msg in mid: now = now + msg.time if msg.type == \"note_on\" and msg.channel == 1: print(now, msg.note) Not bad… but remember we need that neat list for the singer"
+    },
+    {
+      "question": "What MIDI channel number should the melody be assigned to?",
+      "answer": "1",
+      "source_file": "ai-creativity-wk5_all_together.pdf",
+      "page": 7,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "Now extract the melody",
+      "rare_terms": [
+        "channel",
+        "melody",
+        "midi",
+        "number",
+        "should"
+      ],
+      "slide_text": "Now extract the melody One problem is that there is no standard midi channel for melody. Percussion is always 10, but melody, not so much! So what should the singer sing? Let’s start with just pulling notes off channel 1"
+    },
+    {
+      "question": "What sampling rate does Audacity use?",
+      "answer": "44100Hz",
+      "source_file": "ai-creativity-wk5_all_together.pdf",
+      "page": 18,
+      "source": "picture",
+      "section": "Pages 16–20",
+      "title": "Audacity is a free and open source audio editor",
+      "rare_terms": [
+        "audacity",
+        "sampling"
+      ],
+      "slide_text": "With audacity File Edit Select View Transport Tracks Generate Effect Analyze Tools Help Audacity is a I 54 48 Click to Start Monitoring 8 12 R Q Hx 54 -48 .42 436 330 224 -18 12 6 R free and open ALSA default 'ecording Channel default 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 source audio X 1.0 Musk Mute Sk 0.0 1.0 editor 1.0 Sterez, 44100Hz 0.0 32-Di fjat Skz -.0 Xlsing 1.0 Mutz Sik 0.5 0_ Morz, 22050Hz 12-bi Iwat -0.5 Sktt 1.0"
+    },
+    {
+      "question": "What does `model_target.predict(state_next_sample)` do?",
+      "answer": "max ones (i.e. most desired actions)",
+      "source_file": "ai-game-player-wk4.pdf",
+      "page": 48,
+      "source": "text_layer",
+      "section": "Pages 46–50",
+      "title": "Training",
+      "rare_terms": [
+        "model_target",
+        "predict",
+        "state_next_sample"
+      ],
+      "slide_text": "Training Predict rewards for the s’ states achieved via the actions: future_rewards = model_target.predict(state_next_sample) Note that we are using the target model here Future rewards contains rewards for all possible actions so just get the max ones (i.e. most desired actions): tf.reduce_max( future_rewards, axis=1 )"
+    },
+    {
+      "question": "What does Sigma represent in the context of the DQN loss function?",
+      "answer": "r",
+      "source_file": "ai-game-player-wk4.pdf",
+      "page": 29,
+      "source": "text_layer",
+      "section": "Pages 26–30",
+      "title": "Reminder - the DQN loss function",
+      "rare_terms": [
+        "context",
+        "loss",
+        "sigma"
+      ],
+      "slide_text": "Reminder - the DQN loss function Sigma (s,a,r,s’) U(D) is a random sample from the Replay buffer Theta-i is the weights of an older version of the network Theta i is the weights of the current network We are comparing the output of our network to a combinations of the known reward (Ground truth ish) plus an estimated Value for the policy’s chosen actions across the sample"
+    },
+    {
+      "question": "What does \"partly true\" mean in the context of calculating discounted reward?",
+      "answer": "only partly true",
+      "source_file": "ai-game-player-wk4.pdf",
+      "page": 35,
+      "source": "text_layer",
+      "section": "Pages 31–35",
+      "title": "Now calculate discounted reward – this is the ‘ground truth’",
+      "rare_terms": [
+        "calculating",
+        "context",
+        "discounted",
+        "mean",
+        "partly",
+        "reward"
+      ],
+      "slide_text": "Now calculate discounted reward – this is the ‘ground truth’ But it is only partly true updated_q_values = rewards_sample + gamma * tf.reduce_max( future_rewards, axis=1 ) - reward samples are the actual measured rewards from the actions - future rewards are the estimated future rewards from the target model, hence only partly true as it is estimated with a model but we do not have any other way to do it so that’ll do for now"
+    },
+    {
+      "question": "What is the format used for storing game states and rewards?",
+      "answer": "s,a,s',r,d",
+      "source_file": "ai-game-player-wk4.pdf",
+      "page": 7,
+      "source": "picture",
+      "section": "Pages 6–10",
+      "title": "Quick review of the architecture",
+      "rare_terms": [
+        "format",
+        "rewards",
+        "states"
+      ],
+      "slide_text": "Quick review of the architecture DQN replay s,a,s,r,d buffer Agent S,a,s',r,d s,a,s',r,d s,a,s' ,r,d observations of sas'Ld states and rewards Periodic training game of Q environ- function state ment Q function action actions in the world"
+    },
+    {
+      "question": "What is the format used for storing experiences in DQN?",
+      "answer": "s,a,s',r,d",
+      "source_file": "ai-game-player-wk4.pdf",
+      "page": 58,
+      "source": "picture",
+      "section": "Pages 56–60",
+      "title": "Using the model to play the game",
+      "rare_terms": [
+        "experiences",
+        "format"
+      ],
+      "slide_text": "Using the model to play the game DQN replay s,a,s,r,d buffer Agent S,a,s',r,d s,a,s',r,d s,a,s' ,r,d observations of sas'Ld states and rewards Periodic training game of Q environ- function state ment Q function action actions in the world"
+    },
+    {
+      "question": "When did the Mario AI competition end?",
+      "answer": "2012",
+      "source_file": "ai-game-player-wk5.pdf",
+      "page": 7,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "What happened to the Mario AI competition?",
+      "rare_terms": [
+        "competition",
+        "end",
+        "mario"
+      ],
+      "slide_text": "What happened to the Mario AI competition? Ran 2009-2012 Turned into the Platformer AI Competition Togelius, Julian, et al. \"The mario ai championship 2009-2012.\" AI Magazine 34.3 (2013): 89-92. Check out the Ms. Pac-Man competition,"
+    },
+    {
+      "question": "What is the significance of AlphaStar's victory over a professional StarCraft II player?",
+      "answer": "January 2019",
+      "source_file": "ai-game-player-wk5.pdf",
+      "page": 5,
+      "source": "text_layer",
+      "section": "Pages 1–5",
+      "title": "Starcraft / alphastar",
+      "rare_terms": [
+        "alphastar",
+        "player",
+        "professional",
+        "starcraft"
+      ],
+      "slide_text": "Starcraft / alphastar “In January 2019, DeepMind revealed AlphaStar to the world—the first artificial intelligence (AI) system to beat a professional player at the game of StarCraft II—representing a milestone in the progress of AI.” “the original game, and its sequel SC II, have several properties that make it considerably more challenging than even Go” “AlphaStar draws on many areas of AI research, including deep learning, reinforcement learning, game theory, and evolutionary computation (EC).” Arulkumaran, Kai, Antoine Cully, and Julian Togelius. \"Alphastar: An evolutionary computation perspective.\" Proceedings of the genetic and evolutionary computation conference companion. 2019."
+    },
+    {
+      "question": "When did you conclude there is no fair competition between AI and human in Dota 2 and StarCraft II?",
+      "answer": "2019",
+      "source_file": "ai-game-player-wk5.pdf",
+      "page": 14,
+      "source": "text_layer",
+      "section": "Pages 11–15",
+      "title": "Fairness: an more moderate view",
+      "rare_terms": [
+        "competition",
+        "conclude",
+        "dota",
+        "fair",
+        "starcraft"
+      ],
+      "slide_text": "Fairness: an more moderate view “Through the discussion of two areas (the competitors per- ceptual and motoric abilities; and the game’s extrinsic and intrinsic factors) we hope to show that, so far, no fair competition between AIs and human has occurred in Dota 2 and StarCraft II … We thus conclude that we are not done with games.” When Are We Done with Games? 2019,"
+    },
+    {
+      "question": "What year did Cheney et al. publish their work on evolving soft body robots?",
+      "answer": "2014",
+      "source_file": "ga_state_of_the_art.pdf",
+      "page": 8,
+      "source": "text_layer",
+      "section": "Pages 6–10",
+      "title": "Evolving soft body robots: 2014",
+      "rare_terms": [
+        "body",
+        "cheney",
+        "robots",
+        "soft",
+        "work"
+      ],
+      "slide_text": "Evolving soft body robots: 2014 Cheney, N., MacCurdy, R., Clune, J., & Lipson, H. (2014). Unshackling evolution: evolving soft robots with multiple materials and a powerful generative encoding. ACM SIGEVOlution, 7(1), 11-23."
+    },
+    {
+      "question": "What is the journal name mentioned in the passage?",
+      "answer": "Artificial life",
+      "source_file": "ga_state_of_the_art.pdf",
+      "page": 11,
+      "source": "text_layer",
+      "section": "Pages 11–15",
+      "title": "Arcticle covering many interesting examples of a-life",
+      "rare_terms": [
+        "journal"
+      ],
+      "slide_text": "Arcticle covering many interesting examples of a-life Lehman, Joel, Jeff Clune, Dusan Misevic, Christoph Adami, Lee Altenberg, Julie Beaulieu, Peter J. Bentley et al. \"The surprising creativity of digital evolution: A collection of anecdotes from the evolutionary computation and artificial life research communities.\" Artificial life 26, no. 2 (2020): 274- 306."
+    },
+    {
+      "question": "What is the potential benefit of using an automated approach for designing neural network architectures?",
+      "answer": "reaching the limits of human design of networks",
+      "source_file": "ga_state_of_the_art.pdf",
+      "page": 17,
+      "source": "text_layer",
+      "section": "Pages 16–20",
+      "title": "Why automatic design of neural network architectures?",
+      "rare_terms": [
+        "approach",
+        "architectures",
+        "automated",
+        "designing"
+      ],
+      "slide_text": "Why automatic design of neural network architectures? Reaching the limits of human design of networks Can potentially come up with much simpler (more efficient?) designs Very computationally expensive to evolve the betwork, but resulting network might be smaller than the human designed one"
+    }
+  ]
+}
