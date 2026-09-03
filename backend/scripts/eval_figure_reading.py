@@ -87,10 +87,16 @@ def cost_sample(paths, rng):
     print(f"  {len(candidates)} candidate pages across {len(paths)} decks; "
           f"reading {len(chosen)} of them with the cache off\n")
 
-    # Bypass the cache so the real cost is measured; writing it back is
-    # harmless, the text is the same.
-    original = loader._cached_figure_text
+    # Bypass the cache so the real cost is measured, and do not write the
+    # result back. Writing it back is not harmless: the sample allows the
+    # vision model on any page large enough, ignoring the per-document budget
+    # the application applies, so a page could be cached with different text
+    # from the one the application would have stored. An earlier version of
+    # this script did write back and cost the corpus a third of its chunks.
+    original_read = loader._cached_figure_text
+    original_write = loader._cache_figure_text
     loader._cached_figure_text = lambda digest: None
+    loader._cache_figure_text = lambda digest, text: None
     records = []
     try:
         for path, i, share in chosen:
@@ -112,7 +118,8 @@ def cost_sample(paths, rng):
             print(f"    {r['file'][:34]:<34} p.{r['page']:<3} "
                   f"{r['method']:<14} {r['words']:>4} words  {r['seconds']:>6.1f}s")
     finally:
-        loader._cached_figure_text = original
+        loader._cached_figure_text = original_read
+        loader._cache_figure_text = original_write
 
     by_method = {}
     for r in records:
@@ -178,7 +185,13 @@ def main():
     paths = sorted(p for p in DECK_DIR.glob("*.pdf"))
 
     print("WHAT IT COSTS")
-    cost = cost_sample(paths, rng)
+    if SAMPLE_PAGES:
+        cost = cost_sample(paths, rng)
+    else:
+        # --sample 0 keeps the cost measured by an earlier run and re-runs only
+        # the retrieval half, which is cheap and does not touch any model.
+        cost = json.loads(OUT_PATH.read_text(encoding="utf-8"))["cost"]
+        print(f"  reusing the sample of {cost['sampled']} pages already recorded")
     print(f"\n  {json.dumps(cost['by_method'], indent=2)}")
 
     print("\nWHAT IT RECOVERS")

@@ -1,0 +1,209 @@
+{
+  "note": "Grader calibration on rule-labelled pairs; see script docstring for the caveat. Scores use MiniLM cosine and token F1.",
+  "pairs": 50,
+  "labelled_correct": 18,
+  "grade_threshold": 0.7,
+  "at_threshold": {
+    "threshold": 0.7,
+    "tp": 14,
+    "fp": 1,
+    "tn": 31,
+    "fn": 4,
+    "accuracy": 0.9,
+    "precision": 0.933,
+    "recall": 0.778,
+    "f1": 0.848
+  },
+  "at_threshold_stored_pairs_only": {
+    "threshold": 0.7,
+    "tp": 14,
+    "fp": 0,
+    "tn": 7,
+    "fn": 4,
+    "accuracy": 0.84,
+    "precision": 1.0,
+    "recall": 0.778,
+    "f1": 0.875
+  },
+  "sweep": [
+    {
+      "threshold": 0.4,
+      "tp": 15,
+      "fp": 1,
+      "tn": 31,
+      "fn": 3,
+      "accuracy": 0.92,
+      "precision": 0.938,
+      "recall": 0.833,
+      "f1": 0.882
+    },
+    {
+      "threshold": 0.45,
+      "tp": 15,
+      "fp": 1,
+      "tn": 31,
+      "fn": 3,
+      "accuracy": 0.92,
+      "precision": 0.938,
+      "recall": 0.833,
+      "f1": 0.882
+    },
+    {
+      "threshold": 0.5,
+      "tp": 15,
+      "fp": 1,
+      "tn": 31,
+      "fn": 3,
+      "accuracy": 0.92,
+      "precision": 0.938,
+      "recall": 0.833,
+      "f1": 0.882
+    },
+    {
+      "threshold": 0.55,
+      "tp": 14,
+      "fp": 1,
+      "tn": 31,
+      "fn": 4,
+      "accuracy": 0.9,
+      "precision": 0.933,
+      "recall": 0.778,
+      "f1": 0.848
+    },
+    {
+      "threshold": 0.6,
+      "tp": 14,
+      "fp": 1,
+      "tn": 31,
+      "fn": 4,
+      "accuracy": 0.9,
+      "precision": 0.933,
+      "recall": 0.778,
+      "f1": 0.848
+    },
+    {
+      "threshold": 0.65,
+      "tp": 14,
+      "fp": 1,
+      "tn": 31,
+      "fn": 4,
+      "accuracy": 0.9,
+      "precision": 0.933,
+      "recall": 0.778,
+      "f1": 0.848
+    },
+    {
+      "threshold": 0.7,
+      "tp": 14,
+      "fp": 1,
+      "tn": 31,
+      "fn": 4,
+      "accuracy": 0.9,
+      "precision": 0.933,
+      "recall": 0.778,
+      "f1": 0.848
+    },
+    {
+      "threshold": 0.75,
+      "tp": 13,
+      "fp": 1,
+      "tn": 31,
+      "fn": 5,
+      "accuracy": 0.88,
+      "precision": 0.929,
+      "recall": 0.722,
+      "f1": 0.813
+    },
+    {
+      "threshold": 0.8,
+      "tp": 13,
+      "fp": 1,
+      "tn": 31,
+      "fn": 5,
+      "accuracy": 0.88,
+      "precision": 0.929,
+      "recall": 0.722,
+      "f1": 0.813
+    },
+    {
+      "threshold": 0.85,
+      "tp": 13,
+      "fp": 1,
+      "tn": 31,
+      "fn": 5,
+      "accuracy": 0.88,
+      "precision": 0.929,
+      "recall": 0.722,
+      "f1": 0.813
+    },
+    {
+      "threshold": 0.9,
+      "tp": 13,
+      "fp": 1,
+      "tn": 31,
+      "fn": 5,
+      "accuracy": 0.88,
+      "precision": 0.929,
+      "recall": 0.722,
+      "f1": 0.813
+    },
+    {
+      "threshold": 0.95,
+      "tp": 12,
+      "fp": 1,
+      "tn": 31,
+      "fn": 6,
+      "accuracy": 0.86,
+      "precision": 0.923,
+      "recall": 0.667,
+      "f1": 0.774
+    }
+  ],
+  "disagreements": [
+    {
+      "kind": "stored",
+      "question": "What concerns do proprietary embedding models like OpenAI's raise, according to the paper's introduction?",
+      "answer": "vendor lock-in",
+      "reference": "transparency, cost, vendor lock-in, and data governance",
+      "label": true,
+      "score": 0.5455,
+      "method": "token_f1"
+    },
+    {
+      "kind": "stored",
+      "question": "How many of Whisper's 680,000 training hours are non-English, and how many languages do they cover?",
+      "answer": "117,000",
+      "reference": "117,000 hours covering 96 other languages",
+      "label": true,
+      "score": 0.0,
+      "method": "number_mismatch"
+    },
+    {
+      "kind": "stored",
+      "question": "How many datasets, task categories and total tasks make up the Flan finetuning data?",
+      "answer": "1,836",
+      "reference": "473 datasets, 146 task categories, and 1,836 total tasks",
+      "label": true,
+      "score": 0.0,
+      "method": "number_mismatch"
+    },
+    {
+      "kind": "stored",
+      "question": "According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",
+      "answer": "530",
+      "reference": "530 billion parameters, Microsoft and NVIDIA",
+      "label": true,
+      "score": 0.3136,
+      "method": "cosine"
+    },
+    {
+      "kind": "mismatched",
+      "question": "What learning rate was used for the dual-loss (MNRL + CosineSimilarityLoss) run?",
+      "answer": "1e-5",
+      "reference": "1e-5",
+      "label": false,
+      "score": 1.0,
+      "method": "containment"
+    }
+  ]
+}

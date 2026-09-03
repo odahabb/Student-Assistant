@@ -41,9 +41,17 @@ sys.path.insert(0, str(ROOT))
 from backend.pipeline import quiz  # noqa: E402
 
 EVAL_DIR = ROOT / "data" / "eval"
-SOURCE = EVAL_DIR / "generation_analysis.json"
-OUT_PATH = EVAL_DIR / "grader_calibration.json"
-CSV_PATH = EVAL_DIR / "grader_decisions.csv"
+# The labelled pairs. "--source <name>" scores the grader against a different
+# generation_analysis run — the answers a different model wrote, for instance —
+# which checks that GRADE_THRESHOLD still separates correct from incorrect
+# rather than re-fitting it.
+SOURCE_NAME = (sys.argv[sys.argv.index("--source") + 1]
+               if "--source" in sys.argv else "generation_analysis.json")
+SOURCE = EVAL_DIR / SOURCE_NAME
+SUFFIX = ("" if SOURCE_NAME == "generation_analysis.json"
+          else "_" + SOURCE_NAME[len("generation_analysis_"):-len(".json")])
+OUT_PATH = EVAL_DIR / f"grader_calibration{SUFFIX}.json"
+CSV_PATH = EVAL_DIR / f"grader_decisions{SUFFIX}.csv"
 THRESHOLDS = [round(0.40 + 0.05 * i, 2) for i in range(12)]   # 0.40 .. 0.95
 
 

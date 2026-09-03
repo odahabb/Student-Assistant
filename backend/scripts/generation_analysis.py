@@ -79,6 +79,10 @@ RETRIEVAL = (sys.argv[sys.argv.index("--retrieval") + 1]
 # instead of the extractive spans (generator.ANSWER_STYLE).
 # The answering model is part of the configuration too: results recorded
 # before 2026-09-21 were taken on flan-t5-large and carry no model suffix.
+# Matches backend/service.py's TOP_K — this measures the configuration that
+# actually ships. "--k N" answers the same questions with N chunks instead,
+# which is how the choice of 3 is checked rather than assumed.
+TOP_K = (int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 3)
 GEN_MODEL_NAME = CHAT_MODEL_NAME if ANSWER_STYLE == "explain" else MODEL_NAME
 MODEL_TAG = "" if "flan-t5" in GEN_MODEL_NAME else (
     "_" + GEN_MODEL_NAME.split("/")[-1].lower().replace("-instruct", ""))
@@ -98,10 +102,6 @@ DOCUMENTS = [
     "Hallucinations_in_Large_Language_Models_LLMs.pdf",
 ]
 
-# Matches backend/service.py's TOP_K — this measures the configuration that
-# actually ships. "--k N" answers the same questions with N chunks instead,
-# which is how the choice of 3 is checked rather than assumed.
-TOP_K = (int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 3)
 
 BUCKETS = {
     (True, True): "1. retrieved + correct answer",

@@ -1,0 +1,548 @@
+{
+  "note": "Cost and benefit of reading PDF pages as pictures. The cost sample bypasses the figure cache so each page is read for real. The retrieval halves compare an index built with figures='off' against one built with figures='auto'; picture questions were written only from text the text layer does not contain, so the 'off' row is a floor, and the text-layer questions are a control for the extra chunks.",
+  "embedder": "bge-small",
+  "dense_weight": 0.4,
+  "seed": 5,
+  "thresholds": {
+    "vision_if_fewer_words": 3,
+    "vision_min_picture_share": 0.35,
+    "vision_pages_per_document": 8,
+    "render_dpi": 150
+  },
+  "cost": {
+    "candidate_pages": 312,
+    "sampled": 40,
+    "by_method": {
+      "ocr": {
+        "pages": 28,
+        "share": 0.7,
+        "median_seconds": 1.83,
+        "total_seconds": 52.8,
+        "median_words": 6.0
+      },
+      "vision": {
+        "pages": 12,
+        "share": 0.3,
+        "median_seconds": 267.0,
+        "total_seconds": 3250.9,
+        "median_words": 61.5
+      }
+    },
+    "pages": [
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 12,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 10,
+        "seconds": 303.13
+      },
+      {
+        "file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 52,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 62,
+        "seconds": 274.44
+      },
+      {
+        "file": "ai-2-fitness-function.pdf",
+        "page": 9,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 195,
+        "seconds": 280.53
+      },
+      {
+        "file": "ai-2-urdf_pybullet.pdf",
+        "page": 58,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 2.39
+      },
+      {
+        "file": "ai-2-breeding.pdf",
+        "page": 21,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 8,
+        "seconds": 2.52
+      },
+      {
+        "file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 35,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 6,
+        "seconds": 1.94
+      },
+      {
+        "file": "ai-2-intro-to-gas.pdf",
+        "page": 24,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 9,
+        "seconds": 2.13
+      },
+      {
+        "file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 25,
+        "picture_share": 0.995,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.76
+      },
+      {
+        "file": "ai-2-fitness-function.pdf",
+        "page": 11,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 11,
+        "seconds": 1.82
+      },
+      {
+        "file": "ai-2-breeding.pdf",
+        "page": 31,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.94
+      },
+      {
+        "file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 23,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 3,
+        "seconds": 1.66
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 77,
+        "picture_share": 0.987,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 4,
+        "seconds": 1.91
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 33,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 4,
+        "seconds": 1.66
+      },
+      {
+        "file": "ai-game-player-wk4.pdf",
+        "page": 13,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 58,
+        "seconds": 263.81
+      },
+      {
+        "file": "ai-game-player-wk4.pdf",
+        "page": 7,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 36,
+        "seconds": 2.67
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 32,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 4,
+        "seconds": 1.7
+      },
+      {
+        "file": "ai-2-breeding.pdf",
+        "page": 9,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 90,
+        "seconds": 268.94
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 57,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 6,
+        "seconds": 1.99
+      },
+      {
+        "file": "ai-2-urdf_pybullet.pdf",
+        "page": 50,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 61,
+        "seconds": 263.64
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 7,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 9,
+        "seconds": 1.84
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 56,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.68
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 56,
+        "picture_share": 0.987,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 9,
+        "seconds": 1.91
+      },
+      {
+        "file": "ai-2-intro-to-gas.pdf",
+        "page": 62,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 3,
+        "seconds": 1.67
+      },
+      {
+        "file": "ai-2-breeding.pdf",
+        "page": 17,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 8,
+        "seconds": 1.81
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 79,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 4,
+        "seconds": 1.67
+      },
+      {
+        "file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 15,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 6,
+        "seconds": 1.66
+      },
+      {
+        "file": "ai-game-player-wk4.pdf",
+        "page": 52,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 7,
+        "seconds": 1.69
+      },
+      {
+        "file": "ai-2-urdf_pybullet.pdf",
+        "page": 45,
+        "picture_share": 0.989,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 11,
+        "seconds": 1.88
+      },
+      {
+        "file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 2,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 140,
+        "seconds": 276.09
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 10,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 41,
+        "seconds": 259.71
+      },
+      {
+        "file": "ai-2-genetic-encoding-theory.pdf",
+        "page": 2,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 78,
+        "seconds": 268.16
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 22,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.99
+      },
+      {
+        "file": "ai-2-breeding.pdf",
+        "page": 5,
+        "picture_share": 0.988,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.68
+      },
+      {
+        "file": "ai-2-urdf_pybullet.pdf",
+        "page": 2,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 48,
+        "seconds": 262.99
+      },
+      {
+        "file": "ai-game-player-wk4.pdf",
+        "page": 40,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 5,
+        "seconds": 1.73
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 53,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 49,
+        "seconds": 265.85
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 63,
+        "picture_share": 0.987,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 8,
+        "seconds": 1.84
+      },
+      {
+        "file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 2,
+        "picture_share": 0.996,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 9,
+        "seconds": 1.79
+      },
+      {
+        "file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 33,
+        "picture_share": 0.995,
+        "vision_allowed": true,
+        "method": "ocr",
+        "words": 9,
+        "seconds": 1.85
+      },
+      {
+        "file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 60,
+        "picture_share": 1.0,
+        "vision_allowed": true,
+        "method": "vision",
+        "words": 76,
+        "seconds": 263.61
+      }
+    ]
+  },
+  "retrieval": {
+    "off": {
+      "chunks": 201,
+      "pages_with_text": 620,
+      "index_seconds": 10.8,
+      "picture_questions": {
+        "recall": {
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.077,
+          "recall_at_5": 0.077
+        },
+        "mrr_top5": 0.0385,
+        "ranks": [
+          null,
+          null,
+          null,
+          null,
+          2,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "text_layer_questions": {
+        "recall": {
+          "recall_at_1": 0.711,
+          "recall_at_3": 0.895,
+          "recall_at_5": 0.895
+        },
+        "mrr_top5": 0.7982,
+        "ranks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          null,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          2,
+          null,
+          2,
+          null,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          null,
+          1
+        ]
+      }
+    },
+    "auto": {
+      "chunks": 228,
+      "pages_with_text": 672,
+      "index_seconds": 69.4,
+      "picture_questions": {
+        "recall": {
+          "recall_at_1": 0.385,
+          "recall_at_3": 0.769,
+          "recall_at_5": 0.846
+        },
+        "mrr_top5": 0.5577,
+        "ranks": [
+          1,
+          1,
+          3,
+          2,
+          3,
+          null,
+          1,
+          2,
+          4,
+          1,
+          1,
+          3,
+          null
+        ]
+      },
+      "text_layer_questions": {
+        "recall": {
+          "recall_at_1": 0.711,
+          "recall_at_3": 0.816,
+          "recall_at_5": 0.842
+        },
+        "mrr_top5": 0.7697,
+        "ranks": [
+          1,
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          4,
+          null,
+          1,
+          1,
+          null,
+          1,
+          1,
+          2,
+          1,
+          null,
+          null,
+          null,
+          1,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          null,
+          1
+        ]
+      }
+    }
+  }
+}

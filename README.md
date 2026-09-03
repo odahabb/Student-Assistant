@@ -143,8 +143,13 @@ Scripts live in `backend/scripts/`; results are committed in `data/eval/`.
 | What outranks the correct chunk? | `competitor_analysis.py` | `competitor_analysis.json` |
 | Chunking and section-context variants | `retrieval_variants.py` | `retrieval_variants.json` |
 | Embedding models (MiniLM, multi-qa-MiniLM, bge-small, mpnet) × chunking modes (window, sentence, heading, semantic) | `embedder_comparison.py` | `embedder_comparison.json` |
-| Retrieval failures vs generation failures at k = 3, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...] [--retrieval dense\|hybrid\|keyword]` | `generation_analysis[_chunking][_embedder][_hybrid\|_keyword].json`, `generation_manual_review.json` |
-| Quiz answer grader calibration | `eval_grader.py` | `grader_calibration.json`, `grader_decisions.csv` |
+| Retrieval failures vs generation failures, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...] [--retrieval dense\|hybrid\|keyword] [--k N]` | `generation_analysis[_chunking][_embedder][_hybrid\|_keyword][_explain][_model][_kN].json`, `generation_manual_review.json` |
+| Hybrid weight (0 = BM25 only, 1 = dense only), on both question sets | `eval_hybrid_weight.py [--set papers\|slides]` | `hybrid_weight_sweep[_slides].json` |
+| Slide retrieval ground truth: questions written from single slides before any chunking | `build_slide_ground_truth.py` | `slide_ground_truth.json` |
+| Slide chunking: packed vs one chunk per slide vs prose chunking | `eval_slide_chunking.py` | `slide_chunking.json` |
+| Reading pages as pictures: what the cascade costs and what it recovers | `eval_figure_reading.py [--sample N]` | `figure_reading.json` |
+| Time per pipeline stage, cold and warm | `eval_latency.py` | `latency.json` |
+| Quiz answer grader calibration | `eval_grader.py [--source <generation_analysis file>]` | `grader_calibration[_suffix].json`, `grader_decisions[_suffix].csv` |
 | Quiz question generation (plus blind rating sheet) | `eval_quiz_generation.py [score]` | `quiz_generation.json`, `quiz_rating_sheet.csv` |
 | Recommender, on simulated students | `eval_recommender.py` | `recommender_simulation.json` |
 | Vector/metadata alignment self-check | `selfcheck_alignment.py` | `selfcheck_alignment_results.json` |

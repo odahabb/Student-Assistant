@@ -1,0 +1,108 @@
+{
+  "note": "Wall-clock time per pipeline stage, measured on the project machine with nothing else running. Cold entries include loading a model from disk and happen once per process.",
+  "device": "xpu",
+  "embedder": "bge-small",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "chat_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "repeats": 3,
+  "top_k": 3,
+  "stages": {
+    "load_prose_pdf": {
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "max_seconds": 0.24,
+      "runs": 3,
+      "file": "Whisper.pdf",
+      "pages": 28
+    },
+    "load_slides_text_only": {
+      "median_seconds": 0.2,
+      "min_seconds": 0.2,
+      "max_seconds": 0.22,
+      "runs": 3,
+      "file": "ai-2-breeding.pdf",
+      "slides": 36
+    },
+    "load_slides_pictures_cached": {
+      "median_seconds": 5.5,
+      "min_seconds": 5.49,
+      "max_seconds": 5.51,
+      "runs": 3,
+      "file": "ai-2-breeding.pdf",
+      "slides": 38
+    },
+    "chunk_prose_pdf": {
+      "median_seconds": 0.15,
+      "min_seconds": 0.14,
+      "max_seconds": 4.51,
+      "runs": 3,
+      "chunks": 211
+    },
+    "chunk_slide_deck": {
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "max_seconds": 0.01,
+      "runs": 3,
+      "chunks": 8
+    },
+    "embed_cold_first_call": {
+      "seconds": 1.43,
+      "runs": 1
+    },
+    "embed_prose_chunks": {
+      "median_seconds": 1.07,
+      "min_seconds": 1.06,
+      "max_seconds": 2.25,
+      "runs": 3,
+      "chunks": 211
+    },
+    "index_whole_subject": {
+      "seconds": 70.28,
+      "runs": 1,
+      "documents": 15,
+      "chunks": 228,
+      "note": "fifteen slide decks, pictures already in the figure cache"
+    },
+    "retrieve_hybrid": {
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "max_seconds": 0.24,
+      "runs": 3,
+      "k": 3,
+      "chunks_searched": 228
+    },
+    "answer_short_cold": {
+      "seconds": 4.37,
+      "runs": 1,
+      "note": "includes loading Qwen/Qwen2.5-1.5B-Instruct"
+    },
+    "answer_short_warm": {
+      "median_seconds": 0.45,
+      "min_seconds": 0.36,
+      "max_seconds": 0.97,
+      "runs": 3,
+      "questions": 3
+    },
+    "explain_first_call": {
+      "seconds": 2.64,
+      "runs": 1,
+      "note": "same weights as the short answer when SA_CHAT_MODEL is unset"
+    },
+    "explain_warm": {
+      "median_seconds": 1.45,
+      "min_seconds": 0.88,
+      "max_seconds": 3.32,
+      "runs": 3,
+      "questions": 3,
+      "median_words": 17
+    },
+    "quiz_item_with_roundtrip": {
+      "median_seconds": 1.53,
+      "min_seconds": 1.11,
+      "max_seconds": 5.91,
+      "runs": 3,
+      "kept": 1,
+      "attempts": 3
+    }
+  }
+}

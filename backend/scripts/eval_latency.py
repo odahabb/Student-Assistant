@@ -20,7 +20,8 @@ application calls it. Times are medians of REPEATS runs, except the cold ones,
 which happen once by definition.
 
 Run from anywhere, with nothing else running:
-    SA_EMBEDDER=bge-small python backend/scripts/eval_latency.py
+    SA_DEVICE=cpu SA_EMBEDDER=bge-small python backend/scripts/eval_latency.py
+    SA_DEVICE=gpu SA_EMBEDDER=bge-small python backend/scripts/eval_latency.py
 """
 
 import json
@@ -49,7 +50,10 @@ from backend.pipeline.retriever import retrieve  # noqa: E402
 RAW_DIR = ROOT / "data" / "raw"
 DECK_DIR = ROOT / "data" / "projects" / "AI"
 EVAL_DIR = ROOT / "data" / "eval"
-OUT_PATH = EVAL_DIR / "latency.json"
+# The application pins SA_DEVICE=cpu (service.py), so that is the run that
+# describes what a student waits for; SA_DEVICE=gpu measures the Arc GPU and
+# is written to its own file.
+OUT_PATH = EVAL_DIR / (f"latency_{os.environ.get('SA_DEVICE', 'gpu')}.json")
 
 REPEATS = 3
 TOP_K = 3

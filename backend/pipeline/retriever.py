@@ -20,7 +20,10 @@ import numpy as np
 from backend.pipeline.embedder import _get_model, query_prefix
 
 # 0.4 dense / 0.6 keyword, taken unchanged from the retriever it was borrowed
-# from rather than tuned on this project's 25 questions.
+# from. eval_hybrid_weight.py sweeps it on both question sets: the four papers
+# do best at 0.15-0.20 and the fifteen slide decks at 0.75-0.80, so a value
+# fitted to either would be the worse choice on the other. 0.4 lies between
+# them and is within one or two questions of the best on both.
 DENSE_WEIGHT = 0.4
 
 

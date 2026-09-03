@@ -18,8 +18,10 @@ a library to keep the dependency list unchanged; it is a few lines of counting.
 Tokenisation lowercases, keeps letters and digits, and strips a trailing
 plural "s" (not "ss", "us" or "is"), so "stakeholders" matches "stakeholder".
 The approach, and the 60/40 weighting used in retriever.py, follow a hybrid
-retriever built for a separate project and compared on this project's
-evaluation set (data/eval/hybrid_retrieval.json).
+retriever built for a separate project. The weighting was swept afterwards on
+both of this project's question sets (data/eval/hybrid_weight_sweep.json and
+hybrid_weight_sweep_slides.json), which prefer opposite directions, so it was
+left where it was.
 """
 
 import math
