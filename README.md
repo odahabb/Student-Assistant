@@ -104,10 +104,13 @@ evaluation numbers in `data/eval/` without a model suffix describe;
 questions flan-t5-large answers 20 correctly and Qwen2.5-1.5B-Instruct 18, so
 the move to one model costs two answers and saves loading a second model.
 
-**Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU), `cpu` or
-`npu` (OpenVINO, generator and embedder only). The app defaults to `cpu`;
-`SA_DEVICE=gpu python -m backend.api` is much faster when an XPU build of
-PyTorch is installed. Any unavailable device falls back to CPU.
+**Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU, the app's
+default), `cpu` or `npu` (OpenVINO, generator and embedder only). Any
+unavailable device falls back to CPU, so `gpu` is safe on a machine with
+neither the XPU wheel nor the Arc driver. The GPU is several times faster on
+every stage that runs a model (`latency_gpu.json` against `latency_cpu.json`):
+a short answer 0.45s against 3.38s, a paragraph 1.45s against 9.36s, a quiz
+question 1.53s against 7.93s.
 
 Optional acceleration packages (not in `requirements.txt`): the PyTorch XPU
 wheel, and `optimum[openvino]` / `openvino` for the NPU path.

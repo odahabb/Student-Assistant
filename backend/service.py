@@ -38,9 +38,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional
 
-# CPU unless told otherwise, matching the pipeline's demo path. Set before
-# importing any pipeline module: device.py reads this when models are built.
-os.environ.setdefault("SA_DEVICE", "cpu")
+# The Intel Arc GPU unless told otherwise. Set before importing any pipeline
+# module: device.py reads this when models are built, and falls back to the
+# CPU on its own if the XPU torch wheel or the Arc driver is missing, so this
+# is safe on a machine without either. Measured on the same stages
+# (data/eval/latency_gpu.json against latency_cpu.json): a short answer 0.45s
+# against 3.38s, a paragraph 1.45s against 9.36s, a quiz question 1.53s
+# against 7.93s. SA_DEVICE=cpu reproduces the earlier behaviour.
+os.environ.setdefault("SA_DEVICE", "gpu")
 # bge-small-en-v1.5 answered 18/25 evaluation questions end to end against 12
 # for all-MiniLM-L6-v2 (data/eval/generation_analysis_bge-small.json).
 os.environ.setdefault("SA_EMBEDDER", "bge-small")
