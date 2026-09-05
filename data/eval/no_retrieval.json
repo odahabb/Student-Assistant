@@ -1,0 +1,1511 @@
+{
+  "note": "Does retrieval do the work? The same questions answered with no passages, with the retrieved passages, and with another question's passages. Same model, same grading rule as generation_analysis.py. only_a / only_b in the tests are the questions the first arm gets right and the second does not, and the other way round; p is McNemar's exact two-sided test.",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "embedder": "bge-small",
+  "chunking": "sentence",
+  "k": 3,
+  "dense_weight": 0.4,
+  "answer_style": "short",
+  "wrong_context_offset": 7,
+  "correct": {
+    "no_context": 2,
+    "retrieved": 18,
+    "wrong_context": 1
+  },
+  "control_leaked_source_page": 0,
+  "tests": {
+    "retrieved_vs_no_context": {
+      "only_a": 16,
+      "only_b": 0,
+      "p_value": 3.05e-05
+    },
+    "retrieved_vs_wrong_context": {
+      "only_a": 18,
+      "only_b": 1,
+      "p_value": 7.63e-05
+    },
+    "wrong_context_vs_no_context": {
+      "only_a": 1,
+      "only_b": 2,
+      "p_value": 1.0
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "question": "What is the size of the synthetic dataset used to fine-tune the embedding models?",
+      "expected_answer": "3,197 sentence pairs",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 1
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "1000",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "3197"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "8%",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "3197"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "12",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "3197"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 2,
+      "question": "What concerns do proprietary embedding models like OpenAI's raise, according to the paper's introduction?",
+      "expected_answer": "transparency, cost, vendor lock-in, and data governance",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "security risks",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "vendor lock-in",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.545,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "mnrl",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 3,
+      "question": "How many hours of multilingual and multitask supervision data was Whisper trained on?",
+      "expected_answer": "680,000 hours",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 1
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "1500",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "680000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "680,000",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.667,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "680000"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "2,710",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "680000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 4,
+      "question": "What sample rate is audio resampled to before computing the mel spectrogram in Whisper's architecture?",
+      "expected_answer": "16,000 Hz",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 3
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "16000",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.667,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "16000"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "16,000\thz",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "16000"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "25",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "16000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 5,
+      "question": "How many chain-of-thought (CoT) datasets were added into the Flan-PaLM finetuning mixture?",
+      "expected_answer": "nine CoT datasets",
+      "expected_source": {
+        "file": "Flant5pdf.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "10",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "nine",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.5,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "3",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 6,
+      "question": "In Figure 3 of the FLAN paper, what four combinations of finetuning data formats are compared?",
+      "expected_answer": "with/without exemplars, crossed with with/without chain-of-thought",
+      "expected_source": {
+        "file": "Flant5pdf.pdf",
+        "page": 4
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "fine-tuning_data_formats",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "unk, t0-sf, niv2, cot",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "credit hours, semester hours, course information, faculty information",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 7,
+      "question": "According to the Hallucinations in LLMs paper, what happens when an LLM hallucinates?",
+      "expected_answer": "it generates information that sounds believable but is actually wrong or inaccurate",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 1
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "hallucinations occur",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "the model generates information that may sound believable but is actually wrong",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.667,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "117,000",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 8,
+      "question": "What three vectors are used to compute self-attention scores in a transformer, per the hallucinations paper's explanation?",
+      "expected_answer": "key (K), query (Q), and value (V)",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 3
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "query_vector, key_vector, value_vector",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.462,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": true
+          }
+        },
+        "retrieved": {
+          "answer": "key (k), query (q), value (v)",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.923,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "word_error_rate",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 9,
+      "question": "Which base model architecture are the fine-tuned embedding models built on?",
+      "expected_answer": "all-MiniLM-L6-v2",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 4
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "BERT",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2",
+              "6"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "all-minilm-l6-v2",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "2",
+              "6"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "base",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2",
+              "6"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 10,
+      "question": "How many positive sentence pairs were included in the fine-tuning dataset?",
+      "expected_answer": "2,710 pairs",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 4
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "100",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2710"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "2,710",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.667,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2710"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "55.2%",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2710"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 11,
+      "question": "What learning rate was used for the MNRL-only fine-tuning run?",
+      "expected_answer": "2e-5",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "0.1",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "2",
+              "5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "1e-5",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.5,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "2",
+              "5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": true
+          }
+        },
+        "wrong_context": {
+          "answer": "4.2",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "2",
+              "5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 12,
+      "question": "What learning rate was used for the dual-loss (MNRL + CosineSimilarityLoss) run?",
+      "expected_answer": "1e-5",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "0.1",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "1",
+              "5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "1e-5",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "1",
+              "5"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "80",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "1",
+              "5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 13,
+      "question": "How many university syllabus files make up the retrieval evaluation corpus?",
+      "expected_answer": "28 syllabus files",
+      "expected_source": {
+        "file": "embedding.pdf",
+        "page": 7
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "100",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "28"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "28",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.5,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "28"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "282",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "28"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 14,
+      "question": "How many of Whisper's 680,000 training hours are non-English, and how many languages do they cover?",
+      "expected_answer": "117,000 hours covering 96 other languages",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "680,000; 125",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "117000",
+              "96"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "117,000",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.286,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "117000",
+              "96"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "680,000",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "117000",
+              "96"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 15,
+      "question": "How many hours of speech translation data does the Whisper training set include?",
+      "expected_answer": "125,000 hours of X-to-English translation data",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "3600",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "125000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "117,000",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "125000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "25",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "125000"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 16,
+      "question": "How many parameters does the Whisper Large model have, per the architecture table?",
+      "expected_answer": "1550M parameters",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 5
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "210M",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "1550"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "540 billion",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "1550"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "nx",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "1550"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 17,
+      "question": "What LibriSpeech clean-test WER does the best zero-shot Whisper model achieve?",
+      "expected_answer": "2.5",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "25.4%",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2.5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "2.5%",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [
+              "2.5"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "20%",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "2.5"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 18,
+      "question": "How many additional academic speech recognition datasets are used to study out-of-distribution behaviour?",
+      "expected_answer": "12 datasets",
+      "expected_source": {
+        "file": "Whisper.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "10",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "12"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "12",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.667,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "12"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "5",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "12"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 19,
+      "question": "How many datasets, task categories and total tasks make up the Flan finetuning data?",
+      "expected_answer": "473 datasets, 146 task categories, and 1,836 total tasks",
+      "expected_source": {
+        "file": "Flant5pdf.pdf",
+        "page": 3
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "40,12,360",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "146",
+              "1836",
+              "473"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "1,836",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.2,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "146",
+              "1836",
+              "473"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "28",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "146",
+              "1836",
+              "473"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 20,
+      "question": "Beyond how many finetuning tasks does the majority of the performance improvement stop accruing?",
+      "expected_answer": "282 tasks",
+      "expected_source": {
+        "file": "Flant5pdf.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "5",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "282"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "282",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.667,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "282"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "3",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "282"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 21,
+      "question": "How many tokens are in PaLM's pre-training data compared with instruction finetuning?",
+      "expected_answer": "780B pre-training tokens vs 1.4B finetuning tokens (0.2%)",
+      "expected_source": {
+        "file": "Flant5pdf.pdf",
+        "page": 6
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "10 trillion",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "0.2",
+              "1.4",
+              "780"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "540b",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "0.2",
+              "1.4",
+              "780"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "680,000",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "0.2",
+              "1.4",
+              "780"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 22,
+      "question": "According to the LLM comparison table, how many parameters does MT-NLG have and which companies produced it?",
+      "expected_answer": "530 billion parameters, Microsoft and NVIDIA",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "10 billion; Microsoft and Google",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.545,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "530"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": true
+          }
+        },
+        "retrieved": {
+          "answer": "530",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": true,
+            "token_f1": 0.286,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "530"
+            ],
+            "all_expected_numbers_present": true,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "80",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [
+              "530"
+            ],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 23,
+      "question": "What two major parts make up the transformer architecture?",
+      "expected_answer": "the encoder and the decoder",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 2
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "primary winding  \nsecondary winding",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "encoder and decoder",
+          "correct": true,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.75,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "nine",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 24,
+      "question": "How does the paper define overfitting as a cause of hallucinations?",
+      "expected_answer": "the model learns the training data too well and cannot generalize to new data",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 4
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "the paper defines overfitting as a cause of hallucinations",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.087,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "increased complexity in models with more layers or parameters can make them more prone to the generation of hallucinations",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.121,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "1,836",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    },
+    {
+      "index": 25,
+      "question": "Which regularization technique is given as an example for reducing hallucinations?",
+      "expected_answer": "dropout",
+      "expected_source": {
+        "file": "Hallucinations_in_Large_Language_Models_LLMs.pdf",
+        "page": 5
+      },
+      "wrong_context_holds_the_source": false,
+      "arms": {
+        "no_context": {
+          "answer": "dropout",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "retrieved": {
+          "answer": "dropout",
+          "correct": true,
+          "signals": {
+            "exact_match": true,
+            "expected_in_answer": true,
+            "answer_in_expected": true,
+            "token_f1": 1.0,
+            "expected_words_present": true,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        },
+        "wrong_context": {
+          "answer": "transformers",
+          "correct": false,
+          "signals": {
+            "exact_match": false,
+            "expected_in_answer": false,
+            "answer_in_expected": false,
+            "token_f1": 0.0,
+            "expected_words_present": false,
+            "expected_numbers": [],
+            "all_expected_numbers_present": false,
+            "needs_human_review": false
+          }
+        }
+      }
+    }
+  ]
+}

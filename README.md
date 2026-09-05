@@ -147,6 +147,7 @@ Scripts live in `backend/scripts/`; results are committed in `data/eval/`.
 | Chunking and section-context variants | `retrieval_variants.py` | `retrieval_variants.json` |
 | Embedding models (MiniLM, multi-qa-MiniLM, bge-small, mpnet) × chunking modes (window, sentence, heading, semantic) | `embedder_comparison.py` | `embedder_comparison.json` |
 | Retrieval failures vs generation failures, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...] [--retrieval dense\|hybrid\|keyword] [--k N]` | `generation_analysis[_chunking][_embedder][_hybrid\|_keyword][_explain][_model][_kN].json`, `generation_manual_review.json` |
+| Does retrieval do the work? Closed book vs retrieved vs another question's passages | `eval_no_retrieval.py` | `no_retrieval.json` |
 | Hybrid weight (0 = BM25 only, 1 = dense only), on both question sets | `eval_hybrid_weight.py [--set papers\|slides]` | `hybrid_weight_sweep[_slides].json` |
 | Slide retrieval ground truth: questions written from single slides before any chunking | `build_slide_ground_truth.py` | `slide_ground_truth.json` |
 | Slide chunking: packed vs one chunk per slide vs prose chunking | `eval_slide_chunking.py` | `slide_chunking.json` |
