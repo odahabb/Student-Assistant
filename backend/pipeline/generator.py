@@ -55,6 +55,40 @@ SHORT_SYSTEM = (
 )
 SHORT_MAX_TOKENS = 48
 
+# Saying "I don't know" is a skill the model has to be asked for separately.
+# Given three passages it will answer almost anything, which is wrong twice
+# over: it invents facts for a student, and it forfeits every question whose
+# answer is not in the documents at all.
+#
+# SA_ABSTAIN selects how that is handled, because the choice is a real
+# trade-off rather than a bug with one fix, and both directions are measured:
+#
+#   "off"   — the wording above and nothing more. What every result recorded
+#             before 2026-09-21 describes.
+#   "firm"  — the same, plus an explicit instruction not to guess.
+#   "check" — a separate yes/no question first: do these passages contain the
+#             answer? Only then is the answer asked for. Two generations
+#             instead of one, and the judgement is made without the pressure
+#             of having to produce an answer in the same breath.
+#
+# Abstention cannot help on a question set where everything is answerable; it
+# can only lose answers the model would have got right. The gain is on
+# question sets that contain unanswerable questions, and on a student's real
+# material, where a confident wrong answer is worse than none.
+ABSTAIN = os.environ.get("SA_ABSTAIN", "check").lower()
+ABSTAIN_ANSWER = "unanswerable"
+FIRM_CLAUSE = (
+    " Do not guess and do not answer from your own knowledge: if the answer is "
+    "not stated in the passages, the only correct reply is unanswerable."
+)
+SUPPORT_SYSTEM = (
+    "You decide whether a question can be answered from the passages given, "
+    "and nothing else. Reply with one word, yes or no. Reply yes only if the "
+    "passages state the answer; reply no if answering would need information "
+    "the passages do not contain, or your own knowledge."
+)
+SUPPORT_MAX_TOKENS = 4
+
 INSTRUCTION_SYSTEM = (
     "Follow the instruction exactly and reply with the requested text only, "
     "with no preamble, label or explanation."
@@ -443,9 +477,32 @@ def _short_inputs(tokenizer, model, query: str, context_chunks: List[str]):
     """
     context = _budget_context(tokenizer, query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
+    system = SHORT_SYSTEM + (FIRM_CLAUSE if ABSTAIN == "firm" else "")
     return _prompt_inputs(tokenizer, model,
-                          [{"role": "system", "content": SHORT_SYSTEM},
+                          [{"role": "system", "content": system},
                            {"role": "user", "content": prompt}])
+
+
+def passages_answer(query: str, context_chunks: List[str]) -> bool:
+    """
+    Whether the passages contain the answer, asked as its own yes/no question.
+
+    Used by answer_short under SA_ABSTAIN=check. The model is far readier to
+    say "no" here than to abstain while also being asked for an answer, which
+    is the whole point of separating the two.
+    """
+    tokenizer, model = _get_model()
+    context = _budget_context(tokenizer, query, context_chunks)
+    inputs = _prompt_inputs(
+        tokenizer, model,
+        [{"role": "system", "content": SUPPORT_SYSTEM},
+         {"role": "user", "content": f"Passages: {context}\n\nQuestion: {query}"}])
+    outputs = model.generate(**inputs, max_new_tokens=SUPPORT_MAX_TOKENS,
+                             do_sample=False)
+    reply = _decode_reply(tokenizer, inputs, outputs).strip().lower()
+    # Anything that is not a clear "no" is treated as support, so the cost of
+    # an unparseable reply is the old behaviour rather than a lost answer.
+    return not reply.startswith("no")
 
 
 def answer_short(query: str, context_chunks: List[str]) -> str:
@@ -454,6 +511,9 @@ def answer_short(query: str, context_chunks: List[str]) -> str:
     quiz layer, which compares a reference answer with a student's, and by the
     evaluation scripts, whose numbers describe it.
     """
+    if ABSTAIN == "check" and not passages_answer(query, context_chunks):
+        return ABSTAIN_ANSWER
+
     tokenizer, model = _get_model()
     inputs = _short_inputs(tokenizer, model, query, context_chunks)
     outputs = model.generate(**inputs, max_new_tokens=SHORT_MAX_TOKENS,
