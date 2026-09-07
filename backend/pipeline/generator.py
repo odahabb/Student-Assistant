@@ -25,6 +25,24 @@ log = logging.getLogger(__name__)
 
 MODEL_NAME = os.environ.get("SA_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 
+# Where the model runs. "transformers" loads the weights into this process,
+# which is what the application does and what every recorded result
+# describes. "ollama" sends the same messages to a model already served on
+# this machine by Ollama, which is how a model too large to hold in process —
+# qwen3:14b, say — can be put through the identical pipeline for comparison.
+# Nothing leaves the machine either way: Ollama listens on 127.0.0.1.
+BACKEND = os.environ.get("SA_BACKEND", "transformers").lower()
+OLLAMA_URL = os.environ.get("SA_OLLAMA_URL", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.environ.get("SA_OLLAMA_MODEL", "qwen3:14b")
+OLLAMA_TIMEOUT = 900
+if BACKEND == "ollama":
+    MODEL_NAME = OLLAMA_MODEL
+# Context is budgeted with the same tokenizer whichever backend answers, so
+# the passages a model is given are identical and only the model differs.
+# Loading a tokenizer does not load any weights.
+BUDGET_TOKENIZER = os.environ.get("SA_BUDGET_TOKENIZER",
+                                  "Qwen/Qwen2.5-1.5B-Instruct")
+
 # Two answering styles, because the two places an answer is used want
 # opposite things. Both are now the same model under different instructions
 # and decoding settings, so only one set of weights is ever in memory.
@@ -170,6 +188,64 @@ def _load(name: str):
         return _loaded[name]
 
 
+def _budget_tokenizer():
+    """
+    The tokenizer used only to measure context against MAX_INPUT_TOKENS. Under
+    the transformers backend it is the answering model's own; under Ollama
+    there is no local tokenizer, so the default one is loaded and the passages
+    come out identical to a transformers run.
+    """
+    if BACKEND == "ollama":
+        global _budget_tok
+        if _budget_tok is None:
+            _budget_tok = AutoTokenizer.from_pretrained(BUDGET_TOKENIZER)
+        return _budget_tok
+    return _load(MODEL_NAME)[0]
+
+
+_budget_tok = None
+
+
+def _ollama_reply(messages: List[dict], max_new_tokens: int,
+                  sampling: Optional[dict] = None) -> str:
+    """
+    One reply from the model Ollama is serving, given the same messages the
+    transformers path would build.
+
+    think=False suppresses the reasoning block Qwen3 emits by default, which
+    would otherwise arrive wrapped around every short answer.
+    """
+    import json as _json
+    import urllib.request
+
+    options = {"num_predict": max_new_tokens}
+    if sampling:
+        options.update({"temperature": sampling.get("temperature", 0.0),
+                        "top_p": sampling.get("top_p", 1.0)})
+    else:
+        options["temperature"] = 0.0      # greedy, as the transformers path is
+    body = _json.dumps({"model": OLLAMA_MODEL, "messages": messages,
+                        "stream": False, "think": False,
+                        "options": options}).encode("utf-8")
+    request = urllib.request.Request(f"{OLLAMA_URL}/api/chat", body,
+                                     {"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=OLLAMA_TIMEOUT) as response:
+        payload = _json.loads(response.read())
+    return (payload.get("message", {}).get("content") or "").strip()
+
+
+def _reply(messages: List[dict], max_new_tokens: int,
+           sampling: Optional[dict] = None) -> str:
+    """One reply, from whichever backend is configured."""
+    if BACKEND == "ollama":
+        return _ollama_reply(messages, max_new_tokens, sampling)
+    tokenizer, model = _get_model()
+    inputs = _prompt_inputs(tokenizer, model, messages)
+    settings = dict(sampling) if sampling else {"do_sample": False}
+    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens, **settings)
+    return _decode_reply(tokenizer, inputs, outputs)
+
+
 def _get_model():
     return _load(MODEL_NAME)
 
@@ -211,18 +287,23 @@ def _looks_like_prompt(output_tokens, prompt_tokens) -> bool:
     return bool((output_tokens[:n] == prompt_tokens).all())
 
 
-def _chat_inputs(query: str, context_chunks: List[str]):
-    """The question and its passages, in the model's chat format."""
-    tokenizer, model = _get_chat_model()
+def _chat_messages(query: str, context_chunks: List[str]) -> List[dict]:
+    """The question and its passages, as the chat view asks them."""
     if isinstance(context_chunks, str):
         context_chunks = [context_chunks]
     passages = "\n\n".join(f"[{i + 1}] {chunk}"
                            for i, chunk in enumerate(context_chunks))
-    messages = [
+    return [
         {"role": "system", "content": CHAT_SYSTEM},
         {"role": "user", "content": f"Passages:\n{passages}\n\nQuestion: {query}"},
     ]
-    return _prompt_inputs(tokenizer, model, messages)
+
+
+def _chat_inputs(query: str, context_chunks: List[str]):
+    """The same messages, tokenised for the transformers backend."""
+    tokenizer, model = _get_chat_model()
+    return _prompt_inputs(tokenizer, model,
+                          _chat_messages(query, context_chunks))
 
 
 def _chat_settings() -> dict:
@@ -232,6 +313,10 @@ def _chat_settings() -> dict:
 
 def explain(query: str, context_chunks: List[str]) -> str:
     """A short paragraph answering the question from the retrieved passages."""
+    if BACKEND == "ollama":
+        return _fix_number_spacing(
+            _ollama_reply(_chat_messages(query, context_chunks),
+                          CHAT_MAX_TOKENS, _chat_settings()))
     tokenizer, model = _get_chat_model()
     inputs = _chat_inputs(query, context_chunks)
     output = model.generate(**inputs, **_chat_settings())
@@ -240,6 +325,13 @@ def explain(query: str, context_chunks: List[str]) -> str:
 
 def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     """explain(), piece by piece, for the web interface."""
+    if BACKEND == "ollama":
+        # Ollama can stream, but the comparison runs that use this backend do
+        # not, so the answer arrives in one piece rather than adding a second
+        # streaming path to keep correct.
+        yield explain(query, context_chunks)
+        return
+
     from transformers import TextIteratorStreamer
 
     tokenizer, model = _get_chat_model()
@@ -410,13 +502,8 @@ def complete(prompt: str, max_new_tokens: int = 128,
     limit are truncated from the end, so callers should keep their passage
     short.
     """
-    tokenizer, model = _get_model()
-    inputs = _prompt_inputs(tokenizer, model,
-                            [{"role": "system", "content": system},
-                             {"role": "user", "content": prompt}])
-    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens,
-                             do_sample=False)
-    return _decode_reply(tokenizer, inputs, outputs)
+    return _reply([{"role": "system", "content": system},
+                   {"role": "user", "content": prompt}], max_new_tokens)
 
 
 def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
@@ -468,19 +555,24 @@ def generate(query: str, context_chunks: List[str]) -> str:
     return answer_short(query, context_chunks)
 
 
-def _short_inputs(tokenizer, model, query: str, context_chunks: List[str]):
+def _short_messages(query: str, context_chunks: List[str]) -> List[dict]:
     """
     The extractive prompt: the same "Question / Context / Answer" wording
     flan-t5 was given, now carried as the user turn of a chat prompt under
     SHORT_SYSTEM, which is what keeps an instruction-tuned model from
     answering in a sentence.
     """
-    context = _budget_context(tokenizer, query, context_chunks)
+    context = _budget_context(_budget_tokenizer(), query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
     system = SHORT_SYSTEM + (FIRM_CLAUSE if ABSTAIN == "firm" else "")
+    return [{"role": "system", "content": system},
+            {"role": "user", "content": prompt}]
+
+
+def _short_inputs(tokenizer, model, query: str, context_chunks: List[str]):
+    """The same prompt, tokenised for the transformers backend."""
     return _prompt_inputs(tokenizer, model,
-                          [{"role": "system", "content": system},
-                           {"role": "user", "content": prompt}])
+                          _short_messages(query, context_chunks))
 
 
 def passages_answer(query: str, context_chunks: List[str]) -> bool:
@@ -491,15 +583,11 @@ def passages_answer(query: str, context_chunks: List[str]) -> bool:
     say "no" here than to abstain while also being asked for an answer, which
     is the whole point of separating the two.
     """
-    tokenizer, model = _get_model()
-    context = _budget_context(tokenizer, query, context_chunks)
-    inputs = _prompt_inputs(
-        tokenizer, model,
+    context = _budget_context(_budget_tokenizer(), query, context_chunks)
+    reply = _reply(
         [{"role": "system", "content": SUPPORT_SYSTEM},
-         {"role": "user", "content": f"Passages: {context}\n\nQuestion: {query}"}])
-    outputs = model.generate(**inputs, max_new_tokens=SUPPORT_MAX_TOKENS,
-                             do_sample=False)
-    reply = _decode_reply(tokenizer, inputs, outputs).strip().lower()
+         {"role": "user", "content": f"Passages: {context}\n\nQuestion: {query}"}],
+        SUPPORT_MAX_TOKENS).strip().lower()
     # Anything that is not a clear "no" is treated as support, so the cost of
     # an unparseable reply is the old behaviour rather than a lost answer.
     return not reply.startswith("no")
@@ -514,11 +602,8 @@ def answer_short(query: str, context_chunks: List[str]) -> str:
     if ABSTAIN == "check" and not passages_answer(query, context_chunks):
         return ABSTAIN_ANSWER
 
-    tokenizer, model = _get_model()
-    inputs = _short_inputs(tokenizer, model, query, context_chunks)
-    outputs = model.generate(**inputs, max_new_tokens=SHORT_MAX_TOKENS,
-                             do_sample=False)
-    return _fix_number_spacing(_tidy_short(_decode_reply(tokenizer, inputs, outputs)))
+    answer = _reply(_short_messages(query, context_chunks), SHORT_MAX_TOKENS)
+    return _fix_number_spacing(_tidy_short(answer))
 
 
 def _tidy_short(answer: str) -> str:

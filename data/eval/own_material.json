@@ -1,0 +1,2153 @@
+{
+  "note": "The system end to end on the student's own lecture decks, the task it was built for. Questions come from slide_ground_truth.json, written by this system's own question model from single slides, so the reference answer is one this system gave with the slide in hand: this is a round-trip consistency measure, biased upward, not a measure of absolute correctness. Scored by the same judge rule as every other end-to-end number here.",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "embedder": "bge-small",
+  "abstain": "check",
+  "k": 3,
+  "decks": 15,
+  "chunks": 228,
+  "questions": 51,
+  "retrieval_recall_at_3": 0.8039,
+  "short": {
+    "correct": 12,
+    "questions": 51,
+    "accuracy": 0.2353,
+    "accuracy_when_slide_retrieved": 0.2927,
+    "accuracy_when_slide_missed": 0.0,
+    "accuracy_text_layer": 0.1842,
+    "accuracy_from_pictures": 0.3846,
+    "median_seconds": 0.58,
+    "median_words": 1,
+    "rows": [
+      {
+        "question": "What is the first step in generating a new generation using genetic algorithms?",
+        "expected": "Generate random population",
+        "source": "text_layer",
+        "source_file": "ai-2-breeding.pdf",
+        "page": 24,
+        "retrieved_source_slide": true,
+        "answer": "Generate random population",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How do you read a file into a string?",
+        "expected": "import csv",
+        "source": "text_layer",
+        "source_file": "ai-2-breeding.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"pool size\" refer to?",
+        "expected": "CPU count",
+        "source": "text_layer",
+        "source_file": "ai-2-fitness-function.pdf",
+        "page": 37,
+        "retrieved_source_slide": true,
+        "answer": "size",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in running a simulation?",
+        "expected": "set up a pybullet environment in DIRECT mode",
+        "source": "text_layer",
+        "source_file": "ai-2-fitness-function.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "prepare the Simulation class",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does Test-Driven Development involve?",
+        "expected": "writing tests",
+        "source": "text_layer",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 3,
+        "retrieved_source_slide": true,
+        "answer": "tests are written in advance of source-code development",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.182,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How are URDFLink objects specified using genome parameters?",
+        "expected": "index, names, parent names, recurrence parameter",
+        "source": "text_layer",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 38,
+        "retrieved_source_slide": true,
+        "answer": "parent, recur, ind",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.222,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What are the labels of the nodes?",
+        "expected": "A, B, C",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 22,
+        "retrieved_source_slide": true,
+        "answer": "A, B, C",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the expected result of the `test arithmetic` method?",
+        "expected": "4",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "pass",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "4"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the maximum joint effort allowed for this revolute joint?",
+        "expected": "10",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-theory.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "10",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "10"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the mass of the cylinder?",
+        "expected": "0.25",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-theory.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "0.25",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "0.25"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does the schema define in the context of testing component designs?",
+        "expected": "100100",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 49,
+        "retrieved_source_slide": true,
+        "answer": "100100********...",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "100100"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does each codon map to?",
+        "expected": "CGAT",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 21,
+        "retrieved_source_slide": true,
+        "answer": "amino acid",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is implicit parallelism?",
+        "expected": "population model",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 46,
+        "retrieved_source_slide": true,
+        "answer": "multiple 'blood lines' might exist in the population",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.2,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What type of joint supports 1-DOF motors?",
+        "expected": "SLIDING",
+        "source": "text_layer",
+        "source_file": "ai-2-urdf_pybullet.pdf",
+        "page": 52,
+        "retrieved_source_slide": true,
+        "answer": "revolute",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What aspects of programming a GA are typically most challenging?",
+        "expected": "problem-specific",
+        "source": "text_layer",
+        "source_file": "ai-2-urdf_pybullet.pdf",
+        "page": 5,
+        "retrieved_source_slide": true,
+        "answer": "problem-specific aspects",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.8,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What are the Four Ps of creativity mentioned in the passage?",
+        "expected": "Product, Process, Press/Environment",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 11,
+        "retrieved_source_slide": true,
+        "answer": "Person/Producer, Product, Process, Press/Environment",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.8,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the focus of Tatar, Kıvanç, and Philippe Pasquier's study on music systems?",
+        "expected": "musical agents",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "56-105",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year did Jordanous conduct her study on computational creativity?",
+        "expected": "2012",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 24,
+        "retrieved_source_slide": true,
+        "answer": "2012",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2012"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the transition probability between states in the Markov model?",
+        "expected": "music",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 16,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is a key difference between transition tables and more complex methods?",
+        "expected": "more complex model of the sequence",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 21,
+        "retrieved_source_slide": true,
+        "answer": "transition table",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in the generative process?",
+        "expected": "Pick a random state from observed states",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the active tool mentioned?",
+        "expected": "SketchRNN",
+        "source": "picture",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "Dall-e by openAI",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the percentage of the layer background?",
+        "expected": "208%",
+        "source": "picture",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 5,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "208"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How much memory was used for training?",
+        "expected": "2",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 42,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How many songs were included in the dataset you obtained?",
+        "expected": "200k",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "200"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is fine-tuning in GPT-2?",
+        "expected": "extra burst of training",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 34,
+        "retrieved_source_slide": true,
+        "answer": "48",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"embedding\" refer to in relation to encoded space?",
+        "expected": "normalizing",
+        "source": "picture",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 8,
+        "retrieved_source_slide": true,
+        "answer": "latent space",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"self-attention\" refer to in this context?",
+        "expected": "context-aware embedding",
+        "source": "picture",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 9,
+        "retrieved_source_slide": true,
+        "answer": "heads",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in exploring?",
+        "expected": "Get a set of examples of the thing",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 33,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year was the paper \"GenJam: A genetic algorithm for generating jazz solos\" published?",
+        "expected": "1994",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 16,
+        "retrieved_source_slide": true,
+        "answer": "1996",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "1994"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year was the system first described?",
+        "expected": "1987",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 13,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "1987"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the MIDI file?",
+        "expected": "GAVOTTEmid",
+        "source": "picture",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 71,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the role of variance adaptor in speech processing?",
+        "expected": "applies pitch and other modifications",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "variance_adaptor",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What was the first example of voice synthesis mentioned in the passage?",
+        "expected": "1960s",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "2001",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "1960"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the paper?",
+        "expected": "Diffusion acoustic model for singing voice synthesis",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the initial commit date of the DiffSinger repository?",
+        "expected": "Jun 2021",
+        "source": "picture",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 17,
+        "retrieved_source_slide": true,
+        "answer": "8 months ago",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2021"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in processing audio files?",
+        "expected": "load in the files",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the current time value?",
+        "expected": "0",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 9,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "0"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What MIDI channel number should the melody be assigned to?",
+        "expected": "1",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "1"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What sampling rate does Audacity use?",
+        "expected": "44100Hz",
+        "source": "picture",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 18,
+        "retrieved_source_slide": true,
+        "answer": "44100Hz",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "44100"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does `model_target.predict(state_next_sample)` do?",
+        "expected": "max ones (i.e. most desired actions)",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 48,
+        "retrieved_source_slide": true,
+        "answer": "model_target.predict(state_next_sample) predicts the reward for the next state based on the current state and action.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does Sigma represent in the context of the DQN loss function?",
+        "expected": "r",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "Sigma",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"partly true\" mean in the context of calculating discounted reward?",
+        "expected": "only partly true",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "rewards_sample",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the format used for storing game states and rewards?",
+        "expected": "s,a,s',r,d",
+        "source": "picture",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "(s,a,s',r,d)",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the format used for storing experiences in DQN?",
+        "expected": "s,a,s',r,d",
+        "source": "picture",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 58,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "When did the Mario AI competition end?",
+        "expected": "2012",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2012"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the significance of AlphaStar's victory over a professional StarCraft II player?",
+        "expected": "January 2019",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 5,
+        "retrieved_source_slide": true,
+        "answer": "January 2019",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2019"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "When did you conclude there is no fair competition between AI and human in Dota 2 and StarCraft II?",
+        "expected": "2019",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 14,
+        "retrieved_source_slide": true,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2019"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year did Cheney et al. publish their work on evolving soft body robots?",
+        "expected": "2014",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 8,
+        "retrieved_source_slide": true,
+        "answer": "2014",
+        "correct": true,
+        "signals": {
+          "exact_match": true,
+          "expected_in_answer": true,
+          "answer_in_expected": true,
+          "token_f1": 1.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2014"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the journal name mentioned in the passage?",
+        "expected": "Artificial life",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 11,
+        "retrieved_source_slide": false,
+        "answer": "unanswerable",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the potential benefit of using an automated approach for designing neural network architectures?",
+        "expected": "reaching the limits of human design of networks",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 17,
+        "retrieved_source_slide": true,
+        "answer": "automatically discovering designs that are comparable to the state of the art",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.2,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      }
+    ]
+  },
+  "explain": {
+    "correct": 15,
+    "questions": 51,
+    "accuracy": 0.2941,
+    "accuracy_when_slide_retrieved": 0.3415,
+    "accuracy_when_slide_missed": 0.1,
+    "accuracy_text_layer": 0.2895,
+    "accuracy_from_pictures": 0.3077,
+    "median_seconds": 2.69,
+    "median_words": 32,
+    "rows": [
+      {
+        "question": "What is the first step in generating a new generation using genetic algorithms?",
+        "expected": "Generate random population",
+        "source": "text_layer",
+        "source_file": "ai-2-breeding.pdf",
+        "page": 24,
+        "retrieved_source_slide": true,
+        "answer": "The first step in generating a new generation using genetic algorithms involves selecting parents based on their fitness scores to create offspring through processes like crossover and mutation.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How do you read a file into a string?",
+        "expected": "import csv",
+        "source": "text_layer",
+        "source_file": "ai-2-breeding.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "To read a file into a string, you first split the contents by newline characters ('\\n'), then iterate through these lines and split them further by commas (',') to extract individual gene values as floats for further processing. This method effectively converts the multi-line text into a single string suitable for manipulation within your program.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"pool size\" refer to?",
+        "expected": "CPU count",
+        "source": "text_layer",
+        "source_file": "ai-2-fitness-function.pdf",
+        "page": 37,
+        "retrieved_source_slide": true,
+        "answer": "The passage mentions \"pool size\" as being related to the number of processes needed when running simulations in parallel. Specifically, it notes that if the CPU count is less than the population size, then more than one set of pool arguments may be required, indicating that the pool size represents the total number of processes or simulations that can be executed simultaneously.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.062,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in running a simulation?",
+        "expected": "set up a pybullet environment in DIRECT mode",
+        "source": "text_layer",
+        "source_file": "ai-2-fitness-function.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "The first step in running a simulation is to prepare the `Simulation` class by giving it a unique identifier (`id`) and using this identifier as the filename. This preparation allows for differentiation between different simulations based on their identifiers.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.085,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does Test-Driven Development involve?",
+        "expected": "writing tests",
+        "source": "text_layer",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 3,
+        "retrieved_source_slide": true,
+        "answer": "Test-Driven Development involves writing tests before writing actual code. These initial tests should fail because they don't reflect any working code yet. As developers work on improving these tests to ensure they still fail without real functionality, they gradually build up an understanding of what the final product should achieve. This iterative process ensures that the end result meets all specified requirements and specifications.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.059,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How are URDFLink objects specified using genome parameters?",
+        "expected": "index, names, parent names, recurrence parameter",
+        "source": "text_layer",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 38,
+        "retrieved_source_slide": true,
+        "answer": "URDFLink objects are specified using genome parameters through the use of indices and a developmental process. Specifically, the recurrence parameter allows these objects to be read more directly compared to other genome parameters. The creation of URDFLink objects involves specifying names and parents recursively according to the genetic information encoded within the genome.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.102,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What are the labels of the nodes?",
+        "expected": "A, B, C",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 22,
+        "retrieved_source_slide": true,
+        "answer": "The nodes are labeled as A, B, and C.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.5,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": true
+        }
+      },
+      {
+        "question": "What is the expected result of the `test arithmetic` method?",
+        "expected": "4",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-practice.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "The expected result of the `test arithmetic` method is for the expression `2 + 2` to evaluate to `4`.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.105,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "4"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the maximum joint effort allowed for this revolute joint?",
+        "expected": "10",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-theory.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "The maximum joint effort allowed for this revolute joint is 10 units.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.154,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "10"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the mass of the cylinder?",
+        "expected": "0.25",
+        "source": "picture",
+        "source_file": "ai-2-genetic-encoding-theory.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "The mass of the cylinder is set to 0.25 according to the passage [1].",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.133,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "0.25"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does the schema define in the context of testing component designs?",
+        "expected": "100100",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 49,
+        "retrieved_source_slide": true,
+        "answer": "In the context of testing component designs, a schema provides a specific pattern or template for evaluating various configurations within a system. For instance, when considering a drone propeller/rotor setup, a schema could outline a standardized approach to analyzing different combinations of blades and rotors based on predefined criteria such as size, shape, and functionality. By applying these schemata across diverse scenarios, developers can systematically assess how modifications affect the overall performance and efficiency of the system without having to manually test each individual configuration. This systematic examination ensures that any deviations from expected outcomes can be quickly identified through exploration of corresponding hyperplanes defined by the schema.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "100100"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does each codon map to?",
+        "expected": "CGAT",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 21,
+        "retrieved_source_slide": true,
+        "answer": "Each codon maps to an amino acid according to the information provided in passage [1].",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is implicit parallelism?",
+        "expected": "population model",
+        "source": "text_layer",
+        "source_file": "ai-2-intro-to-gas.pdf",
+        "page": 46,
+        "retrieved_source_slide": true,
+        "answer": "Implicit parallelism refers to the concept where a Genetic Algorithm (GA) can operate by maintaining and optimizing multiple solutions simultaneously within a population model, allowing for efficient computation across different variables or aspects of the problem space.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.103,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What type of joint supports 1-DOF motors?",
+        "expected": "SLIDING",
+        "source": "text_layer",
+        "source_file": "ai-2-urdf_pybullet.pdf",
+        "page": 52,
+        "retrieved_source_slide": true,
+        "answer": "Different types of joints such as revolute, spherical, planar, and prismatic support 1-DOF motors at present.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What aspects of programming a GA are typically most challenging?",
+        "expected": "problem-specific",
+        "source": "text_layer",
+        "source_file": "ai-2-urdf_pybullet.pdf",
+        "page": 5,
+        "retrieved_source_slide": true,
+        "answer": "Typically, the most creative and challenging parts of programming a Genetic Algorithm (GA) are often the problem-specific aspects, according to Harvey and Inman's statement in [1]. This suggests that while the underlying algorithmic structure can be relatively straightforward, the intricacies arise when adapting it to solve specific problems such as evolving neural networks for network routing or creating morphological variations for robots.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.061,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What are the Four Ps of creativity mentioned in the passage?",
+        "expected": "Product, Process, Press/Environment",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 11,
+        "retrieved_source_slide": true,
+        "answer": "According to the passage, the Four Ps of creativity include Person/Producer, Product, Process, and Press/Environment. These represent various aspects of creativity research that help understand and model different facets of creative activity.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.211,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the focus of Tatar, Kıvanç, and Philippe Pasquier's study on music systems?",
+        "expected": "musical agents",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "Tatar, Kıvanç, and Philippe Pasquier's study on music systems focuses on evaluating creative music systems through the lens of different perspectives, including both God-like processes of creation and the concept of nature being inseparably part of an open system. Their work aims to categorize these systems into typologies such as passive and active tools, providing insights into how various approaches view the relationship between human creativity and natural processes within musical contexts.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.026,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year did Jordanous conduct her study on computational creativity?",
+        "expected": "2012",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk0_what_is_creativity.pdf",
+        "page": 24,
+        "retrieved_source_slide": true,
+        "answer": "Jordanous conducted her study on computational creativity in 2012.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.2,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2012"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the transition probability between states in the Markov model?",
+        "expected": "music",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 16,
+        "retrieved_source_slide": true,
+        "answer": "In the context of the Markov model described, the transition probability refers to the likelihood of moving from one state to another within the sequence generated. For instance, if we start with the state \"problem\" as per the given passage, the transition probability would indicate how likely it is to move to the subsequent state based on the transitions defined in the initial state sequence.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is a key difference between transition tables and more complex methods?",
+        "expected": "more complex model of the sequence",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 21,
+        "retrieved_source_slide": true,
+        "answer": "A key difference between transition tables and more complex methods lies in their complexity; transition tables are simpler as they represent sequences through direct mappings, while more complex methods like variable order Markov models, long short-term memory networks (LSTMs), and transformers employ sophisticated algorithms that consider multiple states simultaneously to predict outputs, offering greater flexibility and accuracy in generating diverse and contextually relevant sequences.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.056,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in the generative process?",
+        "expected": "Pick a random state from observed states",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "The first step in the generative process described involves preparing the `Simulation` class. This includes giving it a unique identifier (`id`) and using this identifier for the file name. The `Simulation` class is designed to be thread-safe, allowing for efficient parallel processing through the creation of multiple instances.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.036,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the active tool mentioned?",
+        "expected": "SketchRNN",
+        "source": "picture",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 6,
+        "retrieved_source_slide": true,
+        "answer": "The active tool mentioned is called Dall-e by OpenAI.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the percentage of the layer background?",
+        "expected": "208%",
+        "source": "picture",
+        "source_file": "ai-creativity-wk1_gensys.pdf",
+        "page": 5,
+        "retrieved_source_slide": false,
+        "answer": "The passage does not provide specific numerical data about the percentage of the layer's background.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "208"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How much memory was used for training?",
+        "expected": "2",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 42,
+        "retrieved_source_slide": false,
+        "answer": "The amount of memory used during training varied depending on the platform and the complexity of the tasks being performed. For example, when training on regular macOS or a GeForce 2070 laptop, approximately 16K bytes were used, while on a GPU-equipped machine like a GTX 1080 Ti, around 128K bytes of memory might have been utilized. The exact usage would depend on the specific neural networks and algorithms employed in each iteration of the training process.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "How many songs were included in the dataset you obtained?",
+        "expected": "200k",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "The dataset you obtained contains approximately 200,000 songs.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "200"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is fine-tuning in GPT-2?",
+        "expected": "extra burst of training",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 34,
+        "retrieved_source_slide": true,
+        "answer": "Fine-tuning in GPT-2 involves adjusting the model's performance on specific tasks by training it on additional datasets tailored to those tasks, thereby enhancing its capabilities for particular purposes while retaining its general language understanding abilities.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.048,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"embedding\" refer to in relation to encoded space?",
+        "expected": "normalizing",
+        "source": "picture",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 8,
+        "retrieved_source_slide": true,
+        "answer": "In relation to encoded space, \"embedding\" refers to a method of representing or mapping data into a lower-dimensional space while preserving some of its original properties and relationships. This technique allows for efficient storage, retrieval, and manipulation of complex data sets, as well as enabling machine learning algorithms to analyze and understand them more effectively.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"self-attention\" refer to in this context?",
+        "expected": "context-aware embedding",
+        "source": "picture",
+        "source_file": "ai-creativity-wk2_gpt2.pdf",
+        "page": 9,
+        "retrieved_source_slide": true,
+        "answer": "Self-attention refers to a mechanism within transformers that allows each token in a sequence to attend to different parts of the input sequence simultaneously, capturing dependencies between distant elements and incorporating contextual information effectively.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in exploring?",
+        "expected": "Get a set of examples of the thing",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 33,
+        "retrieved_source_slide": false,
+        "answer": "The first step in exploring involves defining a schema that represents various aspects of the design under consideration.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.231,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year was the paper \"GenJam: A genetic algorithm for generating jazz solos\" published?",
+        "expected": "1994",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 16,
+        "retrieved_source_slide": true,
+        "answer": "The paper \"GenJam: A genetic algorithm for generating jazz solos\" was published in 1994.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.133,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "1994"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year was the system first described?",
+        "expected": "1987",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 13,
+        "retrieved_source_slide": true,
+        "answer": "The system first described was patented in 2006.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "1987"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the MIDI file?",
+        "expected": "GAVOTTEmid",
+        "source": "picture",
+        "source_file": "ai-creativity-wk3_musicvae.pdf",
+        "page": 71,
+        "retrieved_source_slide": false,
+        "answer": "A MIDI file contains encoded information representing musical notes and other parameters like timing, velocity, and control changes. It's essentially a binary representation of a piece of music that can be used by digital instruments or software applications to play back the composition accurately.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the role of variance adaptor in speech processing?",
+        "expected": "applies pitch and other modifications",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "The variance adaptor in speech processing is applied to modify pitch and other aspects of speech, enhancing the quality of the output by adjusting these parameters according to specified criteria such as pitch and various modifications.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.195,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What was the first example of voice synthesis mentioned in the passage?",
+        "expected": "1960s",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "The first example of voice synthesis mentioned in the passage is Speak and Spell!, which was developed in the 1970s.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "1960"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the name of the paper?",
+        "expected": "Diffusion acoustic model for singing voice synthesis",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "The passage does not mention any specific paper title.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the initial commit date of the DiffSinger repository?",
+        "expected": "Jun 2021",
+        "source": "picture",
+        "source_file": "ai-creativity-wk4_diffsinger.pdf",
+        "page": 17,
+        "retrieved_source_slide": true,
+        "answer": "The initial commit date of the DiffSinger repository was 8 months ago.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2021"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the first step in processing audio files?",
+        "expected": "load in the files",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 19,
+        "retrieved_source_slide": false,
+        "answer": "The first step in processing audio files involves converting them into MIDI format, as detailed in passage [1].",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.273,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the current time value?",
+        "expected": "0",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 9,
+        "retrieved_source_slide": false,
+        "answer": "The current time value refers to the output of the network being compared to a combination of the known reward and an estimated value for the policy's chosen actions across the sample.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "0"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What MIDI channel number should the melody be assigned to?",
+        "expected": "1",
+        "source": "text_layer",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "In MIDI, the melody is typically assigned to channel 1. However, this approach has limitations as channels other than 1 may contain percussion elements that interfere with the melody.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.067,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "1"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What sampling rate does Audacity use?",
+        "expected": "44100Hz",
+        "source": "picture",
+        "source_file": "ai-creativity-wk5_all_together.pdf",
+        "page": 18,
+        "retrieved_source_slide": true,
+        "answer": "Audacity uses an audio sampling rate of 44100 Hz.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "44100"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does `model_target.predict(state_next_sample)` do?",
+        "expected": "max ones (i.e. most desired actions)",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 48,
+        "retrieved_source_slide": true,
+        "answer": "`model_target.predict(state_next_sample)` predicts the future rewards for the states reached through the selected actions by utilizing the target model. This step involves obtaining these predictions and then selecting the maximum values across all possible actions to determine the most desirable outcomes.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.077,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does Sigma represent in the context of the DQN loss function?",
+        "expected": "r",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 29,
+        "retrieved_source_slide": true,
+        "answer": "In the context of the DQN loss function, Sigma represents a random sample taken from the Replay buffer, which helps in estimating the value function for the policy's chosen actions.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What does \"partly true\" mean in the context of calculating discounted reward?",
+        "expected": "only partly true",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 35,
+        "retrieved_source_slide": true,
+        "answer": "In the context of calculating discounted reward, \"partly true\" means that while the reward sample represents the actual measured rewards from the actions taken, the estimation of future rewards through the target model introduces an element of uncertainty because these estimates are based on predictions made by a model instead of direct observation. This makes the calculation of discounted reward partially accurate or reliable, acknowledging that there is some level of approximation involved due to the use of a model to predict future outcomes.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.046,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the format used for storing game states and rewards?",
+        "expected": "s,a,s',r,d",
+        "source": "picture",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "The format used for storing game states and rewards involves maintaining arrays called `state_history`, `action_history`, `rewards_history`, `done_history`, and `result_history`. These arrays store information such as previous states (`s`), selected actions (`a`), resulting states (`s'`), rewards received (`r`), and whether the episode was ended (`d`). This allows for the storage and analysis of sequences of game states and outcomes over time.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.143,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the format used for storing experiences in DQN?",
+        "expected": "s,a,s',r,d",
+        "source": "picture",
+        "source_file": "ai-game-player-wk4.pdf",
+        "page": 58,
+        "retrieved_source_slide": false,
+        "answer": "The format used for storing experiences in DQN is called Experience Replay, as detailed in the passage discussing Rainbow, a variant of DQN that incorporates improvements such as double Q-learning or prioritized sampling.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.051,
+          "expected_words_present": true,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "When did the Mario AI competition end?",
+        "expected": "2012",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 7,
+        "retrieved_source_slide": true,
+        "answer": "The Mario AI competition ran from 2009 to 2012.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.2,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2012"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the significance of AlphaStar's victory over a professional StarCraft II player?",
+        "expected": "January 2019",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 5,
+        "retrieved_source_slide": true,
+        "answer": "AlphaStar's victory over a professional StarCraft II player marked a significant milestone in the field of artificial intelligence by demonstrating that AI systems can achieve superior performance in complex strategic games like StarCraft II compared to human experts. This achievement underscores the rapid advancements in machine learning algorithms and reinforcement learning techniques, highlighting the potential of AI to rival human capabilities across various domains, particularly those involving decision-making under uncertainty and strategy execution.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2019"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "When did you conclude there is no fair competition between AI and human in Dota 2 and StarCraft II?",
+        "expected": "2019",
+        "source": "text_layer",
+        "source_file": "ai-game-player-wk5.pdf",
+        "page": 14,
+        "retrieved_source_slide": true,
+        "answer": "We concluded that no fair competition between AI and humans has occurred in Dota 2 and StarCraft II through our analysis of the perceived and actual capabilities of both parties as described by researchers and commentators. The passage suggests that while AlphaGo's victory over Lee Sedol was a significant moment in the history of AI, it does not represent a complete understanding of what constitutes a fair competition in these games. This conclusion was reached based on the observation that despite advancements in AI technology, such as AlphaStar beating a professional StarCraft II player, this achievement may still fall short of creating a truly equal match compared to a human opponent.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [
+            "2019"
+          ],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What year did Cheney et al. publish their work on evolving soft body robots?",
+        "expected": "2014",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 8,
+        "retrieved_source_slide": true,
+        "answer": "Cheney et al. published their work on evolving soft body robots in 2014.",
+        "correct": true,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": true,
+          "answer_in_expected": false,
+          "token_f1": 0.143,
+          "expected_words_present": true,
+          "expected_numbers": [
+            "2014"
+          ],
+          "all_expected_numbers_present": true,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the journal name mentioned in the passage?",
+        "expected": "Artificial life",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 11,
+        "retrieved_source_slide": false,
+        "answer": "The LJSpeech model, also known as the LJ Speech Dataset, was created by Keith Ito and Linda Johnson in 2017 and is available under a public domain license.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.0,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      },
+      {
+        "question": "What is the potential benefit of using an automated approach for designing neural network architectures?",
+        "expected": "reaching the limits of human design of networks",
+        "source": "text_layer",
+        "source_file": "ga_state_of_the_art.pdf",
+        "page": 17,
+        "retrieved_source_slide": true,
+        "answer": "The potential benefit of using an automated approach for designing neural network architectures lies in reaching computational limits beyond human capability. By evolving networks through genetic algorithms like NEAT or CoDEEPNEAT, systems can develop architectures that are significantly simpler yet perform comparably to those created by humans. This automation allows for exploring vast parameter spaces efficiently without extensive manual intervention, potentially leading to groundbreaking advancements in artificial intelligence and machine learning.",
+        "correct": false,
+        "signals": {
+          "exact_match": false,
+          "expected_in_answer": false,
+          "answer_in_expected": false,
+          "token_f1": 0.152,
+          "expected_words_present": false,
+          "expected_numbers": [],
+          "all_expected_numbers_present": false,
+          "needs_human_review": false
+        }
+      }
+    ]
+  }
+}
