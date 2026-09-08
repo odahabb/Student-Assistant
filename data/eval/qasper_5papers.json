@@ -1,0 +1,263 @@
+{
+  "note": "The system on QASPER (Dasigi et al., 2021), scored with the benchmark's own evaluator, vendored unchanged. Each paragraph of a paper is one unit through the ordinary prose path, so a retrieved chunk maps to exactly one paragraph and Evidence F1 is Recall@k in the benchmark's terms. Figure and table captions are excluded from both sides, matching the official text-evidence-only setting.",
+  "split": "dev",
+  "papers": 5,
+  "questions": 20,
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "backend": "transformers",
+  "embedder": "bge-small",
+  "chunking": "sentence",
+  "k": 3,
+  "abstain": "check",
+  "answer_f1": 0.1917088362999841,
+  "evidence_f1": 0.35750000000000004,
+  "answer_f1_by_type": {
+    "extractive": 0.20093240093240095,
+    "abstractive": 0.04441110277569392,
+    "boolean": 0.0,
+    "none": 1.0
+  },
+  "missing_predictions": 0,
+  "declined": 11,
+  "gold_unanswerable": 1,
+  "seconds": 34.9,
+  "predictions": {
+    "f67b9bda14ec70feba2e0d10c400b2b2025a0a6a": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "1cfed6b0c9b5a079a51166209649a987e7553e4e": {
+      "answer": "batch size",
+      "evidence": [
+        "Another important aspect of the active learning process is what batch size to use. Previous work has shown that using smaller batch sizes leads to greater learning efficiency BIBREF2 , BIBREF7 . There is a tension between using smaller batch sizes to optimize learning efficiency and using larger batch sizes to optimize development speed and ease of annotation. We analyze how batch size affects a leading stopping method and how stopping method parameters can be changed to optimize performance depending on the batch size.",
+        "Active learning has the potential to significantly reduce annotation costs. Two important considerations in the active learning process are when to stop the iterative process of asking for more labeled data and how large of a batch size to use when asking for additional labels during each iteration. We found that stopping methods degrade in performance when larger batch sizes are used. The degradation in performance is larger than the amount that can be explained due to the degradation in learning efficiency that results from using larger batch sizes. An important parameter used by stopping methods is what window size of earlier iterations to consider in making the stopping decision. Our results indicate that making the window size smaller helps to mitigate the degradation in stopping method performance that occurs with larger batch sizes.",
+        "Active learning sharply increases the performance of iteratively trained machine learning models by selectively determining which unlabeled samples should be annotated. The number of samples that are selected for annotation at each iteration of active learning is called the batch size."
+      ]
+    },
+    "6cd8bad8a031ce6d802ded90f9754088e0c8d653": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "30eacb4595014c9c0e5ee9669103d003cfdfe1e5": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "0f7867f888109b9e000ef68965df4dde2511a55f": {
+      "answer": "the most votes",
+      "evidence": [
+        "(3) Finally, we combine CNNs and RNNs using a simple voting scheme and achieve new state-of-the-art results on the SemEval 2010 benchmark dataset.",
+        "Beside of training single models, we also report ensemble results for which we combined the presented single models with a voting process.",
+        "Finally, we combine our CNN and RNN models using a voting process. For each sentence in the test set, we apply several CNN and RNN models presented in Tables TABREF12 and TABREF14 and predict the class with the most votes. In case of a tie, we pick one of the most frequent classes randomly. The combination achieves an F1 score of 84.9 which is better than the performance of the two NN types alone. It, thus, confirms our assumption that the networks provide complementary information: while the RNN computes a weighted combination of all words in the sentence, the CNN extracts the most informative n-grams for the relation and only considers their resulting activations."
+      ]
+    },
+    "e2e977d7222654ee8d983fd8ba63b930e9a5a691": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "0cfe0e33fbb100751fc0916001a5a19498ae8cb5": {
+      "answer": "middle context",
+      "evidence": [
+        "(1) We propose extended middle context, a new context representation for CNNs for relation classification. The extended middle context uses all parts of the sentence (the relation arguments, left of the relation arguments, between the arguments, right of the arguments) and pays special attention to the middle part.",
+        "One of our contributions is a new input representation especially designed for relation classification. The contexts are split into three disjoint regions based on the two relation arguments: the left context, the middle context and the right context. Since in most cases the middle context contains the most relevant information for the relation, we want to focus on it but not ignore the other regions completely. Hence, we propose to use two contexts: (1) a combination of the left context, the left entity and the middle context; and (2) a combination of the middle context, the right entity and the right context. Due to the repetition of the middle context, we force the network to pay special attention to it. The two contexts are processed by two independent convolutional and max-pooling layers. After pooling, the results are concatenated to form the sentence representation. Figure FIGREF3 depicts this procedure. It shows an examplary sentence: “He had chest pain and <e1>headaches</e1> from <e2>mold</e2> in the bedroom.” If we only considered the middle context “from”, the network might be tempted to predict a relation like Entity-Origin(e1,e2). However, by also taking the left and right context into account, the model can detect the relation Cause-Effect(e2,e1). While this could also be achieved by integrating the whole context into the model, using the whole context can have disadvantages for longer sentences: The max pooling step can easily choose a value from a part of the sentence which is far away from the mention of the relation. With splitting the context into two parts, we reduce this danger. Repeating the middle context increases the chance for the max pooling step to pick a value from the middle context."
+      ]
+    },
+    "e79a5b6b6680bd2f63e9f4adbaae1d7795d81e38": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "c7486d039304ca9d50d0571236429f4f6fbcfcf7": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "f1f1dcc67b3e4d554bfeb508226cdadb3c32d2e9": {
+      "answer": "amazon reviews, Yelp Restaurant Reviews, Spanish, Turkish, Dutch, Russian",
+      "evidence": [
+        "For evaluation of the multilingual approach, we use four languages. These datasets are part of SemEval-2016 Challenge Task 5 BIBREF27 , BIBREF28 . Table TABREF7 shows the number of observations in each test corpus.",
+        "With the goal of building a generalizable sentiment analysis model, we used three different training sets as provided in Table TABREF5 . One of these three datasets (Amazon reviews BIBREF23 , BIBREF24 ) is larger and has product reviews from several different categories including book reviews, electronics products reviews, and application reviews. The other two datasets are to make the model more specialized in the domain. In this paper we focus on restaurant reviews as our domain and use Yelp restaurant reviews dataset extracted from Yelp Dataset Challenge BIBREF25 and restaurant reviews dataset as part of a Kaggle competition BIBREF26 .",
+        "Two sets of corpora are used in this study, both are publicly available. The first set consists of English reviews and the second set contains restaurant reviews from four different languages (Spanish, Turkish, Dutch, Russian). We focus on polarity detection in reviews, therefore all datasets in this study have two class values (positive, negative)."
+      ]
+    },
+    "a103636c8d1dbfa53341133aeb751ffec269415c": {
+      "answer": "majority",
+      "evidence": [
+        "To be able to see the difference between baseline and RNN, we took each method's results as a group (4 values: one for each language) and compared the means. Post hoc comparisons using the Tukey HSD test indicated that the mean accuracies for baselines (majority and lexicon-based) are significantly different than RNN accuracies as can be seen in Table TABREF12 (family-wise error rate=0.06). When RNN is compared with lexicon-based baseline and majority baseline, the null hypothesis can be rejected meaning that each test is significant. In addition to these comparisons, we also calculated the effect sizes (using Cohen's d) between the baselines and our method. The results are aligning with Tukey HSD results such that while our method versus baselines have very large effect sizes, lexicon-based baseline and majority baseline have negligible effect size.",
+        "RNN outperforms both baselines in all four datasets (see Table TABREF9 ). Also for Spanish restaurant review, the lexicon-based baseline is below the majority baseline which shows that solely translating data and using lexicons is not sufficient to achieve good results in multilingual sentiment analysis.",
+        "For experimental results, we report majority baseline for each language where the majority baseline corresponds to a model's accuracy if it always predicts the majority class in the dataset. For example, if the dataset has 60% of all reviews positive and 40% negative, majority baseline would be 60% because a model that always predicts “positive” will be 60% accurate and will make mistakes 40% of the time."
+      ]
+    },
+    "55139fcfe04ce90aad407e2e5a0067a45f31e07e": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "fbaf060004f196a286fef67593d2d76826f0304e": {
+      "answer": "yelp restaurant reviews dataset",
+      "evidence": [
+        "With the goal of building a generalizable sentiment analysis model, we used three different training sets as provided in Table TABREF5 . One of these three datasets (Amazon reviews BIBREF23 , BIBREF24 ) is larger and has product reviews from several different categories including book reviews, electronics products reviews, and application reviews. The other two datasets are to make the model more specialized in the domain. In this paper we focus on restaurant reviews as our domain and use Yelp restaurant reviews dataset extracted from Yelp Dataset Challenge BIBREF25 and restaurant reviews dataset as part of a Kaggle competition BIBREF26 .",
+        "In this paper, we studied the research question: Can we build reusable sentiment analysis models that can be utilized for making inferences in different languages without requiring separate models and resources for each language? To that end, we built a recurrent neural network model in the language that had largest data available. We took a general-to-specific model building strategy where the larger corpus that had reviews from different domains was first used to train the RNN model and a smaller single-domain corpus of sentiment reviews was used to specialize the model on the given domain. During scoring time, we used corpora for the given domain in different languages and translated them to English to be able to classify sentiments with the trained model. Experimental results showed that the proposed multilingual approach outperforms both the majority baseline and the lexicon-based baseline.",
+        "We also evaluated our model with an English corpus BIBREF27 to see its performance without any interference from machine translation errors. Using the English data for testing, the model achieved 87.06% accuracy where a majority baseline was 68.37% and the lexicon-based baseline was 60.10%."
+      ]
+    },
+    "d915b401bb96c9f104a0353bef9254672e6f5a47": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "79a44a68bb57b375d8a57a0a7f522d33476d9f33": {
+      "answer": "bleu score BibRef34",
+      "evidence": [
+        "We evaluate our model through two types of metrics. The BLEU score BIBREF34 aims at measuring to what extent the generated descriptions are literally closed to the ground truth. The second category designed by BIBREF10 is more qualitative.",
+        "CS primarily targets the “what to say\" aspect of evaluation, CO targets the “how to say it\" aspect, and RG targets both. Note that for CS, CO, RG-% and BLEU metrics, higher is better; which is not true for RG-#. The IE system used in the experiments is able to extract an average of 17 factual records from gold descriptions. In order to mimic a human expert, a generative system should approach this number and not overload generation with brute facts.",
+        "The BLEU score BIBREF34 is commonly used as an evaluation metric in text generation tasks. It estimates the correspondence between a machine output and that of a human by computing the number of co-occurrences for ngrams ($n \\in {1, 2, 3, 4}$) between the generated candidate and the ground truth. We use the implementation code released by BIBREF35."
+      ]
+    },
+    "664db503509b8236bc4d3dc39cebb74498365750": {
+      "answer": "17.5",
+      "evidence": [
+        "From a general point of view, we can see from Table TABREF25 that our scenarios obtain significantly higher results in terms of BLEU over all models; our best model Hierarchical-k reaching $17.5$ vs. $16.5$ against the best baseline. This means that our models learns to generate fluent sequences of words, close to the gold descriptions, adequately picking up on domain lingo. Qualitative metrics are either better or on par with baselines. We show in Figure FIGREF29 a text generated by our best model, which can be directly compared to the gold description in Figure FIGREF1. Generation is fluent and contains domain-specific expressions. As reflected in Table TABREF25, the number of correct mentions (in green) outweights the number of incorrect mentions (in red). Please note that, as in previous work BIBREF28, BIBREF12, BIBREF13, BIBREF10, generated texts still contain a number of incorrect facts, as well hallucinations (in blue): sentences that have no basis in the input data (e.g. “[...] he's now averaging 22 points [...].\"). While not the direct focus of our work, this highlights that any operation meant to enrich the semantics of structured data can also enrich the data with incorrect facts.",
+        "We test the importance of the input structure by training different variants of the proposed architecture:",
+        "Our results on the RotoWire testset are summarized in Table TABREF25. For each proposed variant of our architecture, we report the mean score over ten runs, as well as the standard deviation in subscript. Results are compared to baselines BIBREF12, BIBREF13, BIBREF10 and variants of our models. We also report the result of the oracle (metrics on the gold descriptions). Please note that gold descriptions trivially obtain 100% on all metrics expect RG, as they are all based on comparison with themselves. RG scores are different, as the IE system is imperfect and fails to extract accurate entities 4% of the time. RG-# is an absolute count."
+      ]
+    },
+    "218bc82796eb8d91611996979a4a42500131a936": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "b21bc09193699dc9cfad523f3d5542b0b2ff1b8e": {
+      "answer": "mlp",
+      "evidence": [
+        "The s2sL approach proposed to address low data resource problem is explained in this Section. In this work, we use MLP (modified to handle our data representation) as the base classifier. Here, we explain the s2sL approach by considering two-class classification task.",
+        "As can be seen from Figure FIGREF4 , the output layer in our proposed method has outputs INLINEFORM0 and INLINEFORM1 which corresponds to the outputs associated with the input feature vectors INLINEFORM2 and INLINEFORM3 , respectively. For a two-class classification problem, there will be four units in the output layer and the possible output labels are INLINEFORM4 , INLINEFORM5 , INLINEFORM6 , INLINEFORM7 corresponding to the class labels INLINEFORM8 and INLINEFORM9 , respectively. This architecture is referred to as s2s-MLP. In s2sL, s2s-MLP is trained using the s2s data representation format. Further, the s2s-MLP is trained using adam optimizer.",
+        "Table TABREF14 show the results obtained for proposed s2sL approach in comparison to that of MLP for the tasks of Speech/Music and Neutral/Sad classification, by considering different proportions of training data. The values in Table TABREF14 are mean accuracies (in %) obtained by 5-fold cross validation. It can be observed from Table TABREF14 that for both tasks, s2sL method outperforms MLP, especially at low resource conditions. s2sL shows an absolute improvement in accuracy of INLINEFORM0 % and INLINEFORM1 % over MLP for Speech/Music and Neutral/Sad classification tasks, respectively, when INLINEFORM2 of the original training data is used in experiments."
+      ]
+    },
+    "352bc6de5c5068c6c19062bad1b8f644919b1145": {
+      "answer": "Unanswerable",
+      "evidence": []
+    },
+    "d667731ea20605580c398a1224a0094d1155ebbb": {
+      "answer": "Unanswerable",
+      "evidence": []
+    }
+  },
+  "records": [
+    {
+      "paper_id": "1801.07887",
+      "question": "What downstream tasks are evaluated?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1801.07887",
+      "question": "What is active learning?",
+      "predicted": "batch size",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1605.07333",
+      "question": "By how much does their best model outperform the state-of-the-art?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1605.07333",
+      "question": "Which dataset do they train their models on?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1605.07333",
+      "question": "How does their simple voting scheme work?",
+      "predicted": "the most votes",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1605.07333",
+      "question": "Which variant of the recurrent neural network do they use?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1605.07333",
+      "question": "How do they obtain the new context represetation?",
+      "predicted": "middle context",
+      "evidence_paragraphs": 2
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "which non-english language had the best performance?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "which non-english language was the had the worst results?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "what datasets were used in evaluation?",
+      "predicted": "amazon reviews, Yelp Restaurant Reviews, Spanish, Turkish, Dutch, Russian",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "what are the baselines?",
+      "predicted": "majority",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "how did the authors translate the reviews to other languages?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1806.04511",
+      "question": "what dataset was used for training?",
+      "predicted": "yelp restaurant reviews dataset",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1912.10011",
+      "question": "What future possible improvements are listed?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1912.10011",
+      "question": "Which qualitative metric are used for evaluation?",
+      "predicted": "bleu score BibRef34",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1912.10011",
+      "question": "What is quantitative improvement of proposed method (the best variant) w.r.t. baseline (the best variant)?",
+      "predicted": "17.5",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1712.05608",
+      "question": "Which models/frameworks do they compare to?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1712.05608",
+      "question": "Which classification algorithm do they use for s2sL?",
+      "predicted": "mlp",
+      "evidence_paragraphs": 3
+    },
+    {
+      "paper_id": "1712.05608",
+      "question": "Up to how many samples do they experiment with?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    },
+    {
+      "paper_id": "1712.05608",
+      "question": "Do they use pretrained models?",
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
+    }
+  ]
+}
