@@ -63,6 +63,14 @@ BUDGET_TOKENIZER = os.environ.get("SA_BUDGET_TOKENIZER",
 ANSWER_STYLE = os.environ.get("SA_ANSWER_STYLE", "short").lower()
 CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", MODEL_NAME)
 
+# The shape of a short answer follows the shape of the question. Until
+# 2026-09-22 this asked for a span and nothing else, so a question a reader
+# would answer "yes" got a phrase lifted off the page instead: on QASPER,
+# boolean questions scored 0.0000 and questions wanting a sentence 0.04, while
+# span questions scored 0.22. The model knew the answers and returned them in
+# the wrong form. The two rules below are what a person would do, not a fit to
+# that benchmark — a student asking "does BERT use absolute position
+# embeddings?" wants yes or no, not a clause from the middle of a paragraph.
 SHORT_SYSTEM = (
     "You answer comprehension questions about passages from a student's own "
     "course material. Reply with the words from the passage that answer the "
@@ -71,6 +79,54 @@ SHORT_SYSTEM = (
     "asks for, and write numbers and units exactly as the passage does. Answer "
     "unanswerable only when the passages genuinely do not contain the answer."
 )
+# A short answer has to take the shape of its question, and asking one prompt
+# to choose between three shapes does not work at this model size: given the
+# three rules as bullets, Qwen2.5-1.5B answered "No" to "how many TPUs were
+# used?". The question is therefore classified here, in code, and each shape
+# gets a prompt that asks for one thing.
+#
+# This is not a fit to QASPER, where the defect showed up as boolean questions
+# scoring 0.0000 and how/why questions 0.04 against 0.22 for spans. A student
+# asking "does BERT use absolute position embeddings?" wants yes or no, and
+# one asking "why does it use them?" wants a sentence.
+# Spelling out when to decline, and warning off outside knowledge, was tried
+# and cost boolean answers a tenth (0.50 to 0.40 on QASPER). The short form
+# is what ships.
+BOOLEAN_SYSTEM = (
+    "You answer a yes or no question from the passages given. Reply with "
+    "exactly one word: Yes, or No, or unanswerable if the passages do not "
+    "settle it. Nothing else."
+)
+SENTENCE_SYSTEM = (
+    "You answer a question about passages from a student's own course "
+    "material, in one short sentence of your own words drawn only from the "
+    "passages. No preamble, no list, no second sentence. Answer unanswerable "
+    "only when the passages genuinely do not contain the answer."
+)
+SENTENCE_MAX_TOKENS = 60
+
+_BOOLEAN_OPENERS = re.compile(
+    r"^\s*(do|does|did|is|are|was|were|can|could|will|would|has|have|had|"
+    r"should|shall|must|may|might|am)\b", re.IGNORECASE)
+# "How many" and its relatives want a number, not a sentence.
+_COUNTING = re.compile(r"^\s*how\s+(many|much|long|often|far|big|large|old)\b",
+                       re.IGNORECASE)
+_EXPLAINING = re.compile(r"^\s*(how|why|in what way|for what reason)\b",
+                         re.IGNORECASE)
+
+
+def question_shape(query: str) -> str:
+    """"boolean", "sentence" or "span" — what form the answer should take."""
+    q = str(query).strip()
+    if _BOOLEAN_OPENERS.match(q):
+        return "boolean"
+    if _COUNTING.match(q):
+        return "span"
+    if _EXPLAINING.match(q):
+        return "sentence"
+    return "span"
+
+
 SHORT_MAX_TOKENS = 48
 
 # Saying "I don't know" is a skill the model has to be asked for separately.
@@ -99,11 +155,19 @@ FIRM_CLAUSE = (
     " Do not guess and do not answer from your own knowledge: if the answer is "
     "not stated in the passages, the only correct reply is unanswerable."
 )
+# "state the answer" was too literal a test. A yes/no question's answer is
+# never written down anywhere — a passage says what a model does, not "yes" —
+# so the gate declined boolean questions almost always, and on a probe where
+# the model answers 4 of 4 correctly with the gate off it answered none with
+# it on. It now asks whether the passages carry the information the question
+# is about, which is the thing the gate was always meant to test.
 SUPPORT_SYSTEM = (
     "You decide whether a question can be answered from the passages given, "
-    "and nothing else. Reply with one word, yes or no. Reply yes only if the "
-    "passages state the answer; reply no if answering would need information "
-    "the passages do not contain, or your own knowledge."
+    "and nothing else. Reply with one word, yes or no. Reply yes if the "
+    "passages contain the information the question asks about, even when the "
+    "answer has to be read off rather than copied out. Reply no if answering "
+    "would need information the passages do not contain, or your own "
+    "knowledge."
 )
 SUPPORT_MAX_TOKENS = 4
 
@@ -564,7 +628,11 @@ def _short_messages(query: str, context_chunks: List[str]) -> List[dict]:
     """
     context = _budget_context(_budget_tokenizer(), query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
-    system = SHORT_SYSTEM + (FIRM_CLAUSE if ABSTAIN == "firm" else "")
+    system = {"boolean": BOOLEAN_SYSTEM,
+              "sentence": SENTENCE_SYSTEM}.get(question_shape(query),
+                                               SHORT_SYSTEM)
+    if ABSTAIN == "firm":
+        system += FIRM_CLAUSE
     return [{"role": "system", "content": system},
             {"role": "user", "content": prompt}]
 
@@ -599,10 +667,19 @@ def answer_short(query: str, context_chunks: List[str]) -> str:
     quiz layer, which compares a reference answer with a student's, and by the
     evaluation scripts, whose numbers describe it.
     """
-    if ABSTAIN == "check" and not passages_answer(query, context_chunks):
+    shape = question_shape(query)
+    # The support gate is skipped for a yes or no question. It guards against
+    # invented facts, and a yes or no is not a fact to invent — it is one bit,
+    # read off the passages, and BOOLEAN_SYSTEM carries its own way to
+    # decline. Left in, the gate declines almost every boolean question,
+    # because a passage says what a model does rather than saying "yes":
+    # on QASPER it took boolean answers from 0.50 to 0.00.
+    if (ABSTAIN == "check" and shape != "boolean"
+            and not passages_answer(query, context_chunks)):
         return ABSTAIN_ANSWER
 
-    answer = _reply(_short_messages(query, context_chunks), SHORT_MAX_TOKENS)
+    budget = SENTENCE_MAX_TOKENS if shape == "sentence" else SHORT_MAX_TOKENS
+    answer = _reply(_short_messages(query, context_chunks), budget)
     return _fix_number_spacing(_tidy_short(answer))
 
 

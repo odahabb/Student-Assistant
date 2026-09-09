@@ -9,18 +9,18 @@
   "chunking": "sentence",
   "k": 3,
   "abstain": "check",
-  "answer_f1": 0.28675332233450657,
-  "evidence_f1": 0.3926406926406927,
+  "answer_f1": 0.2788021593177831,
+  "evidence_f1": 0.30678210678210677,
   "answer_f1_by_type": {
-    "extractive": 0.22475934637924433,
-    "abstractive": 0.042213448098866825,
-    "boolean": 0.0,
-    "none": 0.8823529411764706
+    "extractive": 0.22051113308162182,
+    "abstractive": 0.11263951599448556,
+    "boolean": 0.4,
+    "none": 0.6923076923076923
   },
   "missing_predictions": 0,
-  "declined": 46,
+  "declined": 32,
   "gold_unanswerable": 20,
-  "seconds": 138.6,
+  "seconds": 75.2,
   "predictions": {
     "f67b9bda14ec70feba2e0d10c400b2b2025a0a6a": {
       "answer": "Unanswerable",
@@ -43,7 +43,7 @@
       "evidence": []
     },
     "0f7867f888109b9e000ef68965df4dde2511a55f": {
-      "answer": "the most votes",
+      "answer": "Their simple voting scheme involves applying multiple CNN and RNN models to each sentence in the test set, predicting the class based on the model with the most votes, or randomly picking if there's a tie",
       "evidence": [
         "(3) Finally, we combine CNNs and RNNs using a simple voting scheme and achieve new state-of-the-art results on the SemEval 2010 benchmark dataset.",
         "Beside of training single models, we also report ensemble results for which we combined the presented single models with a voting process.",
@@ -55,7 +55,7 @@
       "evidence": []
     },
     "0cfe0e33fbb100751fc0916001a5a19498ae8cb5": {
-      "answer": "middle context",
+      "answer": "They obtain the new context representation by splitting the sentence into left, middle, and right contexts and processing each region through separate convolutional and max-pooling layers before concatenating them",
       "evidence": [
         "(1) We propose extended middle context, a new context representation for CNNs for relation classification. The extended middle context uses all parts of the sentence (the relation arguments, left of the relation arguments, between the arguments, right of the arguments) and pays special attention to the middle part.",
         "One of our contributions is a new input representation especially designed for relation classification. The contexts are split into three disjoint regions based on the two relation arguments: the left context, the middle context and the right context. Since in most cases the middle context contains the most relevant information for the relation, we want to focus on it but not ignore the other regions completely. Hence, we propose to use two contexts: (1) a combination of the left context, the left entity and the middle context; and (2) a combination of the middle context, the right entity and the right context. Due to the repetition of the middle context, we force the network to pay special attention to it. The two contexts are processed by two independent convolutional and max-pooling layers. After pooling, the results are concatenated to form the sentence representation. Figure FIGREF3 depicts this procedure. It shows an examplary sentence: “He had chest pain and <e1>headaches</e1> from <e2>mold</e2> in the bedroom.” If we only considered the middle context “from”, the network might be tempted to predict a relation like Entity-Origin(e1,e2). However, by also taking the left and right context into account, the model can detect the relation Cause-Effect(e2,e1). While this could also be achieved by integrating the whole context into the model, using the whole context can have disadvantages for longer sentences: The max pooling step can easily choose a value from a part of the sentence which is far away from the mention of the relation. With splitting the context into two parts, we reduce this danger. Repeating the middle context increases the chance for the max pooling step to pick a value from the middle context."
@@ -86,8 +86,12 @@
       ]
     },
     "55139fcfe04ce90aad407e2e5a0067a45f31e07e": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "The authors translated the reviews to English using machine translation tools before applying their trained RNN model to score polarity in the translated text",
+      "evidence": [
+        "In this paper, we take a different approach. We build a reusable sentiment analysis model that does not utilize any lexicons. Our goal is to evaluate how well a generic model can be used to mine opinion in different languages where data is more limited than the language where the generic model is trained on. To that end, we build a training set that contains reviews from different domains in English (e.g., movie reviews, product reviews) and train a recurrent neural network (RNN) model to predict polarity of those reviews. Then focusing on a domain, we make the model specialized in that domain by using the trained weights from the larger data and further training with data on a specific domain. To evaluate the reusability of the sentiment analysis model, we test with non-English datasets. We first translate the test set to English and use the pre-trained model to score polarity in the translated text. In this way, our proposed approach eliminates the need to train language-dependent models, use of sentiment lexicons and word embeddings for each language. Our experiments show that a generalizable sentiment analysis model can be utilized successfully to perform opinion mining for languages that do not have enough resources to train specific models.",
+        "Our goal in this work is to streamline the feature engineering phase by not relying on any dictionary other than English word embeddings that are trained on any data (i.e. not necessarily sentiment analysis corpus). To that end, we utilize off-the-shelf machine translation tools to first translate corpora to the language where more training data is available and use the translated corpora to do inference on.",
+        "Machine translation for multilingual sentiment analysis has also seen attention from researchers. Hiroshi et al. BIBREF13 translated only sentiment units with a pattern-based approach. Balahur and Turchi BIBREF14 used uni-grams, bi-grams and tf-idf features for building support vector machines on translated text. Boyd-Graber and Resnik BIBREF15 built Latent Dirichlet Allocation models to investigate how multilingual concepts are clustered into topics. Mohammed et al. BIBREF16 translate Twitter posts to English as well as the English sentiment lexicons. Tellez et al. BIBREF17 propose a framework where language-dependent and independent features are used with an SVM classifier. These machine learning approaches also require a feature extraction phase where we eliminate by incorporating a deep learning approach that does the feature learning intrinsically. Further, Wan BIBREF18 uses an ensemble approach where the resources (e.g., lexicons) in both the original language and the translated language are used – requiring resources to be present in both languages. Brooke et al. BIBREF19 also use multiple dictionaries."
+      ]
     },
     "fbaf060004f196a286fef67593d2d76826f0304e": {
       "answer": "yelp restaurant reviews dataset",
@@ -134,8 +138,12 @@
       "evidence": []
     },
     "d667731ea20605580c398a1224a0094d1155ebbb": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Training these deep architectures require large amount of annotated data, as a result, they cannot be used in low data resource scenarios which is common in speech-based applications [13 - 15]. Apart from collecting large data corpus, annotating the data is also very difficult, and requires manual supervision and efforts. Especially, annotation of speech for tasks like emotion recognition also suffer from lack of agreement among the annotators [16]. Hence, there is a need to build reliable systems that can work in low resource scenario.",
+        "The s2sL approach proposed to address low data resource problem is explained in this Section. In this work, we use MLP (modified to handle our data representation) as the base classifier. Here, we explain the s2sL approach by considering two-class classification task.",
+        "The output layer will consist of units equal to twice the considered number of classes in the classification task i.e, the output layer will have four units for two-class classification task. The sigmoid activation function (not softmax) is used on the output layer units. Unlike regular MLP, we use sigmoid activation units in the output layer, with binary cross-entropy as the cost function, because the output labels in the proposed s2s based data representation will have more than one unit active at a time (not one-hot encoded output) and this condition cannot be handled using softmax function."
+      ]
     },
     "252a645af9876241fb166e5822992ce17fec6eb6": {
       "answer": "Unanswerable",
@@ -166,11 +174,15 @@
       "evidence": []
     },
     "ddb23a71113cbc092cbc158066d891cae261e2c6": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "nowthisnews",
+      "evidence": [
+        "BIBREF4 contains a variety of news-related information such as images, captions, geo-location information and comments which could be used as a proxy for article popularity. The articles in this dataset were collected between January and December 2014. Although we tried to retrieve the entire dataset, we were able to download only 38,182 articles due to the dead links published in the dataset. The retrieved articles were published in main news channels, such as Yahoo News, The Guardian or The Washington Post. Similarly, to The NowThisNews dataset we normalize the data by grouping articles per publisher, and classifying them as popular, when the number of comments exceeds the median value for given publisher.",
+        "Recently, several works have touched on the topic of popularity prediction of news article from a multimodal perspective BIBREF4 , BIBREF14 . Although in BIBREF4 the authors analyze news articles on a per-modality basis, they do not approach the problem of popularity prediction in a holistic way. To address this shortcoming, BIBREF14 have proposed a multimodal approach to predicting popularity of short videos shares in social media platform Vine using a model that fuses features related to different modalities. In our work, we focus only on textual features of the article title for the purpose of popularity prediction, as our goal is to empower the journalists to quantitatively assess the quality of the headlines they create before the publication. Nevertheless, we believe that in future research we will extend our method towards multimodal popularity prediction.",
+        "In this section we present two datasets used in our experiments: The NowThisNews dataset, collected for the purpose of this paper, and The BreakingNews dataset BIBREF4 , publicly available dataset of news articles."
+      ]
     },
     "a66a275a817f980c36e0b67d2e00bd823f63abf8": {
-      "answer": "50",
+      "answer": "Participants evaluated fluency, similarity in meaning, formality, and specific differences between translated sentences using predefined criteria",
       "evidence": [
         "Human evaluation was performed on a subset of 100 sentences, 50 of them selected randomly from the OpenSubtitles test set and the other 50 from Europarl. Each sentence was translated into the opposite style. The resulting pairs were presented to participants, who were asked the following questions about each of them: (1) Do the sentences differ in any way? (2) How fluent is the translated sentence? (On a scale of 1 to 4, where 1 is unreadable, and 4 is perfectly fluent); (3) How similar are the sentences in meaning? (With options \"exactly the same\", \"the same with minor changes\", \"more or less the same\", \"completely different or nonsensical\"); (4) Does the translated sentence sound more formal than the original, more informal, or neither? (5) What differences are there between the sentences? (E.g. grammatical, lexical, missing words or phrases, word order, contractions, the use of formal \"you\").",
         "At first, we examined how often the sentences change when translated monolingually. The assumption is that passing modified style factors should prevent the model from simply copying the source sequences when translating inside a single language, and incentivize it to match its output to certain style characteristics typical for different corpora. Figure FIGREF28 shows the proportions of sentence pairs in the 1000-sentence test sets where there was a significant difference between translations into different styles. We can observe that English texts change less often than Estonian or Latvian, while Europarl sentences are changed more often than those of other corpora.",
@@ -178,8 +190,12 @@
       ]
     },
     "b6f466e0fdcb310ecd212fd90396d9d13e0c0504": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Naturally, the model only copes with some kinds of errors and fails on others – for instance, word order is restored, as long as it does not affect the perception of the meaning. On the other hand, we do not expect orthographic variations like typos to be fixed reliably, since they affect the sub-word segmentation of the input and thus can hinder the translation.",
+        "Human evaluation was performed on a subset of 100 sentences, 50 of them selected randomly from the OpenSubtitles test set and the other 50 from Europarl. Each sentence was translated into the opposite style. The resulting pairs were presented to participants, who were asked the following questions about each of them: (1) Do the sentences differ in any way? (2) How fluent is the translated sentence? (On a scale of 1 to 4, where 1 is unreadable, and 4 is perfectly fluent); (3) How similar are the sentences in meaning? (With options \"exactly the same\", \"the same with minor changes\", \"more or less the same\", \"completely different or nonsensical\"); (4) Does the translated sentence sound more formal than the original, more informal, or neither? (5) What differences are there between the sentences? (E.g. grammatical, lexical, missing words or phrases, word order, contractions, the use of formal \"you\").",
+        "Grammatical error correction: there have been four shared tasks for GEC with prepared error-tagged datasets for L2 learners of English in the last decade: HOO BIBREF27 , BIBREF28 and CoNLL BIBREF29 , BIBREF5 . This has given an opportunity to train new models on the shared datasets and get an objective comparison of results. The general approach for grammatical error correction has been to use either rule-based approach, machine learning on error-tagged corpora, MT models on parallel data of erroneous and corrected sentences, or a combination of these BIBREF5 . The top model of the CONLL shared task in 2014 used a combined model of rule-based approach and MT BIBREF24 . All of these require annotated data or considerable effort to create, whereas our model is much more resource-independent. Another focus of the newer research is on creating GEC models without human-annotated resources. For example BIBREF26 combine statistical MT with unsupervised classification using unannotated parallel data for MT and unannotated native data for the classification model. In this case parallel data of erroneous and corrected sentences is still necessary for MT; the classifier uses native data, but still needs definitions of possible error types to classify – this work needs to be done by a human and is difficult for some less clear error types. In our approach there is no need for parallel data nor to specify error types, only for native data."
+      ]
     },
     "62ea141d0fb342dfb97c69b49d1c978665b93b3c": {
       "answer": "spelling and grammatical errors",
@@ -222,7 +238,7 @@
       "evidence": []
     },
     "1d197cbcac7b3f4015416f0152a6692e881ada6c": {
-      "answer": "off-the-shelf open information extraction (openie) toolbox BibRef7",
+      "answer": "They extract \"structured answer-relevant relations\" using an off-the-shelf open information extraction tool and carefully designed heuristic rules",
       "evidence": [
         "To address this issue, we extract the structured answer-relevant relations from sentences and propose a method to jointly model such structured relation and the unstructured sentence for question generation. The structured answer-relevant relation is likely to be to the point context and thus can help keep the generated question to the point. For example, Figure FIGREF1 shows our framework can extract the right answer-relevant relation (“The daily mean temperature in January”, “is”, “32.6$^\\circ $F (0.3$^\\circ $C)”) among multiple facts. With the help of such structured information, our model is less likely to be confused by sentences with a complex structure. Specifically, we firstly extract multiple relations with an off-the-shelf Open Information Extraction (OpenIE) toolbox BIBREF7, then we select the relation that is most relevant to the answer with carefully designed heuristic rules.",
         "In this section, we first introduce the task definition and our protocol to extract structured answer-relevant relations. Then we formalize the task under the encoder-decoder framework with gated attention and dual copy mechanism.",
@@ -261,8 +277,12 @@
       ]
     },
     "5eabfc6cc8aa8a99e6e42514ef9584569cb75dec": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Recent work has sought to take advantage of word embeddings in unsupervised generative models with alternate approaches BIBREF9 , BIBREF10 , BIBREF11 , BIBREF12 . BIBREF9 build an HMM with Gaussian emissions on observed word embeddings, but they do not attempt to learn new embeddings. BIBREF10 , BIBREF11 , and BIBREF12 extend HMM or dependency model with valence (DMV) BIBREF2 with multinomials that use word (or tag) embeddings in their parameterization. However, they do not represent the embeddings as latent variables.",
+        "In Figure FIGREF54 we depict the learned latent embeddings with the DMV-structured syntax model. Unlike the Markov structure, the DMV structure maps a large subset of singular and plural nouns to the same overlapping region. However, two clusters of singular and plural nouns are actually separated. We inspect the two clusters and the overlapping region in Figure FIGREF54 , it turns out that the nouns in the separated clusters are words that can appear as subjects and, therefore, for which verb agreement is important to model. In contrast, the nouns in the overlapping region are typically objects. This demonstrates that the latent embeddings are focusing on aspects of language that are specifically important for modeling dependency without ever having seen examples of dependency parses. Some previous work has deliberately created embeddings to capture different notions of similarity BIBREF43 , BIBREF44 , while they use extra morphology or dependency annotations to guide the embedding learning, our approach provides a potential alternative to create new embeddings that are guided by structured syntax model, only using unlabeled text corpora.",
+        "In this section, we first describe our datasets and experimental setup. We then instantiate our approach with Markov and DMV-structured syntax models, and report results on POS tagging and dependency grammar induction respectively. Lastly, we analyze the learned latent embeddings."
+      ]
     },
     "887c6727e9f25ade61b4853a869fe712fe0b703d": {
       "answer": "(1) inlineform0 and (2) inlineform1 exist",
@@ -273,11 +293,15 @@
       ]
     },
     "ee417fea65f9b1029455797671da0840c8c1abbe": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "One of the potential applications of Natural Language Processing (NLP) within the IPA domain are conversational interfaces that enable human-to-machine interaction. The main benefit of conversational systems is their ability to give attention to several users simultaneously while supporting natural communication. A conventional dialogue system comprises multiple stages and involves different types of NLP subtasks, starting with Natural Language Understanding (NLU) (e.g., intent classification, named entity extraction) and going towards dialogue management (i.e., determining the next possible bot action, considering the dialogue history) and response generation (e.g., converting the semantic representation of the next system action into a natural language utterance). A typical dialogue system for IPA purposes undertakes shallow customer support requests (e.g., answering of FAQs), allowing human workers to focus on more sophisticated inquiries.",
+        "Rule-based Approaches: Though many of the latest research approaches handle NLU and NLG units by using statistical NLP models BIBREF5, BIBREF6, BIBREF7, most of the industrially deployed dialogue systems still use manual features or handcrafted rules for the state and action prediction, intent classification, and slot filling tasks BIBREF8, BIBREF9. The rule-based approach ensures robustness and stable performance that is crucial for industrial systems that interact with a large number of users simultaneously. However, it is highly expensive and time-consuming to deploy a real dialogue system built in this manner. The major disadvantage is that the usage of handcrafted systems is restricted to a specific domain, and possible domain adaptation requires extensive manual engineering.",
+        "End-to-End Learning Approaches: Due to the recent advance of end-to-end neural generative models BIBREF10, many efforts have been made to build an end-to-end trainable architecture for dialogue systems. Rather than using the traditional pipeline, an end-to-end model is conceived as a single module BIBREF8. Despite having better adaptability compared to any rule-based system and being easy to train, end-to-end approaches remain unattainable for commercial conversational agents operating on real-world data. A well and carefully constructed task-oriented dialogue system in a known domain using handcrafted rules and predefined responses, still outperforms the end-to-end systems due to its robustness BIBREF11, BIBREF12."
+      ]
     },
     "ca5a82b54cb707c9b947aa8445aac51ea218b23a": {
-      "answer": "see section secref3 – section secref4",
+      "answer": "The IPA labels were augmented through user interactions",
       "evidence": [
         "Second, by interacting with users, it augments the resources with structured and to some extent labeled training data for further possible implementation of learnable dialogue components (see Section SECREF5);",
         "This paper addresses the challenge of implementing a dialogue system for IPA purposes within the practical e-learning domain with the initial absence of training data. Our contributions within this work are as follows:",
@@ -293,15 +317,23 @@
       ]
     },
     "de0b650022ad8693465242ded169313419eed7d9": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Firat2016 proposed another approach which genuinely delivers attention-based NMT to multilingual translation. As in BIBREF9 , their approach utilizes one encoder per source language and one decoder per target language for many-to-many translation tasks. Instead of a quadratic number of independent attention layers, however, one single attention mechanism is integrated into their NMT, performing an affine transformation between the hidden layer of INLINEFORM0 source languages and that one of INLINEFORM1 target languages. It is required to change their architecture to accomodate such a complicated shared attention mechanism.",
+        "Nevertheless, there are issues that we can continue working on to address in future work. A more balancing data would be helpful for this framework. The mechanism of forcing the NMT system to the right target language could be improved. We could conduct more detailed analyses of the various strategies under the framework to show its universarity.",
+        "An NMT system consists of an encoder which automatically learns the characteristics of a source sentence into fix-length context vectors and a decoder that recursively combines the produced context vectors with the previous target word to generate the most probable word from a target vocabulary."
+      ]
     },
     "2b3cac7af10d358d4081083962d03ea2798cf622": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Firat2016 proposed another approach which genuinely delivers attention-based NMT to multilingual translation. As in BIBREF9 , their approach utilizes one encoder per source language and one decoder per target language for many-to-many translation tasks. Instead of a quadratic number of independent attention layers, however, one single attention mechanism is integrated into their NMT, performing an affine transformation between the hidden layer of INLINEFORM0 source languages and that one of INLINEFORM1 target languages. It is required to change their architecture to accomodate such a complicated shared attention mechanism.",
+        "One of the most severe problems of NMT is handling of the rare words, which are not in the short lists of the vocabularies, i.e. out-of-vocabulary (OOV) words, or do not appear in the training set at all. In BIBREF6 , the rare target words are copied from their aligned source words after the translation. This heuristic works well with OOV words and named entities but unable to translate unseen words. In BIBREF7 , their proposed NMT models have been shown to not only be effective on reducing vocabulary sizes but also have the ability to generate unseen words. This is achieved by segmenting the rare words into subword units and translating them. The state-of-the-art translation systems essentially employ subword NMT BIBREF7 .",
+        "In BIBREF2 , this attention mechanism, originally called alignment model, has been employed as a simple feedforward network with the first layer is a learnable layer via INLINEFORM0 , INLINEFORM1 and INLINEFORM2 . The relevance scores INLINEFORM3 are then normalized into attention weights INLINEFORM4 and the context vector INLINEFORM5 is calculated as the weighted sum of all annotation vectors INLINEFORM6 . Depending on how much attention the target word at time INLINEFORM7 put on the source states INLINEFORM8 , a soft alignment is learned. By being employed this way, word alignment is not a latent variable but a parametrized function, making the alignment model differentiable. Thus, it could be trained together with the whole architecture using backpropagation."
+      ]
     },
     "897ba53ef44f658c128125edd26abf605060fb13": {
-      "answer": "tst2013",
+      "answer": "Yes",
       "evidence": [
         "We evaluate bridge and universal systems on two German INLINEFORM0 French test sets. They are compared to a direct system, which is an NMT trained on German INLINEFORM1 French data, and to a pivot system, which essentially consists of two separate NMTs trained to translate from German to English and English to French. The direct system should not exist in a real zero-resourced situation. We refer it as the perfect system for comparison purpose only. In case of the pivot system, to generate a translated text in French from a German sentence, we first translate it to English, then the output sentence is fed to the English INLINEFORM2 German NMT system to obtain the French translation. Since there are more than two languages involved in those systems, we increase the number of BPE merging operations proportionally in order to reduce the number of rare words in such systems. We do not expect our proposed systems to perform well with this primitive way of building direct translating connections since this is essentially a difficult task. We report the performance of those systems in Table TABREF23 .",
         "First, we consider the translation for an under-resourced pair of languages. Here a small portion of the large parallel corpus for English-German is used as a simulation for the scenario where we do not have much parallel data: Translating texts in English to German. We perform language-specific coding in both source and target sides. By accommodating the German monolingual data as an additional input (German INLINEFORM0 German), which we called the mix-source approach, we could enrich the training data in a simple, natural way. Given this under-resourced situation, it could help our NMT obtain a better representation of the source side, hence, able to learn the translation relationship better. Including monolingual data in this way might also improve the translation of some rare word types such as named entities. Furthermore, as the ultimate goal of our work, we would like to investigate the advantages of multilinguality in NMT. We incorporate a similar portion of French-German parallel corpus into the English-German one. As discussed in Section SECREF5 , it is expected to help reducing the ambiguity in translation between one language pair since it utilizes the semantic context provided by the other source language. We name this mix-multi-source.",
@@ -381,7 +413,7 @@
       "evidence": []
     },
     "2e89ebd2e4008c67bb2413699589ee55f59c4f36": {
-      "answer": "learning presented a method to train on conversations from reddit using siamese dan and siamese transformer networks, which yielded good results on the sts benchmark dataset",
+      "answer": "Siamese networks are used to train sentence embeddings by comparing pairs of sentences",
       "evidence": [
         "Sentence embeddings are a well studied area with dozens of proposed methods. Skip-Thought BIBREF12 trains an encoder-decoder architecture to predict the surrounding sentences. InferSent BIBREF4 uses labeled data of the Stanford Natural Language Inference dataset BIBREF13 and the Multi-Genre NLI dataset BIBREF14 to train a siamese BiLSTM network with max-pooling over the output. Conneau et al. showed, that InferSent consistently outperforms unsupervised methods like SkipThought. Universal Sentence Encoder BIBREF5 trains a transformer network and augments unsupervised learning with training on SNLI. hill-etal-2016-learning showed, that the task on which sentence embeddings are trained significantly impacts their quality. Previous work BIBREF4, BIBREF5 found that the SNLI datasets are suitable for training sentence embeddings. yang-2018-learning presented a method to train on conversations from Reddit using siamese DAN and siamese transformer networks, which yielded good results on the STS benchmark dataset.",
         "In order to fine-tune BERT / RoBERTa, we create siamese and triplet networks BIBREF15 to update the weights such that the produced sentence embeddings are semantically meaningful and can be compared with cosine-similarity."
@@ -392,16 +424,23 @@
       "evidence": []
     },
     "4e1a67f8dc68b55a5ce18e6cd385ae9ab90d891f": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "Yes",
+      "evidence": [
+        "Characterization of the questions based on question quality requires expert human interventions often judging if a question would remain open based on factors like if it is subjective, controversial, open-ended, vague/imprecise, ill-formed, off-topic, ambiguous, uninteresting etc. Collecting judgment data for thousands of question posts is a very expensive process. Therefore, such an experiment can be done only for a small set of questions and it would be practically impossible to scale it up for the entire collection of posts on the Q&A site. In this work, we show that appropriate quantification of various linguistic activities can naturally correspond to many of the judgment factors mentioned above (see table 2 for a collection of examples). These quantities encoding such linguistic activities can be easily measured for each question post and thus helps us to have an alternative mechanism to characterize the answerability on the Q&A site.",
+        "From a group of small users at the time of its inception in 2009, Quora has evolved in the last few years into one of the largest community driven Q&A sites with diverse user communities. With the help of efficient content moderation/review policies and active in-house review team, efficient Quora bots, this site has emerged into one of the largest and reliable sources of Q&A on the Internet. On Quora, users can post questions, follow questions, share questions, tag them with relevant topics, follow topics, follow users apart from answering, commenting, upvoting/downvoting etc. The integrated social structure at the backbone of it and the topical organization of its rich content have made Quora unique with respect to other Q&A sites like Stack Overflow, Yahoo! Answers etc. and these are some of the prime reasons behind its popularity in recent times. Quality question posting and getting them answered are the key objectives of any Q&A site. In this study we focus on the answerability of questions on Quora, i.e., whether a posted question shall eventually get answered. In Quora, the questions with no answers are referred to as “open questions”. These open questions need to be studied separately to understand the reason behind their not being answered or to be precise, are there any characteristic differences between `open' questions and the answered ones. For example, the question “What are the most promising advances in the treatment of traumatic brain injuries?” was posted on Quora on 23rd June, 2011 and got its first answer after almost 2 years on 22nd April, 2013. The reason that this question remained open so long might be the hardness of answering it and the lack of visibility and experts in the domain. Therefore, it is important to identify the open questions and take measures based on the types - poor quality questions can be removed from Quora and the good quality questions can be promoted so that they get more visibility and are eventually routed to topical experts for better answers.",
+        "In fig 1 (a), we observe that askers of open questions generally use more no. of words compared to answered questions. To understand the nature of words (standard English words or chat-like words frequently used in social media) used in the text, we compare the words with GNU Aspell dictionary to see whether they are present in the dictionary or not. We observe that both open questions and answered questions follow similar distribution (see fig 1 (b)). Part-of-Speech (POS) tags are indicators of grammatical aspects of texts. To observe how the Part-of-Speech tags are distributed in the question texts, we define a diversity metric. We use the standard CMU POS tagger BIBREF8 for identifying the POS tags of the constituent words in the question. We define the POS tag diversity (POSDiv) of a question $q_i$ as follows: $POSDiv(q_i) = -\\sum _{j \\in pos_{set}}p_j\\times \\log (p_j)$ where $p_j$ is the probability of the $j^{th}$ POS in the set of POS tags. Fig 1 (c) shows that the answered questions have lower POS tag diversity compared to open questions. Question texts undergo several edits so that their readability and the engagement toward them are enhanced. It is interesting to identify how far such edits can make the question different from the original version of it. To capture this phenomena, we have adopted ROUGE-LCS recall BIBREF9 from the domain of text summarization. Higher the recall value, lesser are the changes in the question text. From fig 1 (d), we observe that open questions tend to have higher recall compared to the answered ones which suggests that they have not gone through much of text editing thus allowing for almost no scope of readability enhancement."
+      ]
     },
     "6c96e910bd98c9fd58ba2050f99b9c9bac69840a": {
       "answer": "Unanswerable",
       "evidence": []
     },
     "9af3142630b350c93875441e1e1767312df76d17": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "Yes",
+      "evidence": [
+        "Askers of open questions use more function words, impersonal pronouns, articles on an average whereas asker of answered questions use more personal pronouns, conjunctions and adverbs to describe their questions. Essentially, open questions lack content words compared to answered questions which, in turn, affects the readability of the question. As far as the psychological aspects are concerned, answered question askers tend to use more social, family, human related words on average compared to an open question asker. The open question askers express more positive emotions whereas the answered question asker tend to express more negative emotions in their texts. Also, answered question askers are more emotionally involved and their questions reveal higher usage of anger, sadness, anxiety related words compared to that of open questions. Open questions, on the other hand, contains more sexual, body, health related words which might be reasons why they do not attract answers.",
+        "From a group of small users at the time of its inception in 2009, Quora has evolved in the last few years into one of the largest community driven Q&A sites with diverse user communities. With the help of efficient content moderation/review policies and active in-house review team, efficient Quora bots, this site has emerged into one of the largest and reliable sources of Q&A on the Internet. On Quora, users can post questions, follow questions, share questions, tag them with relevant topics, follow topics, follow users apart from answering, commenting, upvoting/downvoting etc. The integrated social structure at the backbone of it and the topical organization of its rich content have made Quora unique with respect to other Q&A sites like Stack Overflow, Yahoo! Answers etc. and these are some of the prime reasons behind its popularity in recent times. Quality question posting and getting them answered are the key objectives of any Q&A site. In this study we focus on the answerability of questions on Quora, i.e., whether a posted question shall eventually get answered. In Quora, the questions with no answers are referred to as “open questions”. These open questions need to be studied separately to understand the reason behind their not being answered or to be precise, are there any characteristic differences between `open' questions and the answered ones. For example, the question “What are the most promising advances in the treatment of traumatic brain injuries?” was posted on Quora on 23rd June, 2011 and got its first answer after almost 2 years on 22nd April, 2013. The reason that this question remained open so long might be the hardness of answering it and the lack of visibility and experts in the domain. Therefore, it is important to identify the open questions and take measures based on the types - poor quality questions can be removed from Quora and the good quality questions can be promoted so that they get more visibility and are eventually routed to topical experts for better answers."
+      ]
     },
     "e374169ee10f835f660ab8403a5701114586f167": {
       "answer": "username, display name, profile image, location, description",
@@ -444,15 +483,19 @@
       "evidence": []
     },
     "bfbd6040cb95b179118557352e8e3899ef25c525": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "Yes",
+      "evidence": [
+        "Here we compare the audio quality between our method and BIBREF0's method (Below we call USVC), and show that the input pitch can affect the output singing voice by qualitative analysis. Since the authors of BIBREF0 do not release their source code and only provide part of the converted results at their website, we implemented USVC by ourselves, denoted by USVC(our) below, to give a more comprehensive comparison. Audio samples are available at our website .",
+        "Mean Opinion Score (MOS) was used as a subjective metric to evaluate the quality of the converted audio. Two questions were asked: (1) what is quality of the audio? (naturalness) (2) How well does the converted version match the original? (similarity) A score of 1-5 would be given to answer the questions. The evaluation was conducted on USVC (Our) and PitchNet. Besides, the converted samples provided by BIBREF0 was also included to give a more convincing evaluation. As shown by Tab. TABREF15, the naturalness and similarity of our method are both higher than the other two ones. Our implementation of USVC performed slightly lower than the original author's because we cannot fully reproduce the results of them.",
+        "Singing voice conversion is another way of singing synthesis which extracts musical expression within existing singing and reproduced them with another singer's voice. It is very similar to speech based voice conversion BIBREF5, BIBREF6, BIBREF7, BIBREF8, but compared with speech voice conversion, singing voice conversion needs to deal with a wider range of frequency variations as well as the sharper change of volume and pitch within singing voice. The performance of singing conversion is highly dependent on the musical expression of converted singing and the similarity of the converted voice timbre compared to target singer's voice. There are several singing voice conversion methods to convert one's singing voice to another BIBREF9, BIBREF10, BIBREF11. They generally require parallel data to train the conversion model. To overcome the limitation of the parallel training data for singing voice conversion, an unsupervised method BIBREF0 has been proposed to utilize non-parallel data. This method employs an autoencoder architecture composed of a WaveNet-like encoder, a WaveNet BIBREF4 autoregressive decoder, and a learnable singer embedding table. Voice waveform is passed into the encoder and the output of the encoder will be concatenated with the embedding vector associated with the singer. The concatenated features will be used to condition the WaveNet decoder to reconstruct the input audio. A confusion loss BIBREF12 is also introduced to force the encoder to learn a singer-invariant representation. By switching between embeddings of different singers during generation, the singing voice conversion can be achieved. While this approach could generates singing voice perceptually similar to target singer, the quality of generated singing often suffers due to the difficulty on learning joint representation of phonetic and pitch representation."
+      ]
     },
     "d6e353e0231d09fd5dcba493544d53706f3fe1ab": {
       "answer": "Unanswerable",
       "evidence": []
     },
     "a313e98994fc039a82aa2447c411dda92c65a470": {
-      "answer": "bibref17",
+      "answer": "They match words before reordering them using the cfilt-preorder system, which includes generic and Hindi-tuned rules tailored for Indian languages",
       "evidence": [
         "We use the CFILT-preorder system for reordering English sentences to match the Indian language word order. It contains two re-ordering systems: (1) generic rules that apply to all Indian languages BIBREF17 , and (2) hindi-tuned rules which improve the generic rules by incorporating improvements found through an error analysis of English-Hindi reordering BIBREF28 . These Hindi-tuned rules have been found to improve reordering for many English to Indian language pairs BIBREF29 .",
         "To see how word order divergence can be detrimental, let us consider the case of the standard RNN (Bi-LSTM) encoder-attention-decoder architecture BIBREF13 . The encoder generates contextual representations (annotation vectors) for each source word, which are used by the attention network to match the source words to the current decoder state. The contextual representation is word-order dependent. Hence, if the assisting and the source languages do not have similar word order the generated contextual representations will not be consistent. The attention network (and hence the decoder) sees different contextual representations for similar words in parallel sentences across different languages. This makes it difficult to transfer knowledge learned from the assisting language to the source language.",
@@ -476,8 +519,12 @@
       ]
     },
     "1f07e837574519f2b696f3d6fa3230af0b931e5d": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "We always couple DS with DDP. However, as the original Path features did not use DDP, we experiment with Path features in one setting that does not incorporate DDP and another that does. The SHR features are not coupled with DDP, following the original design, as the features are not defined on a dependency-parsed input sentence.",
+        "The language model (LM) is a 5-gram model trained on the English side of the FBIS parallel corpus (LDC2003E14) and the monolingual corpus English Gigaword version 4 (LDC2009T13), consisting of 107M sentences and 3.8G tokens altogether. Each individual Gigaword sub-corpus is used to train a separate language model and so is the English side of FBIS. These individual language models are then interpolated to build one single large LM, via perplexity tuning on the development set.",
+        "As the beam search can choose input phrases in any order, the target-language phrase sequence in the translation output may not follow the original source sentence order. The sequence determines the translation output order and enables translation output reordering for language pairs with differences in word order, such as Chinese and English."
+      ]
     },
     "7fb27d8d5a8bb351f97236a1f6dcd8b2613b16f1": {
       "answer": "t5",
@@ -528,7 +575,7 @@
       ]
     },
     "f8da63df16c4c42093e5778c01a8e7e9b270142e": {
-      "answer": "d",
+      "answer": "Segmentation quality is evaluated by comparing human-generated segmentations against those produced by automatic methods, focusing on the accuracy of word boundaries",
       "evidence": [
         "The aim of this work was twofold: to design a discursive segmenter using a minimum of resources and to establish an evaluation protocol to measure the performance of segmenters. The results show that we can build a simple version of the baseline, which employs only a list of markers and presents a very encouraging performance. Of course, the quality of the list is a preponderant factor for a correct segmentation.",
         "Two batch of tests were performed. The first on the $D$ set of documents common to the two subcorpus “specialist” $E$ and “naive” $N$ from Annodis. $D$ contains 38 documents with 13 364 words. This first test allowed to measure the distance between the human markers. In fact, in order to get an idea of the quality of the human segmentations, the cuts in the texts made by the specialists were measured it versus the so-called “naifs” note takers and vice versa. The second series of tests consisted of using all the documents of the subcorpus “specialist” $E$, because the documents of the subcorpus of Annodis are not identical. Then we benchmarked the performance of the three systems automatically.",
@@ -552,16 +599,16 @@
       ]
     },
     "b9ea841b817ba23281c95c7a769873b840dee8d5": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "Yes",
+      "evidence": [
+        "In this section, we describe the data augmentation methods we use to increase the amount of training data in order to make our NMT systems suffer less from the low-resourced situation in Japanese INLINEFORM0 Vietnamese translation. Although NMT systems can predict and generate the translation of unseen words on their vocabularies, but they only perform this well if the parallel corpus for training are sufficiently large. For many under-resourced languages, unfortunately, it hardly presents. In reality, although the monolingual data of Vietnamese and Japanese are immensely available due to the popularity of their speakers, the bilingual Japanese-Vietnamese corpora are very limited and often in low quality or in narrowly technical domains. Therefore, data augmentation methods to exploit monolingual data for NMT systems are necessary to obtain more bilingual data, thus upgrading the translating quality.",
+        "We would like to thank the center of High-performance computing (HPC), University of Engineering and Technology, VNU, Vietnam for allowing us to use their GPUs to perform the experiments mentioned in the paper. We also thank the anonymous reviewers for their careful reading of our paper and insightful comments.",
+        "We also attempt to increase the amount of training data by using back-translated texts or mix-source data just from our small available corpus. Those data augmentation approaches have shown their effectiveness on various NMT systems, especially in under-resourced scenarios. While back translation technique is used to generate synthetic data from monolingual corpora, mix-source technique utilizes human-quality corpora in a multilingual setting, leveraging the transfer learning ability across languages. Both are simple but elegantly model the relevant noise needed in training neural architectures in such low-resourced situations."
+      ]
     },
     "219af68afeaecabdfd279f439f10ba7c231736e4": {
-      "answer": "vnesecorpus",
-      "evidence": [
-        "The other previous work for Japanese INLINEFORM0 Vietnamese uses SMT BIBREF19 . They also conducted the experiments on parallel corpora collected from TED talks. They used phrase-based and tree-to-string models and have shown that the SMT system trained on French INLINEFORM1 Vietnamese obtains better results than the system of Japanese INLINEFORM2 Vietnamese because French and Vietnamese have more similarities in the structures of sentences than between Japanese and Vietnamese. We also built phrase-based systems on the TED data and achieved better BLEU scores when using NMT.",
-        "The data augmentation methods has been applied only for the Japanese INLINEFORM0 Vietnamese direction. For Back Translation, we use Vietnamese monolingual data from VNESEcorpus of DongDu which includes 349578 sentences. We shuffle the lines of VNESEcorpus corpus and take out the first 106758 sentences (the same as the number of sentence pairs in the original parallel corpus). For Mix-Source, instead of using a subsampled monolingual corpus, we use the Vietnamese part of the Japanese-Vietnamese parallel corpus in order to learn the multilingual information in the same domain. Our datasets are listed in Table TABREF14 .",
-        "Japanese-Vietnamese MT is firstly mentioned in 2005 BIBREF18 . The authors focused on the difference from embedding structures between Japanese and Vietnamese, and then proposed rules for MT system and experiment on very small dataset (714 Japanese embedding sentences). This approach is suitable for small system applied in a specific domain or language, but it is not easily extendable to other domains or languages due to the expensiveness of building such rules."
-      ]
+      "answer": "Unanswerable",
+      "evidence": []
     },
     "f68508adef6f4bcdc0cc0a3ce9afc9a2b6333cc5": {
       "answer": "0.92",
@@ -572,12 +619,18 @@
       ]
     },
     "5563a3538d311c979c2fb83c1cc9afc66ff6fffc": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "Yes",
+      "evidence": [
+        "Understanding passenger intents from spoken interactions and car's vision (both inside and outside the vehicle) are important building blocks towards developing contextual dialog systems for natural interactions in autonomous vehicles (AV). In this study, we continued exploring AMIE (Automated-vehicle Multimodal In-cabin Experience), the in-cabin agent responsible for handling certain multimodal passenger-vehicle interactions. When the passengers give instructions to AMIE, the agent should parse such commands properly considering available three modalities (language/text, audio, video) and trigger the appropriate functionality of the AV system. We had collected a multimodal in-cabin dataset with multi-turn dialogues between the passengers and AMIE using a Wizard-of-Oz scheme via realistic scavenger hunt game. In our previous explorations BIBREF0, BIBREF1, we experimented with various RNN-based models to detect utterance-level intents (set destination, change route, go faster, go slower, stop, park, pull over, drop off, open door, and others) along with intent keywords and relevant slots (location, position/direction, object, gesture/gaze, time-guidance, person) associated with the action to be performed in our AV scenarios. In this recent work, we propose to discuss the benefits of multimodal understanding of in-cabin utterances by incorporating verbal/language input (text and speech embeddings) together with the non-verbal/acoustic and visual input from inside and outside the vehicle (i.e., passenger gestures and gaze from in-cabin video stream, referred objects outside of the vehicle from the road view camera stream). Our experimental results outperformed text-only baselines and with multimodality, we achieved improved performances for utterance-level intent detection and slot filling."
+      ]
     },
     "3611a72f754de1e256fbd25b012197e1c24e8470": {
-      "answer": "Unanswerable",
-      "evidence": []
+      "answer": "No",
+      "evidence": [
+        "Words that do not express any emotion are called Stopwords. After splitting a tweet, words like a,is, the, with etc. are removed from the list of words.",
+        "A total of 2,50,000 tweets over a period of August 31st, 2015 to August 25th,2016 on Microsoft are extracted from twitter API BIBREF15 . Twitter4J is a java application which helps us to extract tweets from twitter. The tweets were collected using Twitter API and filtered using keywords like $ MSFT, # Microsoft, #Windows etc. Not only the opinion of public about the company's stock but also the opinions about products and services offered by the company would have a significant impact and are worth studying. Based on this principle, the keywords used for filtering are devised with extensive care and tweets are extracted in such a way that they represent the exact emotions of public about Microsoft over a period of time. The news on twitter about Microsoft and tweets regarding the product releases were also included. Stock opening and closing prices of Microsoft from August 31st, 2015 to August 25th, 2016 are obtained from Yahoo! Finance BIBREF16 .",
+        "With the advent of social media, the information about public feelings has become abundant. Social media is transforming like a perfect platform to share public emotions about any topic and has a significant impact on overall public opinion. Twitter, a social media platform, has received a lot of attention from researchers in the recent times. Twitter is a micro-blogging application that allows users to follow and comment other users thoughts or share their opinions in real time BIBREF2 . More than million users post over 140 million tweets every day. This situation makes Twitter like a corpus with valuable data for researchers BIBREF3 .Each tweet is of 140 characters long and speaks public opinion on a topic concisely. The information exploited from tweets are very useful for making predictions BIBREF4 ."
+      ]
     },
     "4c07c33dfaf4f3e6db55e377da6fa69825d0ba15": {
       "answer": "Unanswerable",
@@ -655,7 +708,7 @@
     {
       "paper_id": "1605.07333",
       "question": "How does their simple voting scheme work?",
-      "predicted": "the most votes",
+      "predicted": "Their simple voting scheme involves applying multiple CNN and RNN models to each sentence in the test set, predicting the class based on the model with the most votes, or randomly picking if there's a tie",
       "evidence_paragraphs": 3
     },
     {
@@ -667,7 +720,7 @@
     {
       "paper_id": "1605.07333",
       "question": "How do they obtain the new context represetation?",
-      "predicted": "middle context",
+      "predicted": "They obtain the new context representation by splitting the sentence into left, middle, and right contexts and processing each region through separate convolutional and max-pooling layers before concatenating them",
       "evidence_paragraphs": 2
     },
     {
@@ -697,8 +750,8 @@
     {
       "paper_id": "1806.04511",
       "question": "how did the authors translate the reviews to other languages?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "The authors translated the reviews to English using machine translation tools before applying their trained RNN model to score polarity in the translated text",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1806.04511",
@@ -745,8 +798,8 @@
     {
       "paper_id": "1712.05608",
       "question": "Do they use pretrained models?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1707.06806",
@@ -781,20 +834,20 @@
     {
       "paper_id": "1707.06806",
       "question": "What is the source of the news articles?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "nowthisnews",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1903.11283",
       "question": "How do they measure style transfer success?",
-      "predicted": "50",
+      "predicted": "Participants evaluated fluency, similarity in meaning, formality, and specific differences between translated sentences using predefined criteria",
       "evidence_paragraphs": 3
     },
     {
       "paper_id": "1903.11283",
       "question": "Do they introduce errors in the data or does the data already contain them?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1903.11283",
@@ -841,7 +894,7 @@
     {
       "paper_id": "1910.06036",
       "question": "How they extract \"structured answer-relevant relation\"?",
-      "predicted": "off-the-shelf open information extraction (openie) toolbox BibRef7",
+      "predicted": "They extract \"structured answer-relevant relations\" using an off-the-shelf open information extraction tool and carefully designed heuristic rules",
       "evidence_paragraphs": 3
     },
     {
@@ -871,8 +924,8 @@
     {
       "paper_id": "1808.09111",
       "question": "Do they evaluate only on English datasets?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1808.09111",
@@ -883,13 +936,13 @@
     {
       "paper_id": "2001.02284",
       "question": "Do they use off-the-shelf NLP systems to build their assitant?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "2001.02284",
       "question": "How does the IPA label data after interacting with users?",
-      "predicted": "see section secref3 – section secref4",
+      "predicted": "The IPA labels were augmented through user interactions",
       "evidence_paragraphs": 3
     },
     {
@@ -901,19 +954,19 @@
     {
       "paper_id": "1611.04798",
       "question": "Does their framework automatically optimize for hyperparameters?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1611.04798",
       "question": "Does their framework always generate purely attention-based models?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1611.04798",
       "question": "Do they test their framework performance on commonly used language pairs, such as English-to-German?",
-      "predicted": "tst2013",
+      "predicted": "Yes",
       "evidence_paragraphs": 3
     },
     {
@@ -985,7 +1038,7 @@
     {
       "paper_id": "1908.10084",
       "question": "How are the siamese networks trained?",
-      "predicted": "learning presented a method to train on conversations from reddit using siamese dan and siamese transformer networks, which yielded good results on the sts benchmark dataset",
+      "predicted": "Siamese networks are used to train sentence embeddings by comparing pairs of sentences",
       "evidence_paragraphs": 2
     },
     {
@@ -997,8 +1050,8 @@
     {
       "paper_id": "1703.04001",
       "question": "Does the experiments focus on a specific domain?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "Yes",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1703.04001",
@@ -1009,8 +1062,8 @@
     {
       "paper_id": "1703.04001",
       "question": "Do the answered questions measure for the usefulness of the answer?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "Yes",
+      "evidence_paragraphs": 2
     },
     {
       "paper_id": "1909.10012",
@@ -1057,8 +1110,8 @@
     {
       "paper_id": "1912.01852",
       "question": "Are there elements, other than pitch, that can potentially result in out of key converted singing?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "Yes",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1912.01852",
@@ -1069,7 +1122,7 @@
     {
       "paper_id": "1811.00383",
       "question": "How do they match words before reordering them?",
-      "predicted": "bibref17",
+      "predicted": "They match words before reordering them using the cfilt-preorder system, which includes generic and Hindi-tuned rules tailored for Indian languages",
       "evidence_paragraphs": 3
     },
     {
@@ -1087,8 +1140,8 @@
     {
       "paper_id": "1608.01084",
       "question": "Did they only experiment with one language pair?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "2003.08380",
@@ -1135,7 +1188,7 @@
     {
       "paper_id": "2002.04095",
       "question": "How is segmentation quality evaluated?",
-      "predicted": "d",
+      "predicted": "Segmentation quality is evaluated by comparing human-generated segmentations against those produced by automatic methods, focusing on the accuracy of word boundaries",
       "evidence_paragraphs": 3
     },
     {
@@ -1153,14 +1206,14 @@
     {
       "paper_id": "1805.07133",
       "question": "did they collect their own data?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "Yes",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1805.07133",
       "question": "what japanese-vietnamese dataset do they use?",
-      "predicted": "vnesecorpus",
-      "evidence_paragraphs": 3
+      "predicted": "Unanswerable",
+      "evidence_paragraphs": 0
     },
     {
       "paper_id": "1909.13714",
@@ -1171,14 +1224,14 @@
     {
       "paper_id": "1909.13714",
       "question": "Is collected multimodal in cabin dataset public?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "Yes",
+      "evidence_paragraphs": 1
     },
     {
       "paper_id": "1610.09225",
       "question": "Do they remove seasonality from the time series?",
-      "predicted": "Unanswerable",
-      "evidence_paragraphs": 0
+      "predicted": "No",
+      "evidence_paragraphs": 3
     },
     {
       "paper_id": "1610.09225",

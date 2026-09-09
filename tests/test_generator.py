@@ -125,6 +125,53 @@ class ShortAnswerTidyingTests(unittest.TestCase):
         self.assertFalse(generator._is_seq2seq("Qwen/Qwen2.5-1.5B-Instruct"))
 
 
+class QuestionShapeTests(unittest.TestCase):
+    """
+    A short answer takes the shape of its question. The classification is done
+    in code because one prompt asking a 1.5B model to choose between three
+    shapes answered "No" to "how many TPUs were used?".
+    """
+
+    def test_yes_or_no_questions(self):
+        for question in ("Does BERT use absolute position embeddings?",
+                         "Is the model trained from scratch?",
+                         "Are the weights released?",
+                         "Can the method run on one GPU?",
+                         "Have they compared with BM25?"):
+            self.assertEqual(generator.question_shape(question), "boolean",
+                             question)
+
+    def test_how_and_why_questions_want_a_sentence(self):
+        for question in ("How does BERT represent position?",
+                         "Why is the loss weighted?",
+                         "In what way does it differ from BM25?"):
+            self.assertEqual(generator.question_shape(question), "sentence",
+                             question)
+
+    def test_counting_questions_want_a_span_not_a_sentence(self):
+        for question in ("How many TPUs were used?",
+                         "How much data was collected?",
+                         "How long did training take?"):
+            self.assertEqual(generator.question_shape(question), "span",
+                             question)
+
+    def test_everything_else_is_a_span(self):
+        for question in ("What is a fitness function?",
+                         "Which datasets were used?",
+                         "Who wrote the paper?",
+                         ""):
+            self.assertEqual(generator.question_shape(question), "span",
+                             question)
+
+    def test_each_shape_gets_its_own_instruction(self):
+        seen = set()
+        for question in ("Is it open source?", "Why does it work?",
+                         "What is the batch size?"):
+            messages = generator._short_messages(question, ["a passage"])
+            seen.add(messages[0]["content"])
+        self.assertEqual(len(seen), 3)
+
+
 class NumberSpacingTests(unittest.TestCase):
     def test_decoded_number_artefacts_are_repaired(self):
         self.assertEqual(generator._fix_number_spacing("0. 28"), "0.28")
