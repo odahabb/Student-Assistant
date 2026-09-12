@@ -9,18 +9,18 @@
   "chunking": "sentence",
   "k": 3,
   "abstain": "check",
-  "answer_f1": 0.2788021593177831,
+  "answer_f1": 0.28890316941879324,
   "evidence_f1": 0.30678210678210677,
   "answer_f1_by_type": {
     "extractive": 0.22051113308162182,
     "abstractive": 0.11263951599448556,
-    "boolean": 0.4,
+    "boolean": 0.5,
     "none": 0.6923076923076923
   },
   "missing_predictions": 0,
   "declined": 32,
   "gold_unanswerable": 20,
-  "seconds": 75.2,
+  "seconds": 93.2,
   "predictions": {
     "f67b9bda14ec70feba2e0d10c400b2b2025a0a6a": {
       "answer": "Unanswerable",
@@ -333,7 +333,7 @@
       ]
     },
     "897ba53ef44f658c128125edd26abf605060fb13": {
-      "answer": "Yes",
+      "answer": "No",
       "evidence": [
         "We evaluate bridge and universal systems on two German INLINEFORM0 French test sets. They are compared to a direct system, which is an NMT trained on German INLINEFORM1 French data, and to a pivot system, which essentially consists of two separate NMTs trained to translate from German to English and English to French. The direct system should not exist in a real zero-resourced situation. We refer it as the perfect system for comparison purpose only. In case of the pivot system, to generate a translated text in French from a German sentence, we first translate it to English, then the output sentence is fed to the English INLINEFORM2 German NMT system to obtain the French translation. Since there are more than two languages involved in those systems, we increase the number of BPE merging operations proportionally in order to reduce the number of rare words in such systems. We do not expect our proposed systems to perform well with this primitive way of building direct translating connections since this is essentially a difficult task. We report the performance of those systems in Table TABREF23 .",
         "First, we consider the translation for an under-resourced pair of languages. Here a small portion of the large parallel corpus for English-German is used as a simulation for the scenario where we do not have much parallel data: Translating texts in English to German. We perform language-specific coding in both source and target sides. By accommodating the German monolingual data as an additional input (German INLINEFORM0 German), which we called the mix-source approach, we could enrich the training data in a simple, natural way. Given this under-resourced situation, it could help our NMT obtain a better representation of the source side, hence, able to learn the translation relationship better. Including monolingual data in this way might also improve the translation of some rare word types such as named entities. Furthermore, as the ultimate goal of our work, we would like to investigate the advantages of multilinguality in NMT. We incorporate a similar portion of French-German parallel corpus into the English-German one. As discussed in Section SECREF5 , it is expected to help reducing the ambiguity in translation between one language pair since it utilizes the semantic context provided by the other source language. We name this mix-multi-source.",
@@ -424,7 +424,7 @@
       "evidence": []
     },
     "4e1a67f8dc68b55a5ce18e6cd385ae9ab90d891f": {
-      "answer": "Yes",
+      "answer": "No",
       "evidence": [
         "Characterization of the questions based on question quality requires expert human interventions often judging if a question would remain open based on factors like if it is subjective, controversial, open-ended, vague/imprecise, ill-formed, off-topic, ambiguous, uninteresting etc. Collecting judgment data for thousands of question posts is a very expensive process. Therefore, such an experiment can be done only for a small set of questions and it would be practically impossible to scale it up for the entire collection of posts on the Q&A site. In this work, we show that appropriate quantification of various linguistic activities can naturally correspond to many of the judgment factors mentioned above (see table 2 for a collection of examples). These quantities encoding such linguistic activities can be easily measured for each question post and thus helps us to have an alternative mechanism to characterize the answerability on the Q&A site.",
         "From a group of small users at the time of its inception in 2009, Quora has evolved in the last few years into one of the largest community driven Q&A sites with diverse user communities. With the help of efficient content moderation/review policies and active in-house review team, efficient Quora bots, this site has emerged into one of the largest and reliable sources of Q&A on the Internet. On Quora, users can post questions, follow questions, share questions, tag them with relevant topics, follow topics, follow users apart from answering, commenting, upvoting/downvoting etc. The integrated social structure at the backbone of it and the topical organization of its rich content have made Quora unique with respect to other Q&A sites like Stack Overflow, Yahoo! Answers etc. and these are some of the prime reasons behind its popularity in recent times. Quality question posting and getting them answered are the key objectives of any Q&A site. In this study we focus on the answerability of questions on Quora, i.e., whether a posted question shall eventually get answered. In Quora, the questions with no answers are referred to as “open questions”. These open questions need to be studied separately to understand the reason behind their not being answered or to be precise, are there any characteristic differences between `open' questions and the answered ones. For example, the question “What are the most promising advances in the treatment of traumatic brain injuries?” was posted on Quora on 23rd June, 2011 and got its first answer after almost 2 years on 22nd April, 2013. The reason that this question remained open so long might be the hardness of answering it and the lack of visibility and experts in the domain. Therefore, it is important to identify the open questions and take measures based on the types - poor quality questions can be removed from Quora and the good quality questions can be promoted so that they get more visibility and are eventually routed to topical experts for better answers.",
@@ -436,7 +436,7 @@
       "evidence": []
     },
     "9af3142630b350c93875441e1e1767312df76d17": {
-      "answer": "Yes",
+      "answer": "No",
       "evidence": [
         "Askers of open questions use more function words, impersonal pronouns, articles on an average whereas asker of answered questions use more personal pronouns, conjunctions and adverbs to describe their questions. Essentially, open questions lack content words compared to answered questions which, in turn, affects the readability of the question. As far as the psychological aspects are concerned, answered question askers tend to use more social, family, human related words on average compared to an open question asker. The open question askers express more positive emotions whereas the answered question asker tend to express more negative emotions in their texts. Also, answered question askers are more emotionally involved and their questions reveal higher usage of anger, sadness, anxiety related words compared to that of open questions. Open questions, on the other hand, contains more sexual, body, health related words which might be reasons why they do not attract answers.",
         "From a group of small users at the time of its inception in 2009, Quora has evolved in the last few years into one of the largest community driven Q&A sites with diverse user communities. With the help of efficient content moderation/review policies and active in-house review team, efficient Quora bots, this site has emerged into one of the largest and reliable sources of Q&A on the Internet. On Quora, users can post questions, follow questions, share questions, tag them with relevant topics, follow topics, follow users apart from answering, commenting, upvoting/downvoting etc. The integrated social structure at the backbone of it and the topical organization of its rich content have made Quora unique with respect to other Q&A sites like Stack Overflow, Yahoo! Answers etc. and these are some of the prime reasons behind its popularity in recent times. Quality question posting and getting them answered are the key objectives of any Q&A site. In this study we focus on the answerability of questions on Quora, i.e., whether a posted question shall eventually get answered. In Quora, the questions with no answers are referred to as “open questions”. These open questions need to be studied separately to understand the reason behind their not being answered or to be precise, are there any characteristic differences between `open' questions and the answered ones. For example, the question “What are the most promising advances in the treatment of traumatic brain injuries?” was posted on Quora on 23rd June, 2011 and got its first answer after almost 2 years on 22nd April, 2013. The reason that this question remained open so long might be the hardness of answering it and the lack of visibility and experts in the domain. Therefore, it is important to identify the open questions and take measures based on the types - poor quality questions can be removed from Quora and the good quality questions can be promoted so that they get more visibility and are eventually routed to topical experts for better answers."
@@ -483,7 +483,7 @@
       "evidence": []
     },
     "bfbd6040cb95b179118557352e8e3899ef25c525": {
-      "answer": "Yes",
+      "answer": "No",
       "evidence": [
         "Here we compare the audio quality between our method and BIBREF0's method (Below we call USVC), and show that the input pitch can affect the output singing voice by qualitative analysis. Since the authors of BIBREF0 do not release their source code and only provide part of the converted results at their website, we implemented USVC by ourselves, denoted by USVC(our) below, to give a more comprehensive comparison. Audio samples are available at our website .",
         "Mean Opinion Score (MOS) was used as a subjective metric to evaluate the quality of the converted audio. Two questions were asked: (1) what is quality of the audio? (naturalness) (2) How well does the converted version match the original? (similarity) A score of 1-5 would be given to answer the questions. The evaluation was conducted on USVC (Our) and PitchNet. Besides, the converted samples provided by BIBREF0 was also included to give a more convincing evaluation. As shown by Tab. TABREF15, the naturalness and similarity of our method are both higher than the other two ones. Our implementation of USVC performed slightly lower than the original author's because we cannot fully reproduce the results of them.",
@@ -966,7 +966,7 @@
     {
       "paper_id": "1611.04798",
       "question": "Do they test their framework performance on commonly used language pairs, such as English-to-German?",
-      "predicted": "Yes",
+      "predicted": "No",
       "evidence_paragraphs": 3
     },
     {
@@ -1050,7 +1050,7 @@
     {
       "paper_id": "1703.04001",
       "question": "Does the experiments focus on a specific domain?",
-      "predicted": "Yes",
+      "predicted": "No",
       "evidence_paragraphs": 3
     },
     {
@@ -1062,7 +1062,7 @@
     {
       "paper_id": "1703.04001",
       "question": "Do the answered questions measure for the usefulness of the answer?",
-      "predicted": "Yes",
+      "predicted": "No",
       "evidence_paragraphs": 2
     },
     {
@@ -1110,7 +1110,7 @@
     {
       "paper_id": "1912.01852",
       "question": "Are there elements, other than pitch, that can potentially result in out of key converted singing?",
-      "predicted": "Yes",
+      "predicted": "No",
       "evidence_paragraphs": 3
     },
     {
