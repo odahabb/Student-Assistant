@@ -633,6 +633,31 @@ def _stream_answer(question: str, context: list) -> Iterator[str]:
     return stream(question, [str(c) for c in context])
 
 
+def _route_turn(question: str, history: list) -> tuple:
+    """
+    (kind, question to retrieve on) for this turn of a conversation.
+
+    A student's second message is usually not a second question. "can you put
+    that more simply?" needs the answer already given, not three more
+    passages; "what about tournament selection?" needs the documents but does
+    not say what it is about. Classifying the turn costs one short generation
+    and saves a retrieval and a long one whenever the answer is already in the
+    conversation.
+    """
+    from backend.pipeline.generator import classify_turn, standalone_question
+    if not history:
+        return "new", question
+    kind = classify_turn(question, history)
+    if kind == "continuation":
+        return kind, standalone_question(question, history)
+    return kind, question
+
+
+def _stream_followup(question: str, history: list) -> Iterator[str]:
+    from backend.pipeline.generator import followup_stream
+    return followup_stream(question, history)
+
+
 def _tidy(text: str) -> str:
     from backend.pipeline.generator import _fix_number_spacing
     return _fix_number_spacing(text).strip()
@@ -652,17 +677,35 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
         raise ValueError("Ask a question first.")
     if chat_id is not None:
         _chat_path(name, chat_id)      # fail before answering, not after
+    history = chat(name, chat_id)["messages"] if chat_id is not None else []
+    # Before the lock, as it always was: a subject whose documents are still
+    # being read should answer 409 at once rather than queue behind whatever
+    # is holding the model.
     index = ready_index(name)
     started = time.time()
     with MODEL_LOCK:
-        retrieved = index.find(question)
-        sources = [describe(c) for c in retrieved]
-        yield {"type": "sources", "sources": sources}
-        pieces = []
-        for piece in _stream_answer(question, retrieved):
-            if piece:
-                pieces.append(piece)
-                yield {"type": "token", "text": piece}
+        kind, lookup = _route_turn(question, history)
+        if kind == "followup":
+            # Nothing is retrieved, so nothing new is cited: the sources of
+            # the answer being discussed are still the sources on screen.
+            sources = []
+            yield {"type": "turn", "kind": kind}
+            pieces = []
+            for piece in _stream_followup(question, history):
+                if piece:
+                    pieces.append(piece)
+                    yield {"type": "token", "text": piece}
+        else:
+            retrieved = index.find(lookup)
+            sources = [describe(c) for c in retrieved]
+            yield {"type": "turn", "kind": kind,
+                   "retrieved_for": lookup if lookup != question else None}
+            yield {"type": "sources", "sources": sources}
+            pieces = []
+            for piece in _stream_answer(lookup, retrieved):
+                if piece:
+                    pieces.append(piece)
+                    yield {"type": "token", "text": piece}
     answer = _tidy("".join(pieces)) or NO_ANSWER
     seconds = round(time.time() - started, 1)
 
@@ -672,7 +715,7 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
     record["messages"].append({"role": "user", "content": question, "time": started})
     record["messages"].append({"role": "assistant", "content": answer,
                                "sources": sources, "seconds": seconds,
-                               "time": time.time()})
+                               "turn": kind, "time": time.time()})
     # A conversation is named after the question that started it.
     if not record.get("title") or record["title"] == "New conversation":
         record["title"] = chat_title(question)

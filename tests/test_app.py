@@ -20,7 +20,7 @@ from fastapi.testclient import TestClient
 # import; undo that so other test modules see the environment they expect.
 with mock.patch.dict(os.environ):
     from backend import api, service
-from backend.pipeline import quiz
+from backend.pipeline import generator, quiz
 from backend.pipeline.chunk import Chunk
 
 PASSAGE = ("Whisper was trained on 680,000 hours of multilingual and multitask "
@@ -325,6 +325,76 @@ def read_events(response):
     return events
 
 
+class TurnRoutingTests(ServiceTestCase):
+    """
+    Not every message in a conversation is a new question. A follow-up about
+    the answer just given must not send the student's documents through
+    retrieval again, and a continuation has to be rewritten to stand alone
+    before it can be looked up at all.
+    """
+
+    def ask(self, name, question, chat=None):
+        response = self.client.post(f"/api/subjects/{name}/ask",
+                                    json={"question": question, "chat": chat})
+        self.assertEqual(response.status_code, 200, response.text)
+        return read_events(response)
+
+    def test_the_first_question_of_a_conversation_is_new(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        with mock.patch.object(service, "_route_turn",
+                               wraps=service._route_turn) as route:
+            events = self.ask(name, "How many hours?")
+        route.assert_called_once()
+        self.assertEqual(route.call_args[0][1], [])      # no history yet
+        self.assertEqual(events[0], {"type": "turn", "kind": "new",
+                                     "retrieved_for": None})
+
+    def test_a_follow_up_retrieves_nothing(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        first = self.ask(name, "How many hours?")
+        chat_id = first[-1]["chat"]["id"]
+        with mock.patch.object(generator, "classify_turn",
+                               return_value="followup"), \
+             mock.patch.object(service, "_stream_followup",
+                               return_value=iter(["Put simply, "])) as followup:
+            events = self.ask(name, "say that more simply", chat_id)
+        followup.assert_called_once()
+        self.assertEqual([e["type"] for e in events],
+                         ["turn", "token", "done"])
+        self.assertEqual(events[0]["kind"], "followup")
+        history = self.client.get(
+            f"/api/subjects/{name}/chats/{chat_id}").json()["messages"]
+        self.assertEqual(history[-1]["turn"], "followup")
+        self.assertEqual(history[-1]["sources"], [])
+
+    def test_a_continuation_is_rewritten_before_it_is_looked_up(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        first = self.ask(name, "How many hours of audio?")
+        chat_id = first[-1]["chat"]["id"]
+        with mock.patch.object(generator, "classify_turn",
+                               return_value="continuation"), \
+             mock.patch.object(generator, "standalone_question",
+                               return_value="How many hours of German audio?"):
+            events = self.ask(name, "what about German?", chat_id)
+        self.assertEqual(events[0], {"type": "turn", "kind": "continuation",
+                                     "retrieved_for":
+                                         "How many hours of German audio?"})
+        self.assertEqual(events[1]["type"], "sources")
+
+    def test_any_kind_that_is_not_a_follow_up_still_retrieves(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        first = self.ask(name, "How many hours?")
+        chat_id = first[-1]["chat"]["id"]
+        with mock.patch.object(generator, "classify_turn",
+                               return_value="something else"):
+            events = self.ask(name, "and in German?", chat_id)
+        self.assertEqual(events[1]["type"], "sources")
+
+
 class AskTests(ServiceTestCase):
     def test_answer_streams_and_is_saved(self):
         name = self.make_subject()
@@ -334,9 +404,10 @@ class AskTests(ServiceTestCase):
         self.assertEqual(response.headers["content-type"].split(";")[0], "text/event-stream")
         events = read_events(response)
         self.assertEqual([e["type"] for e in events],
-                         ["sources", "token", "token", "token", "done"])
-        self.assertEqual(events[0]["sources"][0]["file"], "whisper.pdf")
-        self.assertEqual(events[0]["sources"][0]["section"], "Section 1")
+                         ["turn", "sources", "token", "token", "token", "done"])
+        self.assertEqual(events[0]["kind"], "new")
+        self.assertEqual(events[1]["sources"][0]["file"], "whisper.pdf")
+        self.assertEqual(events[1]["sources"][0]["section"], "Section 1")
         self.assertEqual(events[-1]["answer"], "680,000 hours")
 
         chats = self.client.get(f"/api/subjects/{name}/chats").json()

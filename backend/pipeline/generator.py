@@ -190,6 +190,122 @@ CHAT_SYSTEM = (
     "question, say so in one sentence."
 )
 
+# Not every turn in a conversation is a new question, and treating them all
+# alike makes the chat feel like a search box rather than a conversation.
+# "what is a fitness function?" needs the documents. "can you say that more
+# simply?" needs only the answer already given, and retrieving for it wastes
+# five seconds and puts three irrelevant passages on screen. "what about
+# tournament selection?" needs the documents again, but the question does not
+# say what it is about, so it has to be made to stand alone before retrieval
+# can work — the conversational query rewriting that QReCC and the papers
+# around it describe.
+#
+#   "new"          a question that stands on its own: retrieve and answer
+#   "continuation" about the same material, but leaning on what came before:
+#                  rewrite it to stand alone, then retrieve and answer
+#   "followup"     about the answer just given rather than the material:
+#                  answer from the conversation, retrieve nothing
+TURN_KINDS = ("new", "continuation", "followup")
+TURN_SYSTEM = (
+    "You sort a student's latest message in a conversation about their course "
+    "notes into one of three kinds, and reply with that one word only.\n"
+    "new: it asks about a topic the conversation has not been discussing, and "
+    "makes sense on its own.\n"
+    "continuation: it asks for more about the same topic, and needs the "
+    "earlier messages to be understood — a pronoun, or a bare noun phrase.\n"
+    "followup: it asks about the assistant's previous answer itself — to "
+    "restate it, shorten it, translate it, explain a word in it, or say where "
+    "it came from — and needs no new material.\n"
+    "Reply with exactly one word: new, continuation, or followup."
+)
+TURN_MAX_TOKENS = 4
+REWRITE_SYSTEM = (
+    "You rewrite a student's latest message as a question that stands on its "
+    "own, so it can be looked up without the conversation. Replace pronouns "
+    "and bare references with what they refer to, keep it to one line, and "
+    "change nothing else. Reply with the rewritten question only."
+)
+REWRITE_MAX_TOKENS = 48
+FOLLOWUP_SYSTEM = (
+    "You are helping a student revise from their own course material. They "
+    "are asking about the answer you just gave, not about new material, so "
+    "answer from the conversation. Keep it to two or three sentences. If "
+    "answering would need something from their documents that is not in the "
+    "conversation, say so in one sentence."
+)
+# How much of the conversation the gate and the rewriter see. Two exchanges is
+# enough to resolve "it" and "that", and keeps the prompt short.
+TURN_HISTORY_MESSAGES = 4
+
+
+def _transcript(history: List[dict], limit: int = TURN_HISTORY_MESSAGES) -> str:
+    lines = []
+    for message in list(history)[-limit:]:
+        who = "Student" if message.get("role") == "user" else "Assistant"
+        body = " ".join(str(message.get("content", "")).split())
+        if body:
+            lines.append(f"{who}: {body}")
+    return "\n".join(lines)
+
+
+def classify_turn(question: str, history: List[dict]) -> str:
+    """
+    Whether this message is a new question, a continuation of the topic, or a
+    follow-up about the answer just given. Always "new" without a history.
+    """
+    transcript = _transcript(history)
+    if not transcript:
+        return "new"
+    reply = _reply(
+        [{"role": "system", "content": TURN_SYSTEM},
+         {"role": "user", "content":
+             f"Conversation so far:\n{transcript}\n\n"
+             f"Latest message: {question}\n\nKind:"}],
+        TURN_MAX_TOKENS).strip().lower()
+    for kind in TURN_KINDS:
+        if reply.startswith(kind):
+            return kind
+    # An unparseable reply must not cost the student an answer: treat it as a
+    # new question, which is the behaviour the app had before this existed.
+    return "new"
+
+
+def standalone_question(question: str, history: List[dict]) -> str:
+    """The question rewritten so it can be retrieved on without the history."""
+    transcript = _transcript(history)
+    if not transcript:
+        return question
+    rewritten = _reply(
+        [{"role": "system", "content": REWRITE_SYSTEM},
+         {"role": "user", "content":
+             f"Conversation so far:\n{transcript}\n\n"
+             f"Latest message: {question}\n\nStandalone question:"}],
+        REWRITE_MAX_TOKENS).strip().splitlines()
+    first = rewritten[0].strip().strip('"“”') if rewritten else ""
+    # A rewrite that lost the question, or ran away with it, is not an
+    # improvement on what the student typed.
+    if not first.endswith("?") or len(first.split()) > 40:
+        return question
+    return first
+
+
+def followup_stream(question: str, history: List[dict]) -> Iterator[str]:
+    """Answer about the previous answer, from the conversation alone."""
+    messages = [{"role": "system", "content": FOLLOWUP_SYSTEM}]
+    for message in list(history)[-TURN_HISTORY_MESSAGES:]:
+        role = "user" if message.get("role") == "user" else "assistant"
+        body = " ".join(str(message.get("content", "")).split())
+        if body:
+            messages.append({"role": role, "content": body})
+    messages.append({"role": "user", "content": question})
+    settings = dict(_chat_settings())
+    settings.pop("max_new_tokens", None)
+    if BACKEND == "ollama":
+        yield _ollama_reply(messages, CHAT_MAX_TOKENS, settings)
+        return
+    yield from _stream_messages(messages, CHAT_MAX_TOKENS, settings)
+
+
 # Loaded models, by name. Short answers, quiz questions and explanations all
 # use MODEL_NAME, so they share one set of weights; SA_CHAT_MODEL can still
 # point the chat view at a different one.
@@ -387,26 +503,27 @@ def explain(query: str, context_chunks: List[str]) -> str:
     return _fix_number_spacing(_decode_reply(tokenizer, inputs, output))
 
 
-def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
-    """explain(), piece by piece, for the web interface."""
-    if BACKEND == "ollama":
-        # Ollama can stream, but the comparison runs that use this backend do
-        # not, so the answer arrives in one piece rather than adding a second
-        # streaming path to keep correct.
-        yield explain(query, context_chunks)
-        return
-
+def _stream_messages(messages: List[dict], max_new_tokens: int,
+                     sampling: Optional[dict] = None) -> Iterator[str]:
+    """
+    A reply to these messages, piece by piece, from the transformers backend.
+    The generation runs on its own thread; joining it in `finally` means the
+    model is free again even when the caller stops early, which happens
+    whenever a browser tab is closed mid-answer.
+    """
     from transformers import TextIteratorStreamer
 
     tokenizer, model = _get_chat_model()
-    inputs = _chat_inputs(query, context_chunks)
+    inputs = _prompt_inputs(tokenizer, model, messages)
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True,
                                     skip_special_tokens=True)
+    settings = dict(sampling) if sampling else {"do_sample": False}
     failure = []
 
     def run():
         try:
-            model.generate(**inputs, **_chat_settings(), streamer=streamer)
+            model.generate(**inputs, max_new_tokens=max_new_tokens,
+                           streamer=streamer, **settings)
         except Exception as exc:
             failure.append(exc)
             streamer.end()
@@ -419,6 +536,20 @@ def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
         worker.join()
     if failure:
         raise failure[0]
+
+
+def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
+    """explain(), piece by piece, for the web interface."""
+    if BACKEND == "ollama":
+        # Ollama can stream, but the comparison runs that use this backend do
+        # not, so the answer arrives in one piece rather than adding a second
+        # streaming path to keep correct.
+        yield explain(query, context_chunks)
+        return
+    settings = dict(_chat_settings())
+    settings.pop("max_new_tokens", None)
+    yield from _stream_messages(_chat_messages(query, context_chunks),
+                                CHAT_MAX_TOKENS, settings)
 
 
 # The budget shared out among the retrieved passages. Qwen2.5 could take far
