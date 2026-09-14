@@ -530,6 +530,24 @@ class QuizTests(ServiceTestCase):
         return self.client.post(f"/api/subjects/{self.name}/quiz/answer",
                                 json={"id": question["id"], "answer": text})
 
+    def test_a_topic_is_worth_questions_in_proportion_to_its_material(self):
+        from backend.pipeline.quiz import Topic
+        small = Topic("t", "a.pdf", "S", list(range(2)))
+        medium = Topic("t", "a.pdf", "S", list(range(12)))
+        huge = Topic("t", "a.pdf", "S", list(range(200)))
+        self.assertEqual(service.questions_worth(small),
+                         service.QUESTIONS_PER_TOPIC)
+        self.assertEqual(service.questions_worth(medium), 4)
+        self.assertEqual(service.questions_worth(huge),
+                         service.MAX_QUESTIONS_PER_TOPIC)
+
+    def test_the_topic_list_says_how_much_each_one_holds(self):
+        topics = self.client.get(f"/api/subjects/{self.name}/topics").json()
+        whole = topics[0]
+        self.assertEqual(whole["scope"], "document")
+        self.assertEqual(whole["passages"], 2)
+        self.assertEqual(whole["questions"], service.QUESTIONS_PER_TOPIC)
+
     def test_topics_are_whole_files_and_their_sections(self):
         topics = self.client.get(f"/api/subjects/{self.name}/topics").json()
         self.assertEqual([t["id"] for t in topics],

@@ -79,7 +79,14 @@ TOP_K = 3
 CHUNKING = "sentence"
 # Hybrid retrieval: BM25 keyword scores mixed with the embeddings.
 HYBRID = True
-QUESTIONS_PER_TOPIC = 2
+# How many questions a topic is worth. Two was a flat rule, which asked as
+# much of a topic built from one slide as of one built from forty: the short
+# topic ran out of material and repeated itself, while the long one was never
+# examined past its first couple of pages. A topic now earns a question for
+# every CHUNKS_PER_QUESTION passages it holds, within these bounds.
+QUESTIONS_PER_TOPIC = 2           # the floor, and what a small topic gets
+CHUNKS_PER_QUESTION = 3
+MAX_QUESTIONS_PER_TOPIC = 8
 # Read the pictures on pages whose text layer is thin or empty — diagrams,
 # charts, screenshots, and slides exported as images. Off in the library
 # (loader.load_pdf), on here, because a student's slides are largely pictures.
@@ -794,8 +801,21 @@ def subject_topics(chunks) -> List[quiz.Topic]:
 
 def topics(name: str) -> List[dict]:
     return [{"id": t.id, "document": t.source_file, "section": t.section,
-             "scope": t.scope}
+             "scope": t.scope, "passages": len(t.chunk_indices),
+             "questions": questions_worth(t)}
             for t in subject_topics(ready_index(name).chunks)]
+
+
+def questions_worth(topic) -> int:
+    """
+    How many questions a topic should be able to offer, from how much material
+    it holds. A topic of three passages is worth the floor; one of twenty-four
+    is worth the ceiling. Without this a one-slide topic exhausted itself and
+    began repeating, and a forty-slide topic was only ever asked about its
+    first few pages.
+    """
+    earned = len(topic.chunk_indices) // CHUNKS_PER_QUESTION
+    return max(QUESTIONS_PER_TOPIC, min(MAX_QUESTIONS_PER_TOPIC, earned))
 
 
 def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
@@ -884,7 +904,7 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
             # New topic, or every question in it already asked: write more.
             if untried and all(asked.get(i.question, 0) for i in items):
                 extend_topic(name, index, pool, t,
-                             add=QUESTIONS_PER_TOPIC if not items else 1)
+                             add=questions_worth(t) if not items else 1)
                 items = pool["items"].get(topic_id, [])
             if any(not asked.get(i.question, 0) for i in items):
                 break
@@ -907,7 +927,7 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
             others = [t for t in candidates + list(by_id) if not pool["items"].get(t)]
             while len(everything()) < quiz.MC_OPTIONS and others:
                 extend_topic(name, index, pool, by_id[others.pop(0)],
-                             add=QUESTIONS_PER_TOPIC)
+                             add=QUESTIONS_PER_TOPIC)   # just enough distractors
             options = quiz.multiple_choice(item, everything())
             if len(options) < 3:   # still too few distractors — ask as short answer
                 level, options = 2, None
