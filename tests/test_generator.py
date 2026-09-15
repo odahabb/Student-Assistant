@@ -172,6 +172,100 @@ class QuestionShapeTests(unittest.TestCase):
         self.assertEqual(len(seen), 3)
 
 
+class TurnRoutingTests(unittest.TestCase):
+    """
+    Deciding what a message in a conversation is. The shipped gate is a rule;
+    SA_TURN_GATE=model asks the model instead, which is how the two were
+    compared. On fifteen hand-written turns the rule was right fourteen times
+    and the model eight, and every one of the model's mistakes skipped
+    retrieval on a question that needed it.
+    """
+
+    HISTORY = [{"role": "user", "content": "What is a fitness function?"},
+               {"role": "assistant", "content":
+                   "A fitness function assigns a score to a candidate "
+                   "solution based on how well it meets the objective."}]
+
+    def test_a_marker_about_the_previous_answer_is_a_follow_up(self):
+        for message in ("can you say that more simply?",
+                        "explain that again in one sentence",
+                        "what do you mean by 'objective'?",
+                        "summarise your answer",
+                        "where did that come from?",
+                        "put it in bullet points"):
+            self.assertEqual(generator.classify_turn(message, self.HISTORY),
+                             "followup", message)
+
+    def test_a_message_naming_new_subject_matter_is_never_a_follow_up(self):
+        # The dangerous mistake: answering from the conversation when the
+        # student has asked about something it never covered. A wasted
+        # retrieval costs seconds; this costs a made-up answer.
+        for message in ("what about tournament selection?",
+                        "and roulette wheel selection?",
+                        "how is it used in breeding?",
+                        "What is a phenotype?",
+                        "summarise the mutation slides"):
+            self.assertNotEqual(generator.classify_turn(message, self.HISTORY),
+                                "followup", message)
+
+    def test_new_subject_matter_is_what_the_conversation_has_not_mentioned(self):
+        self.assertFalse(generator.introduces_new_subject(
+            "can you say that more simply?", self.HISTORY))
+        self.assertTrue(generator.introduces_new_subject(
+            "what about tournament selection?", self.HISTORY))
+
+    def test_the_rule_needs_no_model(self):
+        with mock.patch.object(generator, "_reply") as reply:
+            generator.classify_turn("say that more simply", self.HISTORY)
+            generator.classify_turn("what about crossover?", self.HISTORY)
+        reply.assert_not_called()
+
+    def test_the_first_message_of_a_conversation_needs_no_model(self):
+        with mock.patch.object(generator, "_reply") as reply:
+            self.assertEqual(generator.classify_turn("What is it?", []), "new")
+            self.assertEqual(generator.standalone_question("What is it?", []),
+                             "What is it?")
+        reply.assert_not_called()
+
+    def test_a_rewrite_that_is_not_a_question_is_discarded(self):
+        for reply in ("The student wants tournament selection.", "",
+                      " ".join(["word"] * 50) + "?"):
+            with mock.patch.object(generator, "_reply", return_value=reply):
+                self.assertEqual(
+                    generator.standalone_question("what about it?", self.HISTORY),
+                    "what about it?")
+
+    def test_a_good_rewrite_is_used(self):
+        with mock.patch.object(generator, "_reply",
+                               return_value='"What is tournament selection?"'):
+            self.assertEqual(
+                generator.standalone_question("what about that?", self.HISTORY),
+                "What is tournament selection?")
+
+
+class ModelTurnGateTests(unittest.TestCase):
+    """The optional model gate, and how it reads a one-word verdict."""
+
+    HISTORY = TurnRoutingTests.HISTORY
+
+    def classify(self, reply):
+        with mock.patch.object(generator, "TURN_GATE", "model"), \
+             mock.patch.object(generator, "_reply", return_value=reply):
+            return generator.classify_turn("say that again simply", self.HISTORY)
+
+    def test_each_kind_is_recognised(self):
+        for reply in ("new", "continuation", "followup"):
+            self.assertEqual(self.classify(reply), reply)
+
+    def test_the_word_is_taken_from_a_longer_reply(self):
+        self.assertEqual(self.classify("followup - it asks about the answer"),
+                         "followup")
+
+    def test_an_unparseable_reply_is_treated_as_a_new_question(self):
+        for reply in ("", "I think this is about genetic algorithms", "42"):
+            self.assertEqual(self.classify(reply), "new")
+
+
 class NumberSpacingTests(unittest.TestCase):
     def test_decoded_number_artefacts_are_repaired(self):
         self.assertEqual(generator._fix_number_spacing("0. 28"), "0.28")

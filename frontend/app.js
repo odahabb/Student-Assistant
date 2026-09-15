@@ -743,9 +743,15 @@ function fillAnswer(wrap, m) {
 
   if (m.pending && !m.content) {
     text.hidden = true;
+    // What the server is doing depends on the kind of turn it decided this
+    // was, so say that rather than always claiming to search.
+    const waiting = m.sources ? "Writing an answer…"
+      : m.turn === "followup" ? "Answering from this conversation…"
+      : m.lookup ? `Looking up “${m.lookup}”…`
+      : m.turn ? "Searching your materials…"
+      : "Reading your question…";
     card.prepend(el("div", { class: "thinking" },
-      el("span", { class: "dots" }, el("i"), el("i"), el("i")),
-      m.sources ? "Writing an answer…" : "Searching your materials…"));
+      el("span", { class: "dots" }, el("i"), el("i"), el("i")), waiting));
   } else {
     text.hidden = false;
     text.textContent = m.content;
@@ -767,6 +773,17 @@ function fillAnswer(wrap, m) {
         onclick: (e) => openSource(s, i, m.content, e.currentTarget) },
         el("b", { text: i + 1 }), el("span", { text: sourceLabel(s) }))),
     ));
+  }
+  // A follow-up has no sources because none were fetched, not because the
+  // search came back empty. Without saying so it reads as a failure.
+  if (!m.pending && !sources.length && m.turn === "followup") {
+    card.append(el("div", { class: "sources from-conversation" },
+      icon("chat"), el("span", { text: "Answered from this conversation" })));
+  }
+  if (!m.pending && m.lookup) {
+    card.append(el("div", { class: "sources looked-up" },
+      icon("search"),
+      el("span", {}, "Looked up as ", el("b", { text: m.lookup }))));
   }
   if (!m.pending && m.seconds !== undefined) {
     card.append(el("div", { class: "answer-foot" },
@@ -843,7 +860,10 @@ async function ask(event) {
                           .map((l) => l.slice(6)).join("\n");
         if (!data) continue;
         const payload = JSON.parse(data);
-        if (payload.type === "sources") pending.sources = payload.sources;
+        if (payload.type === "turn") {
+          pending.turn = payload.kind;
+          pending.lookup = payload.retrieved_for || null;
+        } else if (payload.type === "sources") pending.sources = payload.sources;
         else if (payload.type === "token") pending.content += payload.text;
         else if (payload.type === "done") {
           Object.assign(pending, { content: payload.answer, seconds: payload.seconds,
@@ -980,10 +1000,15 @@ async function renderQuiz() {
     if (!groups.has(t.document)) groups.set(t.document, []);
     groups.get(t.document).push(t);
   }
+  // How many questions a topic is worth is decided from how much material it
+  // holds, so say it here: picking a topic is a decision about how long you
+  // are about to sit there.
   select.replaceChildren(
     el("option", { value: "", text: "✦ Recommended for me" }),
     ...[...groups].map(([doc, list]) => el("optgroup", { label: doc },
-      list.map((t) => el("option", { value: t.id, text: t.section })))),
+      list.map((t) => el("option", { value: t.id,
+        text: t.questions ? `${t.section} — up to ${t.questions} questions`
+                          : t.section })))),
   );
   select.value = q.topic || "";
   if (!topics.length) {

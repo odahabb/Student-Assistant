@@ -382,6 +382,16 @@ button.crumb:hover { color: var(--ink); background: var(--paper-2); }
   background: var(--accent-soft); color: var(--accent); font-size: 11px;
 }
 .source-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+/* A follow-up cites nothing because nothing was fetched, and a rewritten
+   question was looked up as something other than what was typed. Both are
+   said plainly, in the place sources would otherwise sit. */
+.sources.from-conversation, .sources.looked-up {
+  gap: 7px; font-size: 12.5px; color: var(--ink-3);
+}
+.sources.from-conversation svg, .sources.looked-up svg {
+  width: 14px; height: 14px; opacity: .8; flex: none;
+}
+.sources.looked-up b { color: var(--ink-2); font-weight: 600; }
 .answer-foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--ink-3); }
 .thinking { display: flex; gap: 10px; align-items: center; color: var(--ink-3); font-size: 14px; }
 .dots { display: inline-flex; gap: 4px; }

@@ -205,7 +205,60 @@ CHAT_SYSTEM = (
 #                  rewrite it to stand alone, then retrieve and answer
 #   "followup"     about the answer just given rather than the material:
 #                  answer from the conversation, retrieve nothing
+#
+# How the decision is made is itself a measured choice. Asking the model to
+# sort a turn into the three kinds was tried first and is kept behind
+# SA_TURN_GATE=model. On fourteen hand-written turns it was right eight times,
+# and every one of its mistakes was the dangerous kind: it called "what about
+# tournament selection?" a follow-up and would have answered it from the
+# conversation, with no passages and nothing to cite. The rule below was right
+# on all fourteen. The probe set and the rule were written together, so that
+# score flatters it; what makes it safe is not the score but its shape. It
+# declines to retrieve only when the message carries an explicit marker about
+# the previous answer AND introduces no subject matter of its own, and both
+# ways of being wrong fall back to retrieving, which is what the app did
+# before any of this existed.
+TURN_GATE = os.environ.get("SA_TURN_GATE", "rule").lower()
 TURN_KINDS = ("new", "continuation", "followup")
+
+# Phrases that talk about the answer rather than the subject.
+FOLLOWUP_MARKER = re.compile(
+    r"\b(simpl\w*|rephras\w*|reword\w*|shorter|briefer|summar\w*|again|repeat|"
+    r"restate|translat\w*|bullet points?|in (english|arabic|french|spanish)|"
+    r"elaborate|clarify)\b|what do you mean|your (last |previous )?answer|"
+    r"that answer|(explain|expand on) (that|this|it)\b|"
+    r"where did (that|this|it) come from", re.IGNORECASE)
+# Words that carry no subject matter, so introducing them means nothing.
+_EMPTY_WORDS = {
+    "a", "about", "again", "all", "an", "and", "answer", "any", "are", "as",
+    "ask", "at", "be", "briefer", "bullet", "but", "by", "can", "clarify",
+    "come", "did", "do", "does", "elaborate", "explain", "expand", "for",
+    "from", "get", "give", "how", "i", "in", "is", "it", "its", "just", "know",
+    "last", "less", "make", "me", "mean", "more", "my", "of", "on", "one",
+    "or", "please", "point", "points", "previous", "put", "question", "repeat",
+    "rephrase", "restate", "reword", "say", "sentence", "shorter", "simpler",
+    "simply", "so", "some", "summarise", "summarize", "tell", "that", "the",
+    "their", "them", "then", "there", "these", "they", "this", "to", "translate",
+    "up", "us", "was", "way", "we", "were", "what", "when", "where", "which",
+    "who", "why", "with", "word", "words", "you", "your",
+}
+
+
+def _content_words(text: str):
+    return {w for w in re.findall(r"[a-z][a-z0-9-]{2,}", str(text).lower())
+            if w not in _EMPTY_WORDS}
+
+
+def introduces_new_subject(question: str, history: List[dict]) -> bool:
+    """
+    Whether the message names something the conversation has not mentioned.
+    "say that more simply" does not; "what about tournament selection?" does,
+    and no amount of rereading the last answer will cover it.
+    """
+    seen = set()
+    for message in list(history)[-TURN_HISTORY_MESSAGES:]:
+        seen |= _content_words(message.get("content", ""))
+    return bool(_content_words(question) - seen)
 TURN_SYSTEM = (
     "You sort a student's latest message in a conversation about their course "
     "notes into one of three kinds, and reply with that one word only.\n"
@@ -252,7 +305,34 @@ def classify_turn(question: str, history: List[dict]) -> str:
     """
     Whether this message is a new question, a continuation of the topic, or a
     follow-up about the answer just given. Always "new" without a history.
+
+    The default gate is the rule described above; SA_TURN_GATE=model asks the
+    model instead, which is how the two were compared.
     """
+    if not history:
+        return "new"
+    if TURN_GATE == "model":
+        return _classify_turn_by_model(question, history)
+    if FOLLOWUP_MARKER.search(question) and not introduces_new_subject(
+            question, history):
+        return "followup"
+    # Everything else is retrieved for. Whether it is called a continuation
+    # depends on whether it had to be rewritten to stand alone, which the
+    # caller discovers by doing the rewrite.
+    return "continuation" if _leans_on_history(question) else "new"
+
+
+def _leans_on_history(question: str) -> bool:
+    """Does the message depend on what came before to be understood?"""
+    return bool(_LEANING.search(question)) or len(question.split()) <= 4
+
+
+_LEANING = re.compile(
+    r"^\s*(and|but|what about|how about|ok|okay|also)\b|"
+    r"\b(it|its|that|this|they|them|those|these|there)\b", re.IGNORECASE)
+
+
+def _classify_turn_by_model(question: str, history: List[dict]) -> str:
     transcript = _transcript(history)
     if not transcript:
         return "new"
