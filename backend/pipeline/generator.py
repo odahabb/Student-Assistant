@@ -768,6 +768,32 @@ def _fix_number_spacing(text: str) -> str:
     return text
 
 
+# Chunk text is wordpiece-decoded, which puts spaces around punctuation:
+# "ilur . am", "bleu - 4", "pubmed + pmc", "vendor lock - in". A span copied
+# out of a passage carries the damage with it, and a student is shown an
+# answer that is right but looks broken. On QASPER these scored zero against
+# the very strings they were copied from.
+#
+# Only short answers are repaired. A paragraph is the model's own prose, and
+# joining across a full stop there would run two sentences together, so the
+# dot rule requires a lower-case or digit after it — the shape of a decoded
+# name, not of a sentence boundary.
+_DECODED_HYPHEN = re.compile(r"(?<=[A-Za-z0-9])\s+-\s+(?=[A-Za-z0-9])")
+_DECODED_DOT = re.compile(r"(?<=[A-Za-z0-9])\s*\.\s*(?=[a-z0-9])")
+_DECODED_JOINER = re.compile(r"(?<=[A-Za-z0-9])\s*([+/_])\s*(?=[A-Za-z0-9])")
+_DECODED_OPEN = re.compile(r"\(\s+")
+_DECODED_CLOSE = re.compile(r"\s+\)")
+
+
+def fix_decoded_spacing(text: str) -> str:
+    """Undo the spacing a wordpiece decode leaves around punctuation."""
+    out = _DECODED_HYPHEN.sub("-", str(text))
+    out = _DECODED_DOT.sub(".", out)
+    out = _DECODED_JOINER.sub(r"\1", out)
+    out = _DECODED_CLOSE.sub(")", _DECODED_OPEN.sub("(", out))
+    return re.sub(r"\s{2,}", " ", out).strip()
+
+
 def complete(prompt: str, max_new_tokens: int = 128,
              system: str = INSTRUCTION_SYSTEM) -> str:
     """
@@ -891,7 +917,7 @@ def answer_short(query: str, context_chunks: List[str]) -> str:
 
     budget = SENTENCE_MAX_TOKENS if shape == "sentence" else SHORT_MAX_TOKENS
     answer = _reply(_short_messages(query, context_chunks), budget)
-    return _fix_number_spacing(_tidy_short(answer))
+    return fix_decoded_spacing(_fix_number_spacing(_tidy_short(answer)))
 
 
 def _tidy_short(answer: str) -> str:

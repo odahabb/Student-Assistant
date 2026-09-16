@@ -266,6 +266,41 @@ class ModelTurnGateTests(unittest.TestCase):
             self.assertEqual(self.classify(reply), "new")
 
 
+class DecodedSpacingTests(unittest.TestCase):
+    """
+    Chunk text is wordpiece-decoded, so punctuation carries spaces around it
+    and a copied span arrives damaged. On QASPER these answers scored zero
+    against the very strings they were copied from.
+    """
+
+    def test_decoded_punctuation_is_rejoined(self):
+        for damaged, clean in [
+                ("ilur . am", "ilur.am"),
+                ("bleu - 4, nist - 4", "bleu-4, nist-4"),
+                ("pubmed + pmc", "pubmed+pmc"),
+                ("vendor lock - in", "vendor lock-in"),
+                ("all - minilm - l6 - v2", "all-minilm-l6-v2"),
+                ("multilingual nmt ( mnmt )", "multilingual nmt (mnmt)"),
+                ("presence / absence", "presence/absence")]:
+            self.assertEqual(generator.fix_decoded_spacing(damaged), clean)
+
+    def test_a_sentence_boundary_is_not_closed_up(self):
+        # The dangerous case: joining across a full stop would run a
+        # paragraph's sentences together.
+        for prose in ("It scores a solution. It guides selection.",
+                      "The model is small. Training took four days.",
+                      "See Table 2. Results follow."):
+            self.assertEqual(generator.fix_decoded_spacing(prose), prose)
+
+    def test_a_short_answer_is_repaired(self):
+        with mock.patch.object(generator, "ABSTAIN", "off"), \
+             mock.patch.object(generator, "_reply", return_value="bleu - 4"), \
+             mock.patch.object(generator, "_budget_context",
+                               return_value="context"):
+            self.assertEqual(generator.answer_short("Which metric?", ["p"]),
+                             "bleu-4")
+
+
 class NumberSpacingTests(unittest.TestCase):
     def test_decoded_number_artefacts_are_repaired(self):
         self.assertEqual(generator._fix_number_spacing("0. 28"), "0.28")

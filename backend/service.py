@@ -424,7 +424,7 @@ def describe(chunk) -> dict:
             "timecode": getattr(chunk, "timecode", None),
             "from_image": bool(getattr(chunk, "from_image", False)),
             "section": getattr(chunk, "section", None),
-            "text": str(chunk)}
+            "text": _readable(str(chunk))}
 
 
 # Conversations
@@ -668,6 +668,17 @@ def _stream_followup(question: str, history: list) -> Iterator[str]:
 def _tidy(text: str) -> str:
     from backend.pipeline.generator import _fix_number_spacing
     return _fix_number_spacing(text).strip()
+
+
+def _readable(text: str) -> str:
+    """
+    Passage text as a person should see it. What is indexed stays exactly as
+    it was — every recorded retrieval number describes that — but the copy put
+    in front of the student has the wordpiece decode's spacing repaired, so a
+    source reads "vendor lock-in" rather than "vendor lock - in".
+    """
+    from backend.pipeline.generator import fix_decoded_spacing
+    return fix_decoded_spacing(text)
 
 
 def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dict]:
