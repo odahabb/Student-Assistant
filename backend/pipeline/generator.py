@@ -147,9 +147,32 @@ SHORT_MAX_TOKENS = 48
 #
 # Abstention cannot help on a question set where everything is answerable; it
 # can only lose answers the model would have got right. The gain is on
-# question sets that contain unanswerable questions, and on a student's real
-# material, where a confident wrong answer is worse than none.
-ABSTAIN = os.environ.get("SA_ABSTAIN", "check").lower()
+# question sets that contain unanswerable questions.
+#
+# Measured on the whole QASPER dev set with qwen3:14b, which is the closest
+# question set to what a student asks of their own notes:
+#
+#                     answer F1   extractive   abstractive   unanswerable
+#   check               0.3359       0.286         0.137         0.730
+#   off                 0.3394       0.369         0.203         0.090
+#
+# A wash on the headline, and the composition decides it. The check declined
+# 351 questions; only 73 deserved it. Four of every five refusals threw away a
+# question the documents answered, and no second signal separates the two —
+# the overlap between a question's words and its retrieved passages is 0.53
+# for the refusals that were right and 0.58 for the ones that were wrong, so
+# every threshold on it made the score worse. A warning in place of a refusal
+# was considered and rejected for the same reason: a caution that is wrong
+# four times in five teaches the student to ignore it.
+#
+# So the check is off by default. It costs a second generation on every
+# question, and what it buys — 0.730 against 0.090 on the unanswerable class —
+# is worth having only where a large share of the questions have no answer in
+# the documents at all. A student asking about their own uploaded notes is not
+# in that situation. SHORT_SYSTEM still tells the model
+# it may answer "unanswerable", and with the check off it still did so 28
+# times across the dev set.
+ABSTAIN = os.environ.get("SA_ABSTAIN", "off").lower()
 ABSTAIN_ANSWER = "unanswerable"
 FIRM_CLAUSE = (
     " Do not guess and do not answer from your own knowledge: if the answer is "

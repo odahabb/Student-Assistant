@@ -95,13 +95,15 @@ extractive, decoded greedily, what the evaluation scripts measure) or
 on for the chat view). The quiz always uses short answers, because it compares
 a reference answer with what the student types.
 
-**Declining to answer.** `SA_ABSTAIN` selects `check` (the default: a separate
-yes/no generation asks whether the passages contain the answer before the
-answer is requested), `firm` (an instruction not to guess) or `off` (the
-behaviour before 21 September 2026). On questions whose answer is not in the documents
-at all, `check` is right far more often than `off`, and it doubles overall
-accuracy on such a set; the cost is one answer of 25 on this project's own
-questions.
+**Declining to answer.** `SA_ABSTAIN` selects `off` (the default), `check` (a
+separate yes/no generation asks whether the passages contain the answer before
+the answer is requested) or `firm` (an instruction not to guess). `check` is
+off by default because it refuses too much: across the QASPER dev set it
+declined 351 questions and only 73 deserved it, costing 8 points of extractive
+and 7 of abstractive answer F1 to buy 64 on the unanswerable class — a wash
+overall, for a second generation on every question. It earns its place only
+where a large share of the questions have no answer in the documents at all,
+which is not what a student asks of their own notes.
 
 **Language model.** One model answers, explains and writes the quiz questions:
 `SA_MODEL` (default `Qwen/Qwen2.5-1.5B-Instruct`), with `SA_CHAT_MODEL`
