@@ -1,0 +1,37 @@
+{
+  "note": "Published QASPER results, read from Tables 2 and 3 of the paper itself rather than from a summary. Recorded here because the numbers most often quoted for QASPER are the TEST-set ones, while this project evaluates on DEV, and the two differ by four to ten points. Comparing our dev numbers against their test numbers understated this system by about five points of Answer F1 and overstated the Evidence F1 gap by fifteen.",
+  "source": {
+    "citation": "Dasigi, P., Lo, K., Beltagy, I., Cohan, A., Smith, N.A. and Gardner, M. (2021) 'A dataset of information-seeking questions and answers anchored in research papers', Proceedings of NAACL-HLT 2021, pp. 4599-4610.",
+    "tables": "Table 2 (Answer F1) and Table 3 (Evidence F1)",
+    "read_on": "2026-09-22"
+  },
+  "answer_f1": {
+    "note": "LED-base. 'Input' is what the model was given. The widely quoted 33.63 is the test set with the evidence-selection scaffold.",
+    "q_only": {"dev": 17.81, "test": 22.48},
+    "q_plus_abstract": {"dev": 18.60, "test": 22.30},
+    "q_plus_introduction": {"dev": 18.30, "test": 24.08},
+    "q_plus_full_text": {"dev": 29.05, "test": 32.80},
+    "q_plus_full_text_with_scaffold": {"dev": 28.01, "test": 33.63}
+  },
+  "evidence_f1": {
+    "note": "The widely quoted 39.37 is LED-LARGE on test, not the base model.",
+    "led_base": {"dev": 23.94, "test": 29.85},
+    "led_large": {"dev": 31.25, "test": 39.37},
+    "tf_idf": {"dev": 10.68, "test": 9.20},
+    "random_paragraph": {"dev": 2.09, "test": 1.30},
+    "first_paragraph": {"dev": 0.71, "test": 0.34},
+    "human_lower_bound": {"dev": null, "test": 71.62}
+  },
+  "answer_f1_from_gold_evidence": {
+    "note": "Table 4, test set, models handed the gold evidence paragraphs. The ceiling for the answering stage alone.",
+    "led_base": {"span": 54.20, "abstractive": 24.95, "overall": 44.96},
+    "t5_large": {"span": 65.59, "abstractive": 29.11, "overall": 60.03},
+    "unifiedqa_large": {"span": 67.23, "abstractive": 28.92, "overall": 61.39}
+  },
+  "this_project_dev": {
+    "note": "Same split as the dev columns above. Zero-shot, three retrieved paragraphs, no training on QASPER.",
+    "qwen2.5-1.5b": {"answer_f1": 24.99, "evidence_f1": 29.18},
+    "qwen3-14b": {"answer_f1": 33.59, "evidence_f1": 31.10},
+    "qwen3-14b_abstain_off": {"answer_f1": 33.94, "evidence_f1": 24.76}
+  }
+}
