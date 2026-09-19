@@ -429,12 +429,56 @@ async function renderSubject() {
     : docs ? "Reading your documents…" : "Add a document first";
   $("#send").disabled = !ready || !question.value.trim();
 
+  // With nothing uploaded there is no question to ask, so the page leads with
+  // the upload instead of a composer the reader cannot type into.
+  renderOnboard(docs, status);
   renderRail();
   if (!state.chatList[name]) {
     try { await loadChats(name); } catch (e) { fail(e); }
     if (current() !== name) return;
   }
   renderChatRows();
+}
+
+// The subject page has three states and only one of them is a place to ask a
+// question. Showing the composer first in the other two puts the disabled
+// control above the thing that would enable it.
+function renderOnboard(docs, status) {
+  const name = current();
+  const onboard = $("#subject-onboard");
+  const empty = docs === 0;
+  onboard.hidden = !empty;
+  $("#composer").hidden = empty;
+  $("#recents-title").hidden = empty;
+  $("#chat-rows").hidden = empty;
+  if (!empty) {
+    // Indexing is the one state worth narrating: the composer is disabled and
+    // the reason is not otherwise on the page.
+    const note = $("#composer .composer-note");
+    if (status.state === "indexing") {
+      fill(note, "Reading your documents — you can ask as soon as this finishes");
+    } else if (status.state === "unreadable") {
+      fill(note, "None of these documents held readable text");
+    } else {
+      fill(note, "Answers come only from this subject's documents · ",
+           el("kbd", { text: "Enter" }), " to ask");
+    }
+    return;
+  }
+  fill(onboard,
+    el("div", { class: "onboard-mark" }, icon("files")),
+    el("h2", { text: "Add what you are studying" }),
+    el("p", { text: "Lecture notes, slides, papers, photos of a whiteboard or a "
+                  + "recording of a lecture. Everything after this — questions, "
+                  + "quizzes, progress — is written from what you add here." }),
+    el("div", { class: "onboard-actions" },
+      el("button", { class: "btn primary", onclick: () => $("#file-input").click(),
+                     text: "Add documents" }),
+      state.settings?.samples
+        ? el("button", { class: "link-btn", onclick: useSamples,
+                         text: "Or try the sample papers" }) : null),
+    el("p", { class: "meta onboard-formats",
+              text: "PDF, PowerPoint, Word, images, audio and plain text." }));
 }
 
 function renderChatRows() {
@@ -498,9 +542,8 @@ function renderRail() {
         el("button", { class: "icon-btn remove", "aria-label": `Remove ${d.name}`,
           onclick: () => removeDocument(d.name) }, icon("trash")));
     })),
-    docs.length === 0 && state.settings?.samples
-      ? el("button", { class: "link-btn rail-samples", onclick: useSamples,
-                       text: "Use the sample papers" }) : null,
+    // The sample papers used to be offered here as well; the empty subject now
+    // offers them in the middle of the page, and twice is once too many.
     railEntry("card", "Quiz", "Questions written from your documents",
       el("button", { class: "link-btn", onclick: () => go({ view: "quiz", subject: name }),
                      text: "Open" })),
@@ -668,6 +711,9 @@ function schedulePoll() {
     }
     renderIndexing();
     if (state.route.view === "subject") renderSubject();
+    // The quiz screen says it will catch up when indexing finishes, so it has
+    // to be one of the views this poll re-renders.
+    else if (state.route.view === "quiz") renderQuiz();
     else updateSend();
     schedulePoll();
   }, 1500);
@@ -983,9 +1029,28 @@ async function renderQuiz() {
   const ready = state.status[name]?.state === "ready";
   $("#new-question").disabled = !ready || q.loading;
   select.disabled = !ready;
+  // A topic picker over no topics and a deal button that cannot deal are
+  // furniture; take them away until there is something behind them.
+  $("#quiz-controls").hidden = !ready;
   if (!ready) {
-    select.replaceChildren(el("option", { text: "Waiting for the documents…" }));
-    drawCard();
+    // A quiz cannot be dealt from documents that are not there. Say which of
+    // the three reasons it is, and offer the way out of it, rather than
+    // showing "Ready when you are" beside an empty dropdown.
+    const status = state.status[name] || {};
+    const docs = subjectCard(name).documents.length;
+    $("#quiz-stage").replaceChildren(el("div", { class: "quiz-empty" },
+      el("div", { class: "deck" }, el("i"), el("i"), el("i")),
+      el("h2", { text: !docs ? "Nothing to quiz on yet"
+                 : status.state === "unreadable" ? "Nothing readable to quiz on"
+                 : "Reading your documents…" }),
+      el("p", { text: !docs
+        ? `Quiz questions are written from your own material. Add some to ${name} and the cards write themselves.`
+        : status.state === "unreadable"
+        ? "None of these documents held readable text, so there is nothing to write questions from."
+        : "Questions are written from the passages being indexed now. This page will catch up on its own." }),
+      !docs ? el("button", { class: "btn primary quiz-empty-go",
+        onclick: () => go({ view: "subject", subject: name }),
+        text: `Add documents to ${name}` }) : null));
     return;
   }
   let topics = state.topics[name];
@@ -1013,6 +1078,7 @@ async function renderQuiz() {
   select.value = q.topic || "";
   if (!topics.length) {
     $("#new-question").disabled = true;
+    $("#quiz-controls").hidden = true;
     $("#quiz-stage").replaceChildren(el("div", { class: "quiz-empty" },
       el("h2", { text: "Not enough text to quiz on" }),
       el("p", { text: "Quiz questions are written from passages of at least 40 words. "

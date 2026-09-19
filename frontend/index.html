@@ -104,6 +104,10 @@
           <h1 id="subject-name"></h1>
           <p class="meta" id="subject-meta"></p>
 
+          <!-- An empty subject has nothing to ask about, so the page offers the
+               one thing that helps instead of a composer that cannot be used. -->
+          <div class="onboard" id="subject-onboard" hidden></div>
+
           <form class="composer start" id="composer">
             <div class="composer-box">
               <textarea id="question" rows="2" placeholder="Ask a question…" aria-label="Your question"></textarea>
@@ -112,7 +116,7 @@
             <p class="composer-note">Answers come only from this subject's documents · <kbd>Enter</kbd> to ask</p>
           </form>
 
-          <div class="section-title"><h2>Recents</h2></div>
+          <div class="section-title" id="recents-title"><h2>Recents</h2></div>
           <div class="chat-rows" id="chat-rows"></div>
         </div>
 
@@ -134,7 +138,7 @@
 
     <!-- Quiz -->
     <section id="view-quiz" class="view quiz" hidden>
-      <div class="quiz-controls">
+      <div class="quiz-controls" id="quiz-controls">
         <label class="select">
           <span>Topic</span>
           <select id="topic-select"></select>
