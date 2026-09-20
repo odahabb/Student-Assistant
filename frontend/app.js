@@ -714,6 +714,7 @@ function schedulePoll() {
     // The quiz screen says it will catch up when indexing finishes, so it has
     // to be one of the views this poll re-renders.
     else if (state.route.view === "quiz") renderQuiz();
+    else if (state.route.view === "progress") renderProgress();
     else updateSend();
     schedulePoll();
   }, 1500);
@@ -1292,11 +1293,25 @@ function quizKeys(event) {
 async function renderProgress() {
   const name = current();
   const body = $("#progress-body");
-  if (state.status[name]?.state !== "ready") {
+  const status = state.status[name] || {};
+  if (status.state !== "ready") {
+    // "Still reading your documents" was shown even for a subject that has
+    // none, which reads as a stuck page rather than an empty one.
+    const docs = subjectCard(name).documents.length;
     body.replaceChildren(el("div", { class: "quiz-empty" },
-      el("h2", { text: "Still reading your documents" }),
-      el("p", { text: "Progress appears here once the subject is indexed and you've "
-                    + "answered a few quiz questions." })));
+      el("h2", { text: !docs ? "Nothing to track yet"
+                 : status.state === "unreadable" ? "Nothing readable to track"
+                 : "Still reading your documents" }),
+      el("p", { text: !docs
+        ? "Progress follows how you answer quiz questions, and those are written "
+          + "from your own material. Add some to get started."
+        : status.state === "unreadable"
+        ? "None of these documents held readable text, so there are no topics to track."
+        : "Progress appears here once the subject is indexed and you've "
+          + "answered a few quiz questions." }),
+      !docs ? el("button", { class: "btn primary quiz-empty-go",
+        onclick: () => go({ view: "subject", subject: name }),
+        text: `Add documents to ${name}` }) : null));
     return;
   }
   let p;
