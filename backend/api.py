@@ -126,6 +126,13 @@ def get_subject(name: str):
     return {**subject_summary(name), "index": service.index_status(name)}
 
 
+@app.patch("/api/subjects/{name}")
+def rename_subject(name: str, body: NewSubject):
+    """Rename a subject, keeping its documents, chats, quiz and progress."""
+    renamed = service.rename_subject(name, body.name)
+    return {**subject_summary(renamed), "index": service.index_status(renamed)}
+
+
 @app.delete("/api/subjects/{name}")
 def delete_subject(name: str):
     """Delete a subject and everything in it. The page confirms first."""

@@ -43,6 +43,7 @@
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="19" r="1.7" fill="currentColor"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14.5 6.5 17.5 9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
 </svg>
 
@@ -54,7 +55,7 @@
         <div class="brand-name">Study Assistant</div>
         <div class="brand-sub"><svg class="ico-xs"><use href="#i-lock"/></svg> Runs on this computer</div>
       </div>
-      <button class="icon-btn only-mobile" id="close-sidebar" aria-label="Close menu"><svg><use href="#i-close"/></svg></button>
+      <button class="icon-btn" id="close-sidebar" aria-label="Hide the sidebar" title="Hide the sidebar"><svg><use href="#i-close"/></svg></button>
     </div>
 
     <nav class="side-nav">
@@ -78,7 +79,7 @@
 
   <main class="main" id="main">
     <header class="topbar">
-      <button class="icon-btn only-mobile" id="open-sidebar" aria-label="Open menu"><svg><use href="#i-menu"/></svg></button>
+      <button class="icon-btn" id="open-sidebar" aria-label="Show the sidebar" title="Show the sidebar"><svg><use href="#i-menu"/></svg></button>
       <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
       <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark mode"><svg><use href="#i-moon"/></svg></button>
     </header>
@@ -89,10 +90,7 @@
     <section id="view-subjects" class="view page" hidden>
       <div class="page-head">
         <h1>Subjects</h1>
-        <form id="new-subject" class="new-subject" autocomplete="off">
-          <input id="new-subject-name" placeholder="Name a new subject…" aria-label="New subject name" maxlength="80">
-          <button class="btn primary"><svg><use href="#i-plus"/></svg> New subject</button>
-        </form>
+        <button class="btn primary" id="new-subject"><svg><use href="#i-plus"/></svg> New subject</button>
       </div>
       <div class="subject-grid" id="subject-grid"></div>
     </section>
@@ -177,6 +175,18 @@
     <menu>
       <button value="cancel" class="btn ghost">Cancel</button>
       <button value="ok" class="btn danger" id="confirm-ok">Delete</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="name-dialog" class="dialog">
+  <form method="dialog" autocomplete="off">
+    <h3 id="name-title"></h3>
+    <p id="name-text"></p>
+    <input id="name-input" maxlength="80" aria-labelledby="name-title">
+    <menu>
+      <button value="cancel" class="btn ghost" formnovalidate>Cancel</button>
+      <button value="ok" class="btn primary" id="name-ok">Create</button>
     </menu>
   </form>
 </dialog>

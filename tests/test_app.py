@@ -135,6 +135,55 @@ class SubjectTests(ServiceTestCase):
         self.assertEqual([c["subject"] for c in recent], ["Vision", "Speech"])
         self.assertEqual(recent[0]["title"], "About Vision?")
 
+    def test_renaming_a_subject_keeps_its_work(self):
+        # Everything a subject owns lives in its folder, so the rename has to
+        # carry the conversation with it and not rebuild the index.
+        name = self.make_subject()
+        self.wait_ready(name)
+        read_events(self.client.post(f"/api/subjects/{name}/ask",
+                                     json={"question": "How many hours?"}))
+        renamed = self.client.patch(f"/api/subjects/{name}",
+                                    json={"name": "Speech Recognition"})
+        self.assertEqual(renamed.status_code, 200)
+        self.assertEqual(renamed.json()["name"], "Speech Recognition")
+        self.assertEqual(renamed.json()["index"]["state"], "ready")
+        self.assertEqual([s["name"] for s in self.client.get("/api/subjects").json()],
+                         ["Speech Recognition"])
+        chats = self.client.get("/api/subjects/Speech Recognition/chats").json()
+        self.assertEqual(len(chats), 1)
+        self.assertEqual(self.client.get(f"/api/subjects/{name}").status_code, 404)
+
+    def test_renaming_carries_the_index_rather_than_rebuilding_it(self):
+        name = self.make_subject()
+        self.wait_ready(name)
+        with mock.patch.object(service, "build_index") as build:
+            self.client.patch(f"/api/subjects/{name}", json={"name": "Audio"})
+            state = self.client.get("/api/subjects/Audio/status").json()["state"]
+        build.assert_not_called()
+        self.assertEqual(state, "ready")
+
+    def test_renaming_onto_an_existing_subject_is_refused(self):
+        self.make_subject(name="Speech")
+        self.make_subject(name="Vision")
+        response = self.client.patch("/api/subjects/Speech", json={"name": "Vision"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(sorted(p.name for p in self.projects.iterdir()),
+                         ["Speech", "Vision"])
+
+    def test_renaming_to_an_unusable_name_is_refused(self):
+        name = self.make_subject()
+        response = self.client.patch(f"/api/subjects/{name}", json={"name": "  ///  "})
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue((self.projects / name).is_dir())
+
+    def test_renaming_a_subject_being_read_is_refused(self):
+        name = self.make_subject()
+        self.client.get(f"/api/subjects/{name}/status")      # starts the build
+        service._building[name] = {"state": "indexing", "signature": ()}
+        response = self.client.patch(f"/api/subjects/{name}", json={"name": "Later"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("still being read", response.json()["detail"])
+
     def test_unusable_name_is_rejected(self):
         response = self.client.post("/api/subjects", json={"name": "///"})
         self.assertEqual(response.status_code, 400)

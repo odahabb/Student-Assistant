@@ -135,16 +135,65 @@ function sourceLabel(src) {
   return parts.join(" · ");
 }
 
-function confirmDialog(title, text, okLabel = "Delete") {
+// Which button closed a <dialog>.
+//
+// A form with method="dialog" is supposed to close its dialog and fire
+// `close`, carrying the pressed button's value. In the desktop shell's
+// Chromium the dialog closes but `close` never arrives, so waiting for it
+// alone leaves every confirmation hanging and nothing happens. Take the
+// answer from whichever of `submit`, `cancel` and `close` turns up first.
+function dialogResult(dialog) {
+  const form = dialog.querySelector("form");
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      dialog.removeEventListener("close", onClose);
+      dialog.removeEventListener("cancel", onCancel);
+      form.removeEventListener("submit", onSubmit);
+      if (dialog.open) dialog.close();
+      resolve(value);
+    };
+    function onClose() { finish(dialog.returnValue); }
+    function onCancel() { finish("cancel"); }
+    // returnValue is only set once the dialog closes, so read the button.
+    function onSubmit(e) { finish(e.submitter ? e.submitter.value : dialog.returnValue); }
+    dialog.addEventListener("close", onClose);
+    dialog.addEventListener("cancel", onCancel);
+    form.addEventListener("submit", onSubmit);
+  });
+}
+
+async function confirmDialog(title, text, okLabel = "Delete") {
   const dialog = $("#confirm");
   $("#confirm-title").textContent = title;
   $("#confirm-text").textContent = text;
   $("#confirm-ok").textContent = okLabel;
   dialog.returnValue = "";
   dialog.showModal();
-  return new Promise((resolve) => {
-    dialog.addEventListener("close", () => resolve(dialog.returnValue === "ok"), { once: true });
-  });
+  return await dialogResult(dialog) === "ok";
+}
+
+// Naming something — a new subject, or an old one being renamed — is the same
+// small decision twice, so it is the same dialog twice.
+async function nameDialog({ title, text, value = "", okLabel, placeholder }) {
+  const dialog = $("#name-dialog");
+  const input = $("#name-input");
+  $("#name-title").textContent = title;
+  $("#name-text").textContent = text;
+  $("#name-ok").textContent = okLabel;
+  input.value = value;
+  input.placeholder = placeholder || "";
+  dialog.returnValue = "";
+  dialog.showModal();
+  // Offer the old name ready to be typed over, and put the caret at the end
+  // of it rather than selecting it, so a small correction stays small.
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  const pressed = await dialogResult(dialog);
+  const typed = input.value.trim();
+  return pressed === "ok" && typed ? typed : null;
 }
 
 // Mark every occurrence of `needle` (case-insensitive) inside `text`.
@@ -385,6 +434,7 @@ function renderGrid() {
               { icon: "chat", label: "Open", run: () => go({ view: "subject", subject: s.name }) },
               { icon: "card", label: "Quiz", run: () => go({ view: "quiz", subject: s.name }) },
               { icon: "chart", label: "Progress", run: () => go({ view: "progress", subject: s.name }) },
+              { icon: "pencil", label: "Rename", run: () => renameSubject(s) },
               { icon: "trash", label: "Delete subject", danger: true, run: () => deleteSubject(s) },
             ]);
           } }, icon("more"))),
@@ -415,7 +465,10 @@ async function renderSubject() {
   const card = subjectCard(name);
   const status = state.status[name] || {};
   const ready = status.state === "ready";
-  $("#subject-name").textContent = name;
+  fill($("#subject-name"), name,
+    el("button", { class: "icon-btn rename", "aria-label": `Rename ${name}`,
+                   title: "Rename this subject",
+                   onclick: () => renameSubject(card) }, icon("pencil")));
   const docs = card.documents.length;
   $("#subject-meta").textContent = docs
     ? `${docs} document${docs === 1 ? "" : "s"}`
@@ -604,17 +657,49 @@ async function useSamples() {
   } catch (e) { fail(e); }
 }
 
-async function createSubject(event) {
-  event.preventDefault();
-  const input = $("#new-subject-name");
-  const name = input.value.trim();
-  if (!name) { input.focus(); return; }
+async function createSubject() {
+  const name = await nameDialog({
+    title: "New subject",
+    text: "A subject holds its own documents, conversations and quiz. "
+        + "One per module or topic works well.",
+    placeholder: "Machine Learning",
+    okLabel: "Create",
+  });
+  if (!name) return;
   try {
     const created = await api("/api/subjects", { method: "POST", json: { name } });
-    input.value = "";
     await loadSubjects();
     go({ view: "subject", subject: created.name });
     toast(`Created “${created.name}”. Add some documents to it.`);
+  } catch (e) { fail(e); }
+}
+
+async function renameSubject(subject) {
+  const old = subject.name;
+  const name = await nameDialog({
+    title: "Rename subject",
+    text: "The documents, conversations, quiz questions and progress all stay "
+        + "with it.",
+    value: old,
+    okLabel: "Rename",
+  });
+  if (!name || name === old) return;
+  try {
+    const renamed = await api(subjectUrl(old), { method: "PATCH", json: { name } });
+    // Everything the page holds is keyed by subject name, so move it across
+    // rather than reload it: the index is the same index.
+    for (const store of [state.status, state.chatList, state.messages, state.quiz,
+                         state.topics, state.asking]) {
+      if (old in store) { store[renamed.name] = store[old]; delete store[old]; }
+    }
+    state.status[renamed.name] = renamed.index;
+    await Promise.all([loadSubjects(), loadRecents()]);
+    if (current() === old) {
+      history.replaceState(null, "", hashFor({ ...state.route, subject: renamed.name }));
+      state.route.subject = renamed.name;
+    }
+    render();
+    toast(`Renamed to “${renamed.name}”.`);
   } catch (e) { fail(e); }
 }
 
@@ -1436,18 +1521,41 @@ function toggleTheme() {
   drawThemeIcon();
 }
 
+// On a narrow screen the sidebar slides over the page and `nav-open` shows it.
+// On a wide one it is a column of the grid, and `nav-hidden` takes the column
+// away — a reading pane with nothing beside it. The two never apply at once.
+const narrow = () => matchMedia("(max-width: 860px)").matches;
+
 function openNav() { $("#shell").classList.add("nav-open"); }
 function closeNav() { $("#shell").classList.remove("nav-open"); }
+
+function setNavHidden(hidden) {
+  $("#shell").classList.toggle("nav-hidden", hidden);
+  try { localStorage.setItem("sa-nav-hidden", hidden ? "1" : ""); } catch (e) {}
+}
+
+function toggleNav() {
+  if (narrow()) {
+    $("#shell").classList.toggle("nav-open");
+    return;
+  }
+  setNavHidden(!$("#shell").classList.contains("nav-hidden"));
+}
+
+function hideNav() {
+  if (narrow()) closeNav();
+  else setNavHidden(true);
+}
 
 // ---------------------------------------------------------------- start
 
 function wire() {
-  $("#new-subject").addEventListener("submit", createSubject);
+  $("#new-subject").addEventListener("click", createSubject);
   $("#file-input").addEventListener("change", (e) => uploadFiles([...e.target.files]));
   $("#nav-subjects").addEventListener("click", () => { go({ view: "subjects" }); closeNav(); });
   $("#nav-new").addEventListener("click", () => {
     const name = current() || state.subjects[0]?.name;
-    if (!name) { go({ view: "subjects" }); $("#new-subject-name").focus(); return; }
+    if (!name) { go({ view: "subjects" }); createSubject(); return; }
     delete (state.messages[name] || {})["new"];
     go({ view: "chat", subject: name, chat: "new" });
     closeNav();
@@ -1466,8 +1574,8 @@ function wire() {
   $("#topic-select").addEventListener("change", (e) => { quizState().topic = e.target.value; });
   $("#drawer-close").addEventListener("click", closeDrawer);
   $("#theme-toggle").addEventListener("click", toggleTheme);
-  $("#open-sidebar").addEventListener("click", openNav);
-  $("#close-sidebar").addEventListener("click", closeNav);
+  $("#open-sidebar").addEventListener("click", toggleNav);
+  $("#close-sidebar").addEventListener("click", hideNav);
   $("#scrim").addEventListener("click", closeNav);
 
   // Dropping files anywhere inside a subject uploads them.
@@ -1490,6 +1598,8 @@ function wire() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeDrawer(); closeNav(); closeMenu(); }
+    // A key for the sidebar, since it can now be away for a whole session.
+    if (e.key === "\\" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); toggleNav(); }
     quizKeys(e);
   });
   window.addEventListener("hashchange", render);
@@ -1499,6 +1609,9 @@ function wire() {
 async function start() {
   wire();
   drawThemeIcon();
+  try {
+    if (localStorage.getItem("sa-nav-hidden")) $("#shell").classList.add("nav-hidden");
+  } catch (e) {}
   try {
     const [settings] = await Promise.all([api("/api/settings"), loadSubjects(), loadRecents()]);
     state.settings = settings;

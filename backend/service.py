@@ -140,6 +140,44 @@ def create_subject(name: str) -> str:
     return safe
 
 
+def rename_subject(old: str, new: str) -> str:
+    """
+    Rename a subject, keeping its documents, conversations, quiz questions and
+    progress. All of those live inside the subject's folder, so moving the
+    folder moves them; what does not move by itself is the in-memory index and
+    the questions already handed out, which are keyed by name here.
+
+    A build in flight is renamed out from under its own thread, which would
+    then look for documents under a folder that no longer exists, so a subject
+    that is still being read refuses the rename and says so.
+    """
+    folder = subject_path(old)
+    safe = _ILLEGAL_NAME_CHARS.sub("", new).strip().strip(".")
+    if not safe:
+        raise ValueError("That name can't be used as a folder name.")
+    if safe == old:
+        return old
+    target = PROJECTS_DIR / safe
+    # A case-only change is a rename on Windows even though the paths compare
+    # equal, so only a genuinely different folder counts as taken.
+    if target.exists() and target.resolve() != folder.resolve():
+        raise ValueError(f"There is already a subject called {safe!r}.")
+    with _state_lock:
+        if _building.get(old, {}).get("state") == "indexing":
+            raise ValueError("This subject is still being read. "
+                             "Rename it once that finishes.")
+    folder.rename(target)
+    with _state_lock:
+        for store in (_indexes, _building):
+            if old in store:
+                store[safe] = store.pop(old)
+    with _quiz_lock:
+        for issued in _issued.values():
+            if issued["subject"] == old:
+                issued["subject"] = safe
+    return safe
+
+
 def documents(name: str) -> List[Path]:
     """Files in a subject the pipeline knows how to read."""
     return sorted((p for p in subject_path(name).iterdir()
