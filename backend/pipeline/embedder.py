@@ -96,8 +96,8 @@ def embed(chunks: List[str], section_context: bool = False,
     Encode a list of text chunks into a 2D numpy array of shape (n_chunks, 384).
 
     section_context=True embeds each chunk with its section title in front
-    (with_section_context), an experimental variant compared in
-    backend/scripts/retrieval_variants.py. `model` overrides SA_EMBEDDER.
+    (with_section_context), an experimental variant that did not help
+    (data/eval/retrieval_variants.json). `model` overrides SA_EMBEDDER.
     """
     encoder = _get_model(model)
     texts = [with_section_context(c) for c in chunks] if section_context else chunks

@@ -130,12 +130,12 @@ def question_shape(query: str) -> str:
 SHORT_MAX_TOKENS = 48
 
 # Saying "I don't know" is a skill the model has to be asked for separately.
-# Given three passages it will answer almost anything, which is wrong twice
-# over: it invents facts for a student, and it forfeits every question whose
-# answer is not in the documents at all.
+# Given three passages it will answer almost anything, and for a student that
+# means invented facts stated with the same confidence as the rest.
 #
 # SA_ABSTAIN selects how that is handled, because the choice is a real
-# trade-off rather than a bug with one fix, and both directions are measured:
+# trade-off rather than a bug with one fix, and both directions are measured
+# (notebooks/01_eval_pdf_text.ipynb, on QASPER's unanswerable class):
 #
 #   "off"   — the wording above and nothing more. What every result recorded
 #             before 2026-09-21 describes.

@@ -242,7 +242,7 @@ def main():
                 "used by the current 8-question set. Questions and answers are "
                 "authored; supporting quotes and page numbers are extracted and "
                 "verified verbatim from the source page. Not merged into "
-                "retrieval_ground_truth.json and not run through eval_recall.py.",
+                "retrieval_ground_truth.json and not used by any evaluation.",
         "pages_excluded_as_already_in_use": [
             {"source_file": f, "page": p} for f, p in sorted(PAGES_IN_USE)],
         "candidate_count": len(out),

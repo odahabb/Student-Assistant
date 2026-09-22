@@ -583,7 +583,7 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
       "sentence" whole sentences packed into windows (_sentence_windows)
       "heading"  cut at section/subsection headings, then sentence windows
       "semantic" cut where neighbouring sentences are least similar
-    The alternatives are compared in backend/scripts/embedder_comparison.py.
+    The alternatives are compared in notebooks/06_choice_embedder.ipynb.
     """
     if chunking not in CHUNKING_MODES:
         raise ValueError(f"chunking must be one of {CHUNKING_MODES}")

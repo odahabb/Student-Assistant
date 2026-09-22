@@ -144,34 +144,41 @@ few seconds without downloading anything.
 
 ## Evaluation
 
-Scripts live in `backend/scripts/`; results are committed in `data/eval/`.
+Every evaluation is a notebook in `notebooks/`; results are committed in
+`data/eval/`. Each notebook opens with the evaluation's own code and a
+`RUN = False` switch: as committed it only loads and shows the saved results,
+and `RUN = True` measures again and overwrites them. Run them with the Python
+environment that has the project's requirements installed; `notebooks/eval_common.py`
+holds the answer-grading rule they share.
 
-| Question | Script | Output |
+| Notebook | What it measures | Results |
 |---|---|---|
-| Image extraction: Qwen2-VL-2B vs EasyOCR+BLIP on 25 DocVQA questions | `notebooks/easyocr_blip_vs_qwen2vl_eval.ipynb` | `easyocr_blip_vs_qwen2vl_results.csv` |
-| Both evaluation datasets described; image results re-scored with strict EM and ANLS | `dataset_and_metrics.py` | `dataset_and_metrics.json`, `published_baselines.json` |
-| Retrieval Recall@1/3/5 on 25 hand-labelled questions | `eval_recall.py` | `recall_results.json` |
-| MRR and similarity-gap diagnostics | `rank_diagnostics.py` | `rank_diagnostics.json` |
-| Is the corpus mix to blame? (one index per document) | `ablation_single_doc.py` | `recall_ablation_single_doc.json` |
-| What outranks the correct chunk? | `competitor_analysis.py` | `competitor_analysis.json` |
-| Chunking and section-context variants | `retrieval_variants.py` | `retrieval_variants.json` |
-| Embedding models (MiniLM, multi-qa-MiniLM, bge-small, mpnet) × chunking modes (window, sentence, heading, semantic) | `embedder_comparison.py` | `embedder_comparison.json` |
-| Retrieval failures vs generation failures, per configuration | `[SA_EMBEDDER=...] generation_analysis.py [--chunking ...] [--retrieval dense\|hybrid\|keyword] [--k N]` | `generation_analysis[_chunking][_embedder][_hybrid\|_keyword][_explain][_model][_kN].json`, `generation_manual_review.json` |
-| Does retrieval do the work? Closed book vs retrieved vs another question's passages | `eval_no_retrieval.py` | `no_retrieval.json` |
-| Hybrid weight (0 = BM25 only, 1 = dense only), on both question sets | `eval_hybrid_weight.py [--set papers\|slides]` | `hybrid_weight_sweep[_slides].json` |
-| Slide retrieval ground truth: questions written from single slides before any chunking | `build_slide_ground_truth.py` | `slide_ground_truth.json` |
-| Slide chunking: packed vs one chunk per slide vs prose chunking | `eval_slide_chunking.py` | `slide_chunking.json` |
-| Reading pages as pictures: what the cascade costs and what it recovers | `eval_figure_reading.py [--sample N]` | `figure_reading.json` |
-| Time per pipeline stage, cold and warm | `eval_latency.py` | `latency.json` |
-| Quiz answer grader calibration | `eval_grader.py [--source <generation_analysis file>]` | `grader_calibration[_suffix].json`, `grader_decisions[_suffix].csv` |
-| Quiz question generation (plus blind rating sheet) | `eval_quiz_generation.py [score]` | `quiz_generation.json`, `quiz_rating_sheet.csv` |
-| Recommender, on simulated students | `eval_recommender.py` | `recommender_simulation.json` |
-| Vector/metadata alignment self-check | `selfcheck_alignment.py` | `selfcheck_alignment_results.json` |
-| Report figures, drawn from the results above | `make_report_figures.py` | `figures/*.png` |
+| `01_eval_pdf_text.ipynb` | Prose PDFs: QASPER (answer and evidence F1 against the published baselines, abstention on its unanswerable questions), and the 25 hand-labelled questions split into retrieval and generation failures | `qasper_*.json`, `generation_analysis_*.json` |
+| `02_eval_images.ipynb` | Document images: the DocVQA subset described and the image reader's answers scored with strict EM and ANLS | `dataset_and_metrics.json` |
+| `03_eval_slides.ipynb` | Slide decks: packing vs one chunk per slide, answers on the student's own decks, reading slides as pictures | `slide_chunking.json`, `own_material.json`, `figure_reading.json` |
+| `04_eval_audio.ipynb` | Recordings: SLUE-SQA-5, Whisper against the reference transcript, split by whether the clip really answers the question | `spoken_qa_300q*.json`, `spoken_qa_support_labels.json` |
+| `05_choice_image_reader.ipynb` | Qwen2-VL-2B vs EasyOCR+BLIP on 25 DocVQA questions | `easyocr_blip_vs_qwen2vl_results.csv` |
+| `06_choice_embedder.ipynb` | Embedding model × chunking mode, and the hybrid weight on both question sets | `embedder_comparison.json`, `hybrid_weight_sweep[_slides].json` |
+| `07_choice_answer_model.ipynb` | flan-t5-large vs Qwen2.5-1.5B vs qwen3:14b, from the saved runs of 01 and 09 | (reads the files above) |
+| `08_choice_whisper.ipynb` | Whisper base vs small vs turbo, from the saved runs of 04 | (reads `spoken_qa_300q*.json`) |
+| `09_eval_quiz.ipynb` | Quiz question generation and the answer grader's calibration | `quiz_generation*.json`, `grader_calibration*.json` |
+| `10_eval_recommender.ipynb` | The recommender, on simulated students | `recommender_simulation.json` |
+| `11_eval_system.ipynb` | Time per pipeline stage on GPU and CPU; whether retrieval does the work | `latency_*.json`, `no_retrieval.json` |
 
+Results from evaluations that were retired are kept in `data/eval/` for the
+record: the retrieval diagnostics (`rank_diagnostics.json`,
+`recall_ablation_single_doc.json`, `competitor_analysis.json`,
+`retrieval_variants.json`, `selfcheck_alignment_results.json`,
+`recall_results*.json`).
 `easyocr_blip_vs_qwen2vl_results_cpu_partial.csv` is an earlier, partial CPU
-run kept for reference; the reported numbers come from
-`easyocr_blip_vs_qwen2vl_results.csv`.
+run; the reported numbers come from `easyocr_blip_vs_qwen2vl_results.csv`.
+
+`backend/scripts/` keeps the tools that are not evaluations:
+`build_slide_ground_truth.py` (writes `slide_ground_truth.json`),
+`draft_candidate_ground_truth.py` and `make_report_figures.py` (draws
+`data/eval/figures/*.png` from the results). `backend/scripts/vendor/` holds
+QASPER's official evaluator, copied unchanged so those numbers mean what they
+mean in the paper.
 
 ### Data
 
@@ -180,8 +187,8 @@ Evaluation inputs are not redistributed and live in the git-ignored
 
 - `data/raw/docvqa_eval25/` — the first 25 questions of the
   [lmms-lab/DocVQA](https://huggingface.co/datasets/lmms-lab/DocVQA)
-  validation split (`eval_set.csv` + images), exported by the evaluation
-  notebook.
+  validation split (`eval_set.csv` + images), exported by
+  `notebooks/05_choice_image_reader.ipynb`.
 - The four retrieval-evaluation papers, saved under these names:
   `Whisper.pdf` (Radford et al., 2022, arXiv:2212.04356),
   `Flant5pdf.pdf` (Chung et al., 2022, arXiv:2210.11416),
@@ -212,7 +219,7 @@ Student Assistant/
 │   │   ├── generator.py          Qwen2.5-1.5B-Instruct answering
 │   │   ├── quiz.py               topics, question generation, grading
 │   │   └── recommender.py        mastery, difficulty, revision ranking
-│   └── scripts/                  evaluation scripts (see above)
+│   └── scripts/                  ground-truth and figure tools
 ├── frontend/                     web page: index.html, styles.css, app.js
 ├── tests/                        unittest suite
 ├── data/
@@ -222,8 +229,9 @@ Student Assistant/
 │   ├── raw/                      evaluation inputs (git-ignored)
 │   └── projects/                 subjects created in the app (git-ignored)
 ├── notebooks/
+│   ├── 01_eval_pdf_text.ipynb … 11_eval_system.ipynb   evaluations (see above)
+│   ├── eval_common.py                       helpers the evaluations share
 │   ├── docvqa_eda.ipynb                     DocVQA exploration
-│   ├── easyocr_blip_vs_qwen2vl_eval.ipynb   image-extraction comparison
 │   ├── rag_pipeline_demo.ipynb              pipeline walkthrough
 │   └── ask_question_demo.ipynb              question-answering demo
 └── requirements.txt

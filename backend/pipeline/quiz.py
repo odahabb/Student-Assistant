@@ -33,7 +33,7 @@ Grading compares the student's answer with the reference answer: containment
 in either direction counts as correct outright; an answer missing a number
 the reference states is wrong; otherwise the score is the higher of token F1
 and MiniLM cosine similarity, and GRADE_THRESHOLD decides correctness
-(calibrated in backend/scripts/eval_grader.py).
+(calibrated in notebooks/09_eval_quiz.ipynb).
 """
 
 import random

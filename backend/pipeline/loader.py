@@ -57,7 +57,7 @@ def _get_qwen_model():
     Lazy-load Qwen2-VL-2B-Instruct, the primary image extractor.
 
     Validated against EasyOCR+BLIP on a 25-sample DocVQA eval (see
-    notebooks/easyocr_blip_vs_qwen2vl_eval.ipynb): with the retry/fallback
+    notebooks/05_choice_image_reader.ipynb): with the retry/fallback
     logic in _is_degenerate_extraction()/_run_qwen_extraction() below, this
     produces cleaner, more complete extractions in most cases.
     """
@@ -82,7 +82,7 @@ def _is_degenerate_extraction(text: str) -> bool:
     Detects two known Qwen2-VL failure modes on this task: bare bounding-box-
     style coordinate output (e.g. "(10,7),(984,990)"), and markdown tables
     with no real data filled in (just headers/pipes). Found during eval —
-    see notebooks/easyocr_blip_vs_qwen2vl_eval.ipynb.
+    see notebooks/05_choice_image_reader.ipynb.
     """
     stripped = text.strip()
     if not stripped:
@@ -745,7 +745,7 @@ def load_image(path: str) -> str:
     _load_image_easyocr_blip() below.
 
     Validated against the EasyOCR+BLIP approach on a 25-sample DocVQA eval
-    (notebooks/easyocr_blip_vs_qwen2vl_eval.ipynb): Qwen2-VL extraction, with
+    (notebooks/05_choice_image_reader.ipynb): Qwen2-VL extraction, with
     the retry/degenerate-output-detection safety net in _run_qwen_extraction(),
     produced higher exact-match/F1 scores on the downstream RAG pipeline.
 

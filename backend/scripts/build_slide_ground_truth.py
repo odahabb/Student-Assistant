@@ -19,12 +19,12 @@ is correct, so the evaluation cannot be talked into agreeing with the system.
 Two pools come out of the same pass:
 
   text_layer — slides whose text PyMuPDF reads directly. Used to compare
-               chunking strategies (eval_slide_chunking.py), which is fair
+               chunking strategies (notebooks/03_eval_slides.ipynb), which is fair
                because the questions are written before any chunking.
   picture    — slides where reading the rendered page recovered text the text
                layer does not hold. The question is written from that
                recovered text ALONE, so a system that does not read pictures
-               cannot retrieve the answer at all (eval_figure_reading.py).
+               cannot retrieve the answer at all (notebooks/03_eval_slides.ipynb).
 
 The question writer is the system's own model, so these questions are as
 answerable as the quiz's. quiz.well_formed rejects the malformed ones; no
