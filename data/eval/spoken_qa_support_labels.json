@@ -1,0 +1,1805 @@
+{
+ "note": "Whether each question's clip actually answers it, for the 300 questions eval_spoken_qa.py samples (seed 13; --questions 300, whose first 150 are the --questions 150 sample). Read by hand from the clip's reference transcript. yes = a listener could answer the question from the clip alone; partial = the clip implies the answer but does not state the fact asked (e.g. \"los angeles dodgers all time roster\" for where the Dodgers are based); no = the answer string occurs in the clip by coincidence (e.g. \"public\" for which group cannot take part in civil disobedience, from a clip about a court ruling on public display). SLUE-SQA-5 paired questions with clips that contain the answer string, and most of these pairs are coincidences. Labelled with AI assistance (Claude); review before citing.",
+ "labels": {
+  "triviaqa-qg_3551": {
+   "label": "no",
+   "question": "In what South American country was unrepentant asshat Che Guevara and his band of merry men captured and ultimately executed",
+   "answer": "bolivia",
+   "clip": "Copa_Libertadores_3"
+  },
+  "squad-5710eca0a58dae1900cd6b3a": {
+   "label": "no",
+   "question": "In what English colony were Huguenot settlers promised land?",
+   "answer": "virginia",
+   "clip": "British_Empire_25"
+  },
+  "squad-573098f38ab72b1400f9c5d4": {
+   "label": "no",
+   "question": "When did the colonization of India occur?",
+   "answer": "18th century",
+   "clip": "British_Empire_20"
+  },
+  "squad-571077ecb654c5140001f90c": {
+   "label": "partial",
+   "question": "What trading company helped settle Huguenots near the Cape?",
+   "answer": "dutch east india company",
+   "clip": "British_Empire_82"
+  },
+  "triviaqa-qw_7702": {
+   "label": "no",
+   "question": "The Battle of Balaclava was in which war",
+   "answer": "crimean war",
+   "clip": "British_Empire_79"
+  },
+  "triviaqa-qb_5547": {
+   "label": "partial",
+   "question": "On which side of the road do motorists drive in Australia",
+   "answer": "left",
+   "clip": "British_Empire_159"
+  },
+  "squad-57308ddc396df919000961a4": {
+   "label": "no",
+   "question": "Imperialism is most often associated with which sovereignty?",
+   "answer": "british",
+   "clip": "British_Empire_154"
+  },
+  "triviaqa-bt_976": {
+   "label": "no",
+   "question": "Who in 1956 said we are not at war with Egypt we are in armed conflict",
+   "answer": "anthony eden",
+   "clip": "British_Empire_134"
+  },
+  "triviaqa-qw_5900": {
+   "label": "partial",
+   "question": "After sporadic visits by European explorers and merchants from the 17th century onwards, the eastern half of which continent was claimed by the British in 1770, and officially settled as a penal colony on 26 January 1788",
+   "answer": "australia",
+   "clip": "British_Empire_57"
+  },
+  "wq-dev_480": {
+   "label": "partial",
+   "question": "where does name pennsylvania come from",
+   "answer": "william penn",
+   "clip": "British_Empire_27"
+  },
+  "triviaqa-bt_2352": {
+   "label": "no",
+   "question": "Cape Verde was formerly a dependency of which European country",
+   "answer": "portugal",
+   "clip": "British_Empire_14"
+  },
+  "squad-5730b541396df919000962c5": {
+   "label": "partial",
+   "question": "What policy gave Britain dominance in world trade?",
+   "answer": "free trade",
+   "clip": "British_Empire_51"
+  },
+  "squad-5726d4a45951b619008f7f6a": {
+   "label": "no",
+   "question": "Some non-British works in the British galleries were imported from which continent?",
+   "answer": "asia",
+   "clip": "British_Empire_68"
+  },
+  "triviaqa-bb_9001": {
+   "label": "no",
+   "question": "American Jazz musician John Coltrane is famous for playing which instrument",
+   "answer": "saxophonist",
+   "clip": "Bud_Shank_2"
+  },
+  "triviaqa-sfq_17180": {
+   "label": "no",
+   "question": "The islands of Hoy, Sanday and Westray belong to which island group",
+   "answer": "orkney",
+   "clip": "Cattle_egret_19"
+  },
+  "triviaqa-bb_3847": {
+   "label": "no",
+   "question": "Which animal provided the etymological and scientific derivation of a 'vaccine'",
+   "answer": "cattle",
+   "clip": "Cattle_egret_4"
+  },
+  "triviaqa-bt_4354": {
+   "label": "yes",
+   "question": "Which tube station stands at the northern end of the Piccadilly Line",
+   "answer": "cockfosters",
+   "clip": "Underground_Electric_Railways_Company_of_London_44"
+  },
+  "triviaqa-dpql_2681": {
+   "label": "no",
+   "question": "Which London underground line provides a regular service to all Heathrow terminals",
+   "answer": "piccadilly",
+   "clip": "Underground_Electric_Railways_Company_of_London_1"
+  },
+  "squad-56e0ecd37aa994140058e7d8": {
+   "label": "no",
+   "question": "What type of power was displayed at the World's fair by Westinghouse and Tesla?",
+   "answer": "alternating current",
+   "clip": "Underground_Electric_Railways_Company_of_London_20"
+  },
+  "triviaqa-qg_2373": {
+   "label": "no",
+   "question": "What color is the lowest level of the Homeland Security Advisory System",
+   "answer": "green",
+   "clip": "Underground_Electric_Railways_Company_of_London_30"
+  },
+  "nq-1996292107460275608": {
+   "label": "no",
+   "question": "where was the movie a walk among the tombstones filmed",
+   "answer": "new york city",
+   "clip": "An_Inconvenient_Truth_21"
+  },
+  "nq-9078092620239351027": {
+   "label": "no",
+   "question": "where was the movie 500 days of summer filmed",
+   "answer": "los angeles",
+   "clip": "An_Inconvenient_Truth_21"
+  },
+  "triviaqa-bb_1886": {
+   "label": "yes",
+   "question": "What is the climate change agreement aimed at stabilizing greenhouse gas levels in the atmosphere, named after the Japanese city in which participating nations agreed its framework in 1997",
+   "answer": "kyoto protocol",
+   "clip": "An_Inconvenient_Truth_10"
+  },
+  "squad-57293f353f37b3190047819b": {
+   "label": "no",
+   "question": "Which IPCC author criticized the TAR?",
+   "answer": "richard lindzen",
+   "clip": "An_Inconvenient_Truth_17"
+  },
+  "triviaqa-bb_5274": {
+   "label": "no",
+   "question": "In October 2014 'Hudhud' was a catastrophic (what?) affecting parts of India and Nepal? Earthquake; Cyclone; Influenza; or Computer virus",
+   "answer": "cyclones",
+   "clip": "2006_Atlantic_hurricane_season_5"
+  },
+  "squad-572a0bfaaf94a219006aa77b": {
+   "label": "no",
+   "question": "Changes in rainfall reduced what kind of vegetation cover in the Amazon basin?",
+   "answer": "tropical",
+   "clip": "2006_Atlantic_hurricane_season_20"
+  },
+  "wq-dev_950": {
+   "label": "no",
+   "question": "when is the rainy season in bangkok thailand",
+   "answer": "september",
+   "clip": "2006_Atlantic_hurricane_season_20"
+  },
+  "squad-5728d9403acd2414000e001f": {
+   "label": "no",
+   "question": "What group of people cannot be part of civil disobedience?",
+   "answer": "public",
+   "clip": "Fuck_35"
+  },
+  "squad-56e1e9dfe3433e14004231ff": {
+   "label": "yes",
+   "question": "To what level would the polynomial time hierarchy collapse if graph isomorphism is NP-complete?",
+   "answer": "second",
+   "clip": "P_versus_NP_problem_21"
+  },
+  "squad-56e1b754cd28a01900c67abf": {
+   "label": "no",
+   "question": "Communication complexity is an example of what type of measure?",
+   "answer": "complexity",
+   "clip": "P_versus_NP_problem_6"
+  },
+  "squad-56e1ded7cd28a01900c67bd5": {
+   "label": "yes",
+   "question": "What is the name for a problem that meets Ladner's assertion?",
+   "answer": "np-intermediate",
+   "clip": "P_versus_NP_problem_20"
+  },
+  "squad-56e1febfe3433e1400423236": {
+   "label": "yes",
+   "question": "What eponymous variation of arithmetic presents a decision problem not evidenced in P?",
+   "answer": "presburger arithmetic",
+   "clip": "P_versus_NP_problem_17"
+  },
+  "squad-56e1e9dfe3433e14004231fd": {
+   "label": "yes",
+   "question": "What class is most commonly not ascribed to the graph isomorphism problem in spite of definitive determination?",
+   "answer": "np-complete",
+   "clip": "P_versus_NP_problem_21"
+  },
+  "squad-56e1e9dfe3433e14004231fe": {
+   "label": "yes",
+   "question": "What finite hierarchy implies that the graph isomorphism problem is NP-complete? ",
+   "answer": "polynomial time",
+   "clip": "P_versus_NP_problem_21"
+  },
+  "squad-56e1c4fce3433e1400423150": {
+   "label": "no",
+   "question": "BQP and QMA are examples of complexity classes most commonly associated with what type of Turing machine?",
+   "answer": "quantum",
+   "clip": "P_versus_NP_problem_25"
+  },
+  "squad-56e190bce3433e1400422fcc": {
+   "label": "partial",
+   "question": "What answer denotes that an algorithm has accepted an input string?",
+   "answer": "yes",
+   "clip": "P_versus_NP_problem_65"
+  },
+  "squad-56e1dc62cd28a01900c67bcd": {
+   "label": "yes",
+   "question": "What is an example of a problem that rests within the NP complexity class?",
+   "answer": "boolean satisfiability problem",
+   "clip": "P_versus_NP_problem_12"
+  },
+  "squad-56e1f10ee3433e1400423224": {
+   "label": "no",
+   "question": "What lies between L and P that prevents a definitive determination of the relationship between L and P?",
+   "answer": "complexity classes",
+   "clip": "P_versus_NP_problem_6"
+  },
+  "squad-56e1ddfce3433e14004231d6": {
+   "label": "yes",
+   "question": "What is a particular problem in biology that would benefit from determining that P = NP?",
+   "answer": "protein structure prediction",
+   "clip": "P_versus_NP_problem_39"
+  },
+  "squad-56e1ce08e3433e14004231a8": {
+   "label": "partial",
+   "question": "A problem set that that is hard for the expression NP can also be stated how?",
+   "answer": "np-hard",
+   "clip": "P_versus_NP_problem_12"
+  },
+  "triviaqa-tc_2836": {
+   "label": "no",
+   "question": "What name is given to the study of animal behavior",
+   "answer": "animal behaviour",
+   "clip": "Meerkat_Manor_29"
+  },
+  "nq-5364680911815100032": {
+   "label": "no",
+   "question": "how many seasons of the glades were made",
+   "answer": "four",
+   "clip": "Meerkat_Manor_9"
+  },
+  "squad-572a07a86aef0514001551d2": {
+   "label": "no",
+   "question": "What characteristic in recent years has been strongly tied with health in developed countries?",
+   "answer": "income inequality",
+   "clip": "Simon_Kuznets_36"
+  },
+  "squad-5729f3883f37b319004785f4": {
+   "label": "yes",
+   "question": "What does Kuznets' curve predict about income inequality given time?",
+   "answer": "decrease",
+   "clip": "Simon_Kuznets_25"
+  },
+  "squad-5729f3883f37b319004785f1": {
+   "label": "yes",
+   "question": "Who plotted the relationships between levels of income and inequality?",
+   "answer": "kuznets",
+   "clip": "Simon_Kuznets_36"
+  },
+  "squad-5729f24baf94a219006aa6dd": {
+   "label": "yes",
+   "question": "What profession does Simon Kuznets have?",
+   "answer": "economist",
+   "clip": "Simon_Kuznets_0"
+  },
+  "squad-5729f3883f37b319004785f2": {
+   "label": "yes",
+   "question": "What is a a developing economy's level of inequality bulging out called?",
+   "answer": "kuznets curve",
+   "clip": "Simon_Kuznets_25"
+  },
+  "triviaqa-qz_2713": {
+   "label": "no",
+   "question": "Which economist wrote The Wealth Of Nations",
+   "answer": "smith",
+   "clip": "Simon_Kuznets_0"
+  },
+  "squad-572a05eb3f37b31900478657": {
+   "label": "no",
+   "question": "Policies which reduce the inequality associated effects of unemployment support what type of growth?",
+   "answer": "economic",
+   "clip": "Simon_Kuznets_37"
+  },
+  "squad-5729e2b76aef0514001550d1": {
+   "label": "no",
+   "question": "What is very important for the growth of the economy?",
+   "answer": "education",
+   "clip": "Simon_Kuznets_38"
+  },
+  "squad-57339eb9d058e614000b5ef9": {
+   "label": "no",
+   "question": "What does the National Museum boast having from Adolf Hitler's private collection?",
+   "answer": "paintings",
+   "clip": "Hofgarten_(Munich)_5"
+  },
+  "triviaqa-sfq_5589": {
+   "label": "no",
+   "question": "Of which US state is Springfield the capital",
+   "answer": "illinois",
+   "clip": "Minneapolis_2"
+  },
+  "triviaqa-qf_3563": {
+   "label": "no",
+   "question": "In which Canadian city is the Lion's Gate Bridge",
+   "answer": "vancouver",
+   "clip": "Terry_Fox_67"
+  },
+  "squad-56d99b7bdc89441400fdb5c8": {
+   "label": "no",
+   "question": "What coach left the Broncos after the season prior to Super Bowl 50?",
+   "answer": "fox",
+   "clip": "Terry_Fox_11"
+  },
+  "nq--1027463814348738734": {
+   "label": "no",
+   "question": "pace maker is associated with which body organ",
+   "answer": "heart",
+   "clip": "Terry_Fox_23"
+  },
+  "triviaqa-bt_3188": {
+   "label": "no",
+   "question": "Which ocean would you cross if you travelled from Brisbane to Los Angeles",
+   "answer": "pacific",
+   "clip": "Terry_Fox_26"
+  },
+  "triviaqa-qz_2260": {
+   "label": "no",
+   "question": "The river Danube flows into which sea",
+   "answer": "black sea",
+   "clip": "USS_Missouri_(BB-63)_25"
+  },
+  "triviaqa-odql_6828": {
+   "label": "yes",
+   "question": "Aboard which ship did Japan sign the surrender at the end of World War II",
+   "answer": "uss missouri",
+   "clip": "USS_Missouri_(BB-63)_0"
+  },
+  "wq-dev_524": {
+   "label": "partial",
+   "question": "where was the first gulf war fought",
+   "answer": "kuwait",
+   "clip": "USS_Missouri_(BB-63)_54"
+  },
+  "nq--642255764943734268": {
+   "label": "no",
+   "question": "who played santa in the santa clause movies",
+   "answer": "tim allen",
+   "clip": "The_Cat_in_the_Hat_(film)_15"
+  },
+  "triviaqa-tc_2850": {
+   "label": "no",
+   "question": "Which mammal constructs a lodge in which to store food, rear young, and pass the winter",
+   "answer": "beaver",
+   "clip": "Aztalan_State_Park_5"
+  },
+  "triviaqa-sfq_3811": {
+   "label": "no",
+   "question": "Which singer had a number 1 hit album in 2008 entitled 'Hard Candy'",
+   "answer": "madonna",
+   "clip": "Spinning_Around_16"
+  },
+  "triviaqa-qw_11176": {
+   "label": "no",
+   "question": "What is the surname of sisters and singers Dannii and Kylie",
+   "answer": "minogue",
+   "clip": "Spinning_Around_31"
+  },
+  "triviaqa-qw_81": {
+   "label": "yes",
+   "question": "What was the name of the IBM computer that defeated world chess champion Garry Kasparov in 1997",
+   "answer": "deep blue",
+   "clip": "Ray_Kurzweil_51"
+  },
+  "squad-56e200e4cd28a01900c67c18": {
+   "label": "no",
+   "question": "In the most basic sense what did a Turing machine emulate?",
+   "answer": "a computer",
+   "clip": "Ray_Kurzweil_8"
+  },
+  "triviaqa-bb_4441": {
+   "label": "partial",
+   "question": "Which European nation was the colonial power of Indonesia for 350 years until officially ceding control in December 1949",
+   "answer": "netherlands",
+   "clip": "Marshall_Plan_132"
+  },
+  "squad-573005b9947a6a140053cf6c": {
+   "label": "no",
+   "question": "Secular Arab nationalism was blamed for both the defeat of Arab troops as well as what type of stagnation?",
+   "answer": "economic",
+   "clip": "Marshall_Plan_18"
+  },
+  "squad-5730ac782461fd1900a9cf76": {
+   "label": "no",
+   "question": "What was Germany's central interest?",
+   "answer": "europe",
+   "clip": "Marshall_Plan_126"
+  },
+  "squad-572a18a4af94a219006aa7e2": {
+   "label": "no",
+   "question": "How long does it take for the effects to manifest as changes to economic growth?",
+   "answer": "several years",
+   "clip": "Marshall_Plan_17"
+  },
+  "wq-dev_1399": {
+   "label": "no",
+   "question": "what products does the united states export",
+   "answer": "food",
+   "clip": "Marshall_Plan_77"
+  },
+  "triviaqa-qw_9997": {
+   "label": "no",
+   "question": "On 31 May 2010, the President of which country announced his resignation after local politicians criticised comments he made in relation to overseas military deployments",
+   "answer": "germany",
+   "clip": "Marshall_Plan_24"
+  },
+  "triviaqa-tc_2841": {
+   "label": "partial",
+   "question": "Which rodent rears its young, called kittens, in a nest called a drey",
+   "answer": "squirrel",
+   "clip": "Tawny_owl_33"
+  },
+  "triviaqa-qb_5669": {
+   "label": "no",
+   "question": "Barney the Owl is a mascot of which English football club",
+   "answer": "owls",
+   "clip": "Tawny_owl_21"
+  },
+  "squad-5727dc473acd2414000dee45": {
+   "label": "no",
+   "question": "How many weight rooms are in the Malkin Athletic Center",
+   "answer": "three",
+   "clip": "Monifieth_High_School_2"
+  },
+  "squad-5726a9ff708984140094cd4f": {
+   "label": "no",
+   "question": "Which British monarch appears above the frame around the arches and entrance?",
+   "answer": "queen victoria",
+   "clip": "Woodside_Park_tube_station_5"
+  },
+  "squad-57377083c3c5551400e51ee2": {
+   "label": "no",
+   "question": "Objects of constant density are proportional to volume by what force to define standard weights?.",
+   "answer": "the force of gravity",
+   "clip": "Dyson_sphere_13"
+  },
+  "triviaqa-sfq_5734": {
+   "label": "no",
+   "question": "In geometry, what name is given to a straight line from the circumference to the centre of a circle or sphere",
+   "answer": "radius",
+   "clip": "Dyson_sphere_25"
+  },
+  "squad-572917ff6aef051400154a60": {
+   "label": "no",
+   "question": "Has the tourism sector had growth or reduction?",
+   "answer": "growth",
+   "clip": "Reykjav%c3%adk_3"
+  },
+  "triviaqa-qw_5723": {
+   "label": "no",
+   "question": "How many books in the Bible's Old Testament are included in the Catholic version but not in the Protestant one",
+   "answer": "7",
+   "clip": "Liturgy_of_the_Hours_68"
+  },
+  "triviaqa-sfq_16690": {
+   "label": "yes",
+   "question": "The Song of Simeon canticle is also known by which Latin name",
+   "answer": "nunc dimittis",
+   "clip": "Liturgy_of_the_Hours_26"
+  },
+  "triviaqa-sfq_7366": {
+   "label": "no",
+   "question": "John Chapter 11 Verse 35 is the shortest verse in the Bible. How many words make up the verse",
+   "answer": "two",
+   "clip": "Liturgy_of_the_Hours_21"
+  },
+  "wq-dev_802": {
+   "label": "no",
+   "question": "what musical instruments does justin bieber play",
+   "answer": "drums",
+   "clip": "Love_Actually_23"
+  },
+  "nq--7697487810686930412": {
+   "label": "no",
+   "question": "who sings the song i'll never forget you",
+   "answer": "mariah carey",
+   "clip": "Love_Actually_43"
+  },
+  "nq--2885325042912800073": {
+   "label": "yes",
+   "question": "who sings the christmas song all i want for christmas is you",
+   "answer": "mariah carey",
+   "clip": "Love_Actually_43"
+  },
+  "nq--7518405190999038417": {
+   "label": "yes",
+   "question": "who was assassinated during a visit to sarajevo in bosnia",
+   "answer": "archduke franz ferdinand of austria",
+   "clip": "Sarajevo_10"
+  },
+  "squad-570d2af0fed7b91900d45c94": {
+   "label": "no",
+   "question": "How does Victoria rank as to population density?",
+   "answer": "most",
+   "clip": "Sarajevo_18"
+  },
+  "squad-5706111a52bb89140068984d": {
+   "label": "no",
+   "question": "How many lines does the commuter rail system have?",
+   "answer": "seven",
+   "clip": "Sarajevo_27"
+  },
+  "squad-5725b41838643c19005acb7f": {
+   "label": "no",
+   "question": "What project put the first Americans into space?",
+   "answer": "apollo",
+   "clip": "NASA_7"
+  },
+  "squad-5725e36f89a1e219009ac03c": {
+   "label": "yes",
+   "question": "What day did the Apollo 11 crew return to Earth?",
+   "answer": "july 24",
+   "clip": "NASA_9"
+  },
+  "squad-5725bc7138643c19005acc1e": {
+   "label": "no",
+   "question": "From what country did the first person in space come from?",
+   "answer": "soviet",
+   "clip": "NASA_2"
+  },
+  "squad-5725f07f89a1e219009ac0be": {
+   "label": "no",
+   "question": "Which NASA orbiter photographed evidence of each site on the moon that a manned Apollo mission landing occurred?",
+   "answer": "reconnaissance orbiter",
+   "clip": "NASA_22"
+  },
+  "squad-5725d8a3271a42140099d292": {
+   "label": "no",
+   "question": "Who was the original pilot for the first Apollo mission?",
+   "answer": "grissom",
+   "clip": "NASA_6"
+  },
+  "triviaqa-qg_2238": {
+   "label": "yes",
+   "question": "In orbit from 1973 to 1979, what was the name of the first space station launched by NASA, which met a firey end over the Pacific Ocean (and parts of Western Australia), on July 11, 1979",
+   "answer": "skylab",
+   "clip": "NASA_15"
+  },
+  "triviaqa-odql_13669": {
+   "label": "partial",
+   "question": "What nation put the first manmade satellite in orbit, the 3 first man in space and the first woman in space",
+   "answer": "soviet",
+   "clip": "NASA_2"
+  },
+  "triviaqa-qw_3732": {
+   "label": "no",
+   "question": "\"Which country launched the space station \"\"Skylab\"\" in 1973?\"",
+   "answer": "usa",
+   "clip": "NASA_14"
+  },
+  "triviaqa-qg_1340": {
+   "label": "yes",
+   "question": "The first US space station was launched on May 14, 1973. What was it called",
+   "answer": "skylab",
+   "clip": "NASA_15"
+  },
+  "triviaqa-sfq_2852": {
+   "label": "partial",
+   "question": "What was the name of the space shuttle, which disintegrated over Texas, on re-entry into the earth's atmosphere in February 2003, with the loss of all seven crew members",
+   "answer": "columbia",
+   "clip": "NASA_18"
+  },
+  "squad-5725b77889a1e219009abd55": {
+   "label": "no",
+   "question": "What Apollo mission was the sixth moon landing?",
+   "answer": "apollo 17",
+   "clip": "NASA_11"
+  },
+  "squad-5725b41838643c19005acb82": {
+   "label": "no",
+   "question": "What President is credited with the original notion of putting Americans in space?",
+   "answer": "dwight d. eisenhower",
+   "clip": "NASA_2"
+  },
+  "squad-5727dd2e4b864d1900163eba": {
+   "label": "no",
+   "question": "Harvard - Yale Regatta predates \"The Game\" by how many years?",
+   "answer": "23",
+   "clip": "Moe_Berg_15"
+  },
+  "wq-dev_1618": {
+   "label": "no",
+   "question": "what teams has manny ramirez played for",
+   "answer": "cleveland indians",
+   "clip": "Moe_Berg_30"
+  },
+  "triviaqa-sfq_13921": {
+   "label": "partial",
+   "question": "In which city are the baseball team the Dodgers based",
+   "answer": "los angeles",
+   "clip": "Moe_Berg_56"
+  },
+  "triviaqa-qf_1210": {
+   "label": "no",
+   "question": "The majority of the land area of Africa lies in which hemisphere",
+   "answer": "northern",
+   "clip": "Night_3"
+  },
+  "wq-dev_1313": {
+   "label": "no",
+   "question": "who were demeter's siblings",
+   "answer": "zeus",
+   "clip": "Greek_mythology_44"
+  },
+  "triviaqa-tb_1170": {
+   "label": "yes",
+   "question": "Which island in the Mediterranean was the center of the Minoan civilization (ca. 2600-1400 BCE), the oldest civilization in Europe",
+   "answer": "crete",
+   "clip": "Greek_mythology_20"
+  },
+  "triviaqa-dpql_482": {
+   "label": "partial",
+   "question": "Which ‘P’ was the last king of Troy, according to Greek mythology",
+   "answer": "priam",
+   "clip": "Greek_mythology_82"
+  },
+  "triviaqa-bb_8468": {
+   "label": "no",
+   "question": "In Greek mythology who gave King Midas the power to turn everything he touched into gold",
+   "answer": "dionysus",
+   "clip": "Greek_mythology_56"
+  },
+  "triviaqa-sfq_14380": {
+   "label": "no",
+   "question": "In Greek mythology which of the Olympian gods was the goddess of fertility, agriculture, horticulture, grain and harvest",
+   "answer": "demeter",
+   "clip": "Greek_mythology_55"
+  },
+  "trec-2359": {
+   "label": "partial",
+   "question": "What country's soldiers hid in the Trojan horse?",
+   "answer": "greek",
+   "clip": "Greek_mythology_82"
+  },
+  "triviaqa-sfq_4319": {
+   "label": "yes",
+   "question": "Who wounded Achilles in the heel, leading to his death",
+   "answer": "paris",
+   "clip": "Greek_mythology_81"
+  },
+  "triviaqa-dpql_481": {
+   "label": "yes",
+   "question": "Which ‘P’ shot the arrow that killed Achilles by striking him on his heel",
+   "answer": "paris",
+   "clip": "Greek_mythology_81"
+  },
+  "triviaqa-qb_8318": {
+   "label": "yes",
+   "question": "In Greek mythology, who did flute playing shepherd Marsyas challenge to a music contest, the winner of which flayed Marsyas to death for his presumption",
+   "answer": "apollo",
+   "clip": "Greek_mythology_55"
+  },
+  "trec-225": {
+   "label": "no",
+   "question": "Who is the Greek God of the Sea?",
+   "answer": "poseidon",
+   "clip": "Greek_mythology_19"
+  },
+  "triviaqa-qw_6209": {
+   "label": "partial",
+   "question": "In Greek mythology, who were the band of heroes who accompanied Jason to Colchis in his quest to find the Golden Fleece",
+   "answer": "argonauts",
+   "clip": "Greek_mythology_70"
+  },
+  "triviaqa-bt_3029": {
+   "label": "partial",
+   "question": "Who was the Roman god of the Sun",
+   "answer": "sol",
+   "clip": "Greek_mythology_107"
+  },
+  "squad-572900f73f37b31900477f69": {
+   "label": "no",
+   "question": "What is one of the first responses the immune system has to infection?",
+   "answer": "inflammation",
+   "clip": "Helicobacter_pylori_22"
+  },
+  "squad-5729081d3f37b31900477fae": {
+   "label": "no",
+   "question": "What is the process in which neutrophils move towards the site of inflammation called?",
+   "answer": "chemotaxis",
+   "clip": "Helicobacter_pylori_14"
+  },
+  "squad-572a142e3f37b319004786b9": {
+   "label": "no",
+   "question": "Complement proteins bind to what kind of molecules on the surface of microbes in order to elicit an immune response?",
+   "answer": "carbohydrates",
+   "clip": "Helicobacter_pylori_14"
+  },
+  "squad-5728fb002ca10214002dab6d": {
+   "label": "no",
+   "question": "What is secreted by the respiratory tract to trap microorganisms?",
+   "answer": "mucus",
+   "clip": "Helicobacter_pylori_13"
+  },
+  "triviaqa-wh_122": {
+   "label": "no",
+   "question": "Over how many complete furlongs is the Chester Cup now run",
+   "answer": "18",
+   "clip": "John_Douglas_(architect)_42"
+  },
+  "triviaqa-jp_1393": {
+   "label": "partial",
+   "question": "What video game, created by Notch, is the best-selling PC game of all-time",
+   "answer": "minecraft",
+   "clip": "Minecraft_20"
+  },
+  "squad-56e127bccd28a01900c6765b": {
+   "label": "no",
+   "question": "On which magazine's cover did Tesla appear in 1931",
+   "answer": "time",
+   "clip": "The_Thriving_Cult_of_Greed_and_Power_15"
+  },
+  "squad-57264e455951b619008f6f66": {
+   "label": "no",
+   "question": "Did the European Court of Justice rule the defendant in the case of Commission v. Edith Cresson broke any laws?",
+   "answer": "not",
+   "clip": "The_Thriving_Cult_of_Greed_and_Power_31"
+  },
+  "squad-572ff932a23a5019007fcbd5": {
+   "label": "no",
+   "question": "What type of role that Islamism seeks makes it a somewhat controversial concept?",
+   "answer": "political",
+   "clip": "Shahnon_Ahmad_2"
+  },
+  "triviaqa-qf_3213": {
+   "label": "no",
+   "question": "It is said that you can't sink in this sea, what sea is it",
+   "answer": "dead sea",
+   "clip": "Seawater_6"
+  },
+  "squad-571c96095efbb31900334dbf": {
+   "label": "no",
+   "question": "In what type of water does oxygen dissolve more slowly?",
+   "answer": "seawater",
+   "clip": "Seawater_11"
+  },
+  "triviaqa-qw_11614": {
+   "label": "yes",
+   "question": "What information technology company was founded by Sergey Brin and Larry Page",
+   "answer": "google",
+   "clip": "Search_engine_optimization_13"
+  },
+  "trec-2268": {
+   "label": "no",
+   "question": "what instrument does the concertmaster of an orchestra usually play?",
+   "answer": "violin",
+   "clip": "Charles_Ives_24"
+  },
+  "wq-dev_446": {
+   "label": "no",
+   "question": "what music period did beethoven live in",
+   "answer": "classical music",
+   "clip": "Charles_Ives_0"
+  },
+  "wq-dev_1098": {
+   "label": "no",
+   "question": "what kind of music did franz liszt compose",
+   "answer": "chamber music",
+   "clip": "Charles_Ives_4"
+  },
+  "triviaqa-sfq_10536": {
+   "label": "no",
+   "question": "How many symphonies did Brahms compose",
+   "answer": "4",
+   "clip": "Charles_Ives_21"
+  },
+  "triviaqa-sfq_720": {
+   "label": "no",
+   "question": "The Old Faithful geyser is in which American national park",
+   "answer": "yellowstone",
+   "clip": "Temple_Square_6"
+  },
+  "triviaqa-odql_11589": {
+   "label": "no",
+   "question": "Which American state shares borders with Michigan, Indiana, Kentucky, West Virginia and Pennsylvania",
+   "answer": "ohio",
+   "clip": "John_Quincy_Adams_17"
+  },
+  "wq-dev_1981": {
+   "label": "no",
+   "question": "what state did john adams live in",
+   "answer": "massachusetts",
+   "clip": "John_Quincy_Adams_6"
+  },
+  "triviaqa-sfq_18243": {
+   "label": "no",
+   "question": "Who was the 8th President of the United States from 1837- 1841",
+   "answer": "martin van buren",
+   "clip": "John_Quincy_Adams_19"
+  },
+  "triviaqa-sfq_625": {
+   "label": "no",
+   "question": "In which U.S. State is the University of Harvard to be found",
+   "answer": "massachusetts",
+   "clip": "John_Quincy_Adams_6"
+  },
+  "nq-7984467382413205263": {
+   "label": "yes",
+   "question": "who is the sixth president of the united states",
+   "answer": "john quincy adams",
+   "clip": "John_Quincy_Adams_0"
+  },
+  "wq-dev_1717": {
+   "label": "no",
+   "question": "what did thomas jefferson do before he became president",
+   "answer": "lawyer",
+   "clip": "John_Quincy_Adams_6"
+  },
+  "wq-dev_1265": {
+   "label": "no",
+   "question": "what was john tyler",
+   "answer": "president of the united states",
+   "clip": "John_Quincy_Adams_0"
+  },
+  "wq-dev_2017": {
+   "label": "no",
+   "question": "what party was abe lincoln part of",
+   "answer": "republican party",
+   "clip": "John_Quincy_Adams_18"
+  },
+  "squad-56d7205e0d65d21400198391": {
+   "label": "no",
+   "question": "Which wireless company had exclusive streaming rights on mobile phones?",
+   "answer": "verizon",
+   "clip": "HTTP_cookie_93"
+  },
+  "squad-56d9bc13dc89441400fdb75f": {
+   "label": "no",
+   "question": "What cellular carrier had the only contract for the Super Bowl to be shown on smartphones?",
+   "answer": "verizon",
+   "clip": "HTTP_cookie_92"
+  },
+  "triviaqa-tc_1773": {
+   "label": "no",
+   "question": "In which country did the Internet start",
+   "answer": "us",
+   "clip": "HTTP_cookie_9"
+  },
+  "triviaqa-qz_3898": {
+   "label": "no",
+   "question": "How many times did Steffi Graf win the Ladies Singles at Wimbledon",
+   "answer": "seven",
+   "clip": "Women%27s_squash_in_Australia_1"
+  },
+  "triviaqa-sfq_26163": {
+   "label": "no",
+   "question": "Which sport had previously been known as Whiff Whaff and Gossima",
+   "answer": "table tennis",
+   "clip": "Women%27s_squash_in_Australia_1"
+  },
+  "triviaqa-qw_10186": {
+   "label": "no",
+   "question": "John and David Lloyd represented Great Britain in the early 1970s at what sport",
+   "answer": "tennis",
+   "clip": "Women%27s_squash_in_Australia_1"
+  },
+  "triviaqa-qf_3403": {
+   "label": "no",
+   "question": "At which sport could you win the Victor Barna Award",
+   "answer": "table tennis",
+   "clip": "Women%27s_squash_in_Australia_1"
+  },
+  "triviaqa-qw_949": {
+   "label": "no",
+   "question": "\"In what sport would one \"\"bully off\"\"?\"",
+   "answer": "hockey",
+   "clip": "Women%27s_squash_in_Australia_1"
+  },
+  "triviaqa-sfq_22938": {
+   "label": "no",
+   "question": "Which indoor sport includes a side wall, front wall, and a tin",
+   "answer": "squash",
+   "clip": "Women%27s_squash_in_Australia_2"
+  },
+  "triviaqa-qz_2289": {
+   "label": "no",
+   "question": "Wayne Rooney scored his first senior goal against which club",
+   "answer": "arsenal",
+   "clip": "Gilberto_Silva_2"
+  },
+  "triviaqa-sfq_18543": {
+   "label": "no",
+   "question": "Who was the first football nation to win the World Cup outside their own continent",
+   "answer": "brazil",
+   "clip": "Gilberto_Silva_10"
+  },
+  "triviaqa-sfq_12189": {
+   "label": "no",
+   "question": "Who was the first overseas manager to win the Premier League title",
+   "answer": "arsené wenger",
+   "clip": "Gilberto_Silva_14"
+  },
+  "triviaqa-dpql_3010": {
+   "label": "no",
+   "question": "Liverpool played against whom in the first ever ‘Match of the Day’ in 1964",
+   "answer": "arsenal",
+   "clip": "Gilberto_Silva_26"
+  },
+  "triviaqa-bt_1690": {
+   "label": "no",
+   "question": "In the year 2000 Charity Shield match which player was sent off",
+   "answer": "roy keane",
+   "clip": "Gilberto_Silva_33"
+  },
+  "triviaqa-qw_12922": {
+   "label": "yes",
+   "question": "Which red dwarf star, approximately 4.2 light-years distant in the constellation of Centaurus is the nearest star to the Sun",
+   "answer": "proxima centauri",
+   "clip": "Oort_cloud_0"
+  },
+  "triviaqa-tc_3130": {
+   "label": "no",
+   "question": "What is the Milky Way",
+   "answer": "milky way",
+   "clip": "Oort_cloud_32"
+  },
+  "nq--4747832956913377153": {
+   "label": "partial",
+   "question": "what is the common name for gravitational force",
+   "answer": "gravity",
+   "clip": "Oort_cloud_28"
+  },
+  "wq-dev_227": {
+   "label": "no",
+   "question": "where were the seneca indians located",
+   "answer": "new york",
+   "clip": "New_York_State_Route_174_10"
+  },
+  "triviaqa-qw_1239": {
+   "label": "no",
+   "question": "In which US state are the Catskill Mountains",
+   "answer": "new york state",
+   "clip": "New_York_State_Route_174_0"
+  },
+  "triviaqa-sfq_5476": {
+   "label": "no",
+   "question": "The name of which Russian spacecraft means 'travelling companion' or 'satellite'",
+   "answer": "sputnik",
+   "clip": "Laika_12"
+  },
+  "triviaqa-qg_3077": {
+   "label": "no",
+   "question": "General Augusto Pinochet was the former dictator of which South American country",
+   "answer": "chile",
+   "clip": "Cold_War_115"
+  },
+  "squad-57265200708984140094c238": {
+   "label": "no",
+   "question": "Which country was worried that the US would invade the Middle East?",
+   "answer": "british",
+   "clip": "Cold_War_39"
+  },
+  "wq-dev_782": {
+   "label": "no",
+   "question": "what countries does nafta include",
+   "answer": "canada",
+   "clip": "Cold_War_53"
+  },
+  "triviaqa-sfq_25891": {
+   "label": "no",
+   "question": "The office of the President of which South American country is La Casa Rosada (The Pink House)",
+   "answer": "argentina",
+   "clip": "Cold_War_116"
+  },
+  "wq-dev_189": {
+   "label": "partial",
+   "question": "what region of the world is egypt associated with",
+   "answer": "middle east",
+   "clip": "Cold_War_119"
+  },
+  "triviaqa-qb_5271": {
+   "label": "yes",
+   "question": "Which city hosted the 1980 Summer Olympics, which were boycotted by over 60 nations",
+   "answer": "moscow",
+   "clip": "Cold_War_138"
+  },
+  "triviaqa-jp_2509": {
+   "label": "yes",
+   "question": "What world leader introduced Glasnost and Perestroika",
+   "answer": "gorbachev",
+   "clip": "Cold_War_160"
+  },
+  "wq-dev_1214": {
+   "label": "no",
+   "question": "what countries require travel visas for us citizens",
+   "answer": "us",
+   "clip": "Cold_War_172"
+  },
+  "triviaqa-qg_2955": {
+   "label": "no",
+   "question": "Starting 30 years of conflict, the Eritrean War of Independence broke out on Sept 1, 1961, as Eritrean separatists fought for independence from what country",
+   "answer": "ethiopian",
+   "clip": "Cold_War_121"
+  },
+  "triviaqa-sfq_2516": {
+   "label": "no",
+   "question": "In which country did the Battle of El Alamein take place",
+   "answer": "egypt",
+   "clip": "Cold_War_119"
+  },
+  "triviaqa-qb_1812": {
+   "label": "no",
+   "question": "In February 1938, Roberto M. Ortiz became President of which South American country",
+   "answer": "argentina",
+   "clip": "Cold_War_116"
+  },
+  "triviaqa-qw_4910": {
+   "label": "yes",
+   "question": "What was the first name of de Gaulle, the first President of French Fifth Republic from 1959 to 1969",
+   "answer": "charles",
+   "clip": "Cold_War_105"
+  },
+  "wq-dev_1747": {
+   "label": "partial",
+   "question": "when does the world end according to the mayans time",
+   "answer": "2012",
+   "clip": "2012_phenomenon_25"
+  },
+  "triviaqa-sfq_17151": {
+   "label": "no",
+   "question": "Which country won the men's football gold medal at the 2012 Olympics",
+   "answer": "mexico",
+   "clip": "2012_phenomenon_106"
+  },
+  "wq-dev_1438": {
+   "label": "no",
+   "question": "what did the ancient mayans predict",
+   "answer": "2012",
+   "clip": "2012_phenomenon_20"
+  },
+  "nq-6497460116946232542": {
+   "label": "yes",
+   "question": "the plane of earth's orbit is called the",
+   "answer": "ecliptic",
+   "clip": "2012_phenomenon_51"
+  },
+  "triviaqa-qb_3697": {
+   "label": "no",
+   "question": "Monterrey, Puebla and Toluca are cities in which country",
+   "answer": "mexico",
+   "clip": "2012_phenomenon_107"
+  },
+  "wq-dev_1258": {
+   "label": "no",
+   "question": "when will the world end mayans",
+   "answer": "2012",
+   "clip": "2012_phenomenon_17"
+  },
+  "triviaqa-qw_12256": {
+   "label": "no",
+   "question": "On which coast of South America would you find the country of Venezuela",
+   "answer": "north",
+   "clip": "2012_phenomenon_26"
+  },
+  "squad-56bf21b43aeaaa14008c9526": {
+   "label": "no",
+   "question": "What was the last Super Bowl that took place at Sun Life Stadium in Miami? ",
+   "answer": "2010",
+   "clip": "2012_phenomenon_106"
+  },
+  "triviaqa-qg_48": {
+   "label": "yes",
+   "question": "21st December, 2012, according to those of us who go in for this sort thing, is the date of the End Of The World. A faulty interpretation of which civilizations calendar system accounts for this",
+   "answer": "mayan",
+   "clip": "2012_phenomenon_96"
+  },
+  "wq-dev_1722": {
+   "label": "no",
+   "question": "what are some good books like looking for alaska",
+   "answer": "alaska",
+   "clip": "Northern_pintail_14"
+  },
+  "trec-424": {
+   "label": "no",
+   "question": "What do you call a group of geese?",
+   "answer": "flocks",
+   "clip": "Northern_pintail_2"
+  },
+  "squad-5727ff083acd2414000df1ac": {
+   "label": "no",
+   "question": "What is the level of inequality in underdeveloped countries?",
+   "answer": "low",
+   "clip": "Race_Against_Time%3a_Searching_for_Hope_in_AIDS-Ravaged_Africa_12"
+  },
+  "triviaqa-sfq_17941": {
+   "label": "partial",
+   "question": "Who succeeded Nelson Mandela as South African president",
+   "answer": "thabo mbeki",
+   "clip": "Race_Against_Time%3a_Searching_for_Hope_in_AIDS-Ravaged_Africa_24"
+  },
+  "triviaqa-dpql_2327": {
+   "label": "no",
+   "question": "The husband of Lara Lewington, In which field is Martin Lewis a TV expert",
+   "answer": "finance",
+   "clip": "Race_Against_Time%3a_Searching_for_Hope_in_AIDS-Ravaged_Africa_10"
+  },
+  "squad-5729f1c13f37b319004785e7": {
+   "label": "no",
+   "question": "In many countries, what kind of pay gap is there?",
+   "answer": "gender",
+   "clip": "Race_Against_Time%3a_Searching_for_Hope_in_AIDS-Ravaged_Africa_12"
+  },
+  "triviaqa-sfq_4400": {
+   "label": "no",
+   "question": "In what year was the most recent census in the UK ",
+   "answer": "2001",
+   "clip": "Westgate-on-Sea_26"
+  },
+  "triviaqa-qw_6195": {
+   "label": "no",
+   "question": "Geoff Capes, twice the world's strongest man, won 2 Olympic Games gold medals in which sport",
+   "answer": "shot put",
+   "clip": "Louise_Ellery_2"
+  },
+  "triviaqa-qb_5408": {
+   "label": "no",
+   "question": "John Curtin became Prime Minister of which country in 1941",
+   "answer": "australia",
+   "clip": "McGillicuddy_Serious_Party_32"
+  },
+  "squad-572fd8efb2c2fd14005684fb": {
+   "label": "no",
+   "question": "When was there a reduction in the number of Scottish MPs?",
+   "answer": "2005",
+   "clip": "McGillicuddy_Serious_Party_33"
+  },
+  "wq-dev_327": {
+   "label": "no",
+   "question": "what two continents is turkey on",
+   "answer": "europe",
+   "clip": "Azerbaijan_0"
+  },
+  "triviaqa-tc_219": {
+   "label": "no",
+   "question": "The flag of Libya is a plain rectangle of which color",
+   "answer": "green",
+   "clip": "Calcutta_Flag_0"
+  },
+  "triviaqa-sfq_11850": {
+   "label": "yes",
+   "question": "\"Who played Luke Skywalker in the 1977 original \"\"Star Wars\"\" film?\"",
+   "answer": "mark hamill",
+   "clip": "Annandale_High_School_10"
+  },
+  "triviaqa-qw_14136": {
+   "label": "yes",
+   "question": "The ship Andrea Gail features in which 1997 book and 2000 film",
+   "answer": "perfect storm",
+   "clip": "Hurricane_Grace_(1991)_17"
+  },
+  "nq-7354980942032766409": {
+   "label": "no",
+   "question": "what states were most affected by the dust bowl",
+   "answer": "oklahoma",
+   "clip": "1968_Illinois_earthquake_17"
+  },
+  "trec-996": {
+   "label": "no",
+   "question": "How do you measure earthquakes?",
+   "answer": "22",
+   "clip": "1968_Illinois_earthquake_9"
+  },
+  "squad-5705eccb52bb8914006896ba": {
+   "label": "no",
+   "question": "Which region of California is Palm Springs located in?",
+   "answer": "southern",
+   "clip": "1968_Illinois_earthquake_2"
+  },
+  "triviaqa-sfq_9446": {
+   "label": "no",
+   "question": "The two wives of King John of England shared which forename",
+   "answer": "isabella",
+   "clip": "Battle_of_Aljubarrota_20"
+  },
+  "triviaqa-sfq_13702": {
+   "label": "no",
+   "question": "Which King of England had two wives, both named Isabella",
+   "answer": "john",
+   "clip": "Battle_of_Aljubarrota_20"
+  },
+  "triviaqa-qw_12439": {
+   "label": "no",
+   "question": "The region of Catalonia is part of which country",
+   "answer": "spain",
+   "clip": "Battle_of_Aljubarrota_20"
+  },
+  "wq-dev_1818": {
+   "label": "no",
+   "question": "what state is saint louis university in",
+   "answer": "missouri",
+   "clip": "Martha_Layne_Collins_9"
+  },
+  "triviaqa-sfq_234": {
+   "label": "yes",
+   "question": "Who was Walter Mondale's running mate in the 1984 US Presidential Election",
+   "answer": "geraldine ferraro",
+   "clip": "Martha_Layne_Collins_32"
+  },
+  "nq-8466196474705624263": {
+   "label": "yes",
+   "question": "who was running as vice president in 1984",
+   "answer": "ferraro",
+   "clip": "Martha_Layne_Collins_32"
+  },
+  "nq--8497815888777511426": {
+   "label": "no",
+   "question": "who is mostly responsible for writing the declaration of independence",
+   "answer": "thomas jefferson",
+   "clip": "John_Locke_17"
+  },
+  "triviaqa-qw_9015": {
+   "label": "no",
+   "question": "\"Charlie Sheen starred as which character in the TV series \"\"Two and a Half Men\"\"?\"",
+   "answer": "charlie",
+   "clip": "Alan_Harper_(Two_and_a_Half_Men)_0"
+  },
+  "triviaqa-qw_3257": {
+   "label": "no",
+   "question": "What is the name of the dark nebula in the constellation Orion that is approximately 1500 light years from Earth",
+   "answer": "horsehead",
+   "clip": "Hubble_Space_Telescope_92"
+  },
+  "squad-57264991f1498d1400e8db31": {
+   "label": "no",
+   "question": "Where did the residents of Antioch flee to?",
+   "answer": "north",
+   "clip": "Siege_of_Antioch_12"
+  },
+  "squad-56de3ebc4396321400ee26e7": {
+   "label": "yes",
+   "question": "What was the name of Bohemond's nephew?",
+   "answer": "tancred",
+   "clip": "Siege_of_Antioch_10"
+  },
+  "wq-dev_1379": {
+   "label": "no",
+   "question": "what did franz liszt do to earn a living",
+   "answer": "pianist",
+   "clip": "Ima_Hogg_29"
+  },
+  "nq--7520682400646360503": {
+   "label": "no",
+   "question": "what is the meaning of the name gomez",
+   "answer": "man",
+   "clip": "Ima_Hogg_9"
+  },
+  "triviaqa-qw_10361": {
+   "label": "no",
+   "question": "A bean bag is a substitute for what item of furniture",
+   "answer": "chair",
+   "clip": "Ima_Hogg_41"
+  },
+  "triviaqa-tc_938": {
+   "label": "no",
+   "question": "Who or what was Gentle Ben in the 60s TV series",
+   "answer": "bear",
+   "clip": "Nick_Bakay_5"
+  },
+  "squad-57273b69dd62a815002e99d8": {
+   "label": "no",
+   "question": "Which network began airing the TGIF comedy Family Matters for the 1997-98 season?",
+   "answer": "cbs",
+   "clip": "Nick_Bakay_3"
+  },
+  "triviaqa-bb_6017": {
+   "label": "yes",
+   "question": "Bedrock is the home city of which eponymous 1960s cartoon show/family, the most successful adult TV franchise for three decades prior to The Simpsons",
+   "answer": "flintstones",
+   "clip": "Dinosaur_80"
+  },
+  "triviaqa-sfq_5282": {
+   "label": "no",
+   "question": "What type of animal is a corvid",
+   "answer": "birds",
+   "clip": "Dinosaur_48"
+  },
+  "triviaqa-jp_3690": {
+   "label": "no",
+   "question": "In what country did Bossa Nova music originate",
+   "answer": "brazil",
+   "clip": "Caetano_Veloso_2"
+  },
+  "triviaqa-odql_7403": {
+   "label": "no",
+   "question": "A 'Carioca' is an inhabitant of which South American city",
+   "answer": "rio de janeiro",
+   "clip": "Caetano_Veloso_6"
+  },
+  "wq-dev_1345": {
+   "label": "no",
+   "question": "when were south australian women given the right to vote",
+   "answer": "new south wales",
+   "clip": "Robert_Garran_12"
+  },
+  "wq-dev_1226": {
+   "label": "no",
+   "question": "what form of government does australia use",
+   "answer": "federation",
+   "clip": "Robert_Garran_24"
+  },
+  "nq--366699919824131906": {
+   "label": "no",
+   "question": "perth is the capital of which australian state",
+   "answer": "western australia",
+   "clip": "Robert_Garran_55"
+  },
+  "triviaqa-qw_5355": {
+   "label": "no",
+   "question": "What was the original surname of T E Shaw, an RAF aircraftsman who was killed in a motorbike accident in 1935",
+   "answer": "lawrence",
+   "clip": "Robert_Garran_45"
+  },
+  "triviaqa-qw_4953": {
+   "label": "no",
+   "question": "Canberra is the capital of which country",
+   "answer": "australian",
+   "clip": "Robert_Garran_63"
+  },
+  "triviaqa-bb_8371": {
+   "label": "no",
+   "question": "What is the state capital of New South Wales, Australia",
+   "answer": "sydney",
+   "clip": "Robert_Garran_18"
+  },
+  "triviaqa-qb_6356": {
+   "label": "no",
+   "question": "For how many years was Richard III king of England",
+   "answer": "2",
+   "clip": "William_the_Conqueror_152"
+  },
+  "triviaqa-sfq_13503": {
+   "label": "yes",
+   "question": "Who led a revolt against the Normans in 1070 from stronghold on the Isle of Ely? ,",
+   "answer": "hereward",
+   "clip": "William_the_Conqueror_94"
+  },
+  "wq-dev_197": {
+   "label": "no",
+   "question": "what places make up new england",
+   "answer": "maine",
+   "clip": "William_the_Conqueror_4"
+  },
+  "squad-56dde0ba66d3e219004dad75": {
+   "label": "partial",
+   "question": "When was the Duchy of Normandy founded?",
+   "answer": "911",
+   "clip": "William_the_Conqueror_8"
+  },
+  "triviaqa-wh_3188": {
+   "label": "no",
+   "question": "Edward the Black Prince was the father of which English King",
+   "answer": "richard ii",
+   "clip": "William_the_Conqueror_43"
+  },
+  "triviaqa-qw_6561": {
+   "label": "no",
+   "question": "What part of the world has been ruled by Aelle, Ceawlin, Ethelberht, Rdwald, Edwin, Oswald, Oswy, Wulfhere, Ethelred, Ethelbald, Offa, Cnwulf and Egbert",
+   "answer": "england",
+   "clip": "William_the_Conqueror_77"
+  },
+  "triviaqa-sfq_7781": {
+   "label": "partial",
+   "question": "In what year was the Battle of Stamford Bridge",
+   "answer": "1066",
+   "clip": "William_the_Conqueror_65"
+  },
+  "squad-56ddde6b9a695914005b9628": {
+   "label": "yes",
+   "question": "In what country is Normandy located?",
+   "answer": "france",
+   "clip": "William_the_Conqueror_8"
+  },
+  "triviaqa-qz_3154": {
+   "label": "partial",
+   "question": "Which town in East Sussex now stands on the site of the battle of Hastings",
+   "answer": "battle",
+   "clip": "William_the_Conqueror_91"
+  },
+  "squad-56de17f9cffd8e1900b4b5e2": {
+   "label": "yes",
+   "question": "When was Scotland invaded by William?",
+   "answer": "1072",
+   "clip": "William_the_Conqueror_95"
+  },
+  "squad-56de16ca4396321400ee25c5": {
+   "label": "partial",
+   "question": "Where did Harold II die?",
+   "answer": "battle of hastings",
+   "clip": "William_the_Conqueror_67"
+  },
+  "squad-56de3d594396321400ee26ca": {
+   "label": "yes",
+   "question": "Where was Ralph earl of?",
+   "answer": "hereford",
+   "clip": "William_the_Conqueror_100"
+  },
+  "squad-57269526dd62a815002e8a4f": {
+   "label": "no",
+   "question": "How many of the schools in Newcastle are independent? ",
+   "answer": "seven",
+   "clip": "Sheffield_63"
+  },
+  "triviaqa-sfq_21482": {
+   "label": "yes",
+   "question": "What is the name of the commercial airport which opened in 2005 on the site of the former RAF Finningley",
+   "answer": "doncaster sheffield",
+   "clip": "Sheffield_69"
+  },
+  "triviaqa-qb_9242": {
+   "label": "no",
+   "question": "The Recreation Ground, Kingsholm Stadium and the Memorial Ground are all English venues for which sport",
+   "answer": "rugby union",
+   "clip": "Sheffield_40"
+  },
+  "squad-572826634b864d19001645c0": {
+   "label": "no",
+   "question": "Compared to the rest of Florida, how does Jacksonville's Filipino population rank?",
+   "answer": "largest",
+   "clip": "Sheffield_11"
+  },
+  "triviaqa-wh_2270": {
+   "label": "no",
+   "question": "An apartment in which building has been the official London residence of the MP for Buckingham since June 2009 ",
+   "answer": "palace of westminster",
+   "clip": "Sheffield_29"
+  },
+  "triviaqa-odql_8204": {
+   "label": "partial",
+   "question": "Which metal is produced by the Bessemer Process",
+   "answer": "steel",
+   "clip": "Sheffield_28"
+  },
+  "squad-572689b6dd62a815002e8894": {
+   "label": "no",
+   "question": "Which train company provides local and regional services?",
+   "answer": "northern rail",
+   "clip": "Sheffield_68"
+  },
+  "triviaqa-qb_1494": {
+   "label": "no",
+   "question": "Sandygate Road football and cricket stadium is in which English city",
+   "answer": "sheffield",
+   "clip": "Sheffield_41"
+  },
+  "triviaqa-odql_7023": {
+   "label": "no",
+   "question": "Alex Turner is the lead vocalist of which rock band",
+   "answer": "arctic monkeys",
+   "clip": "Sheffield_47"
+  },
+  "squad-5728510f4b864d1900164938": {
+   "label": "no",
+   "question": "The academic body of the university is made up of how many professional schools?",
+   "answer": "seven",
+   "clip": "Sheffield_63"
+  },
+  "wq-dev_1632": {
+   "label": "no",
+   "question": "what to visit in london city",
+   "answer": "palace of westminster",
+   "clip": "Sheffield_29"
+  },
+  "triviaqa-bt_1568": {
+   "label": "no",
+   "question": "In which town or city were most of the Bowie knives made",
+   "answer": "city of sheffield",
+   "clip": "Sheffield_1"
+  },
+  "triviaqa-qb_3078": {
+   "label": "no",
+   "question": "The Hel Peninsula is part of which European country",
+   "answer": "poland",
+   "clip": "Lard_13"
+  },
+  "triviaqa-dpql_6251": {
+   "label": "yes",
+   "question": "The Walker Art Gallery is in which UK city",
+   "answer": "liverpool",
+   "clip": "Lego_25"
+  },
+  "triviaqa-bt_3661": {
+   "label": "no",
+   "question": "What was Moses elder brother called",
+   "answer": "aaron",
+   "clip": "The_Church_of_Jesus_Christ_of_Latter-day_Saints_30"
+  },
+  "triviaqa-qw_11725": {
+   "label": "yes",
+   "question": "What is an alternative name for members of the Church of Jesus Christ of Latter Day Saints",
+   "answer": "mormon",
+   "clip": "The_Church_of_Jesus_Christ_of_Latter-day_Saints_68"
+  },
+  "squad-5730c737b54a4f140068cc54": {
+   "label": "no",
+   "question": "What is the only organization which may speak officially for the church?",
+   "answer": "general conference",
+   "clip": "The_Church_of_Jesus_Christ_of_Latter-day_Saints_57"
+  },
+  "squad-5727482bf1498d1400e8f5a6": {
+   "label": "no",
+   "question": "What type of education is sometimes present at religious schools in addition to the secular curriculum?",
+   "answer": "religious",
+   "clip": "The_Church_of_Jesus_Christ_of_Latter-day_Saints_86"
+  },
+  "triviaqa-odql_3223": {
+   "label": "yes",
+   "question": "Who was the founder of the 'Mormon Church'",
+   "answer": "joseph smith",
+   "clip": "The_Church_of_Jesus_Christ_of_Latter-day_Saints_4"
+  },
+  "triviaqa-sfq_23595": {
+   "label": "no",
+   "question": "In 2006, who became the UK's first woman Secretary of State for Foreign and Commonwealth Affairs",
+   "answer": "margaret beckett",
+   "clip": "Scout_Moor_Wind_Farm_16"
+  },
+  "squad-572fbfa504bcaa1900d76c73": {
+   "label": "no",
+   "question": "Which month is the first in the year Parliament takes a two week vacation?",
+   "answer": "april",
+   "clip": "Scout_Moor_Wind_Farm_15"
+  },
+  "triviaqa-qw_12722": {
+   "label": "no",
+   "question": "Where are New Zealand's parliament buildings",
+   "answer": "wellington",
+   "clip": "Francis_Petre_3"
+  },
+  "triviaqa-wh_2051": {
+   "label": "no",
+   "question": "\"\"\"The Hunchback of Notre Dame\"\" by Victor Hugo is one of the greatest ever French novels. What is the original French title of the book ?\"",
+   "answer": "cathedral of notre dame",
+   "clip": "Francis_Petre_30"
+  },
+  "wq-dev_1129": {
+   "label": "no",
+   "question": "when does daylight saving end in new zealand 2012",
+   "answer": "nz",
+   "clip": "Francis_Petre_56"
+  },
+  "squad-573361404776f4190066093c": {
+   "label": "no",
+   "question": "What type of architecture is represented in the majestic churches?",
+   "answer": "gothic",
+   "clip": "Francis_Petre_34"
+  },
+  "wq-dev_322": {
+   "label": "yes",
+   "question": "what has ian somerhalder acted in",
+   "answer": "lost",
+   "clip": "Boone_Carlyle_0"
+  },
+  "triviaqa-odql_14306": {
+   "label": "no",
+   "question": "The seven brightest stars of Ursa Major form 'The Plough'. What is this called in North America",
+   "answer": "plough",
+   "clip": "Open_cluster_36"
+  },
+  "triviaqa-qw_6673": {
+   "label": "no",
+   "question": "\"What is a \"\"white dwarf\"\"?\"",
+   "answer": "stars",
+   "clip": "Open_cluster_29"
+  },
+  "nq-1869734979236490493": {
+   "label": "no",
+   "question": "who was the king of england in 1756",
+   "answer": "george ii",
+   "clip": "Westminster_Abbey_9"
+  },
+  "triviaqa-qw_8312": {
+   "label": "no",
+   "question": "Whose birth and death are commemorated on the same day",
+   "answer": "shakespeare",
+   "clip": "Westminster_Abbey_14"
+  },
+  "nq-1496876286718225625": {
+   "label": "no",
+   "question": "who built the tower of london in 1066",
+   "answer": "william the conqueror",
+   "clip": "Westminster_Abbey_7"
+  },
+  "wq-dev_1624": {
+   "label": "no",
+   "question": "what language tunisia",
+   "answer": "french language",
+   "clip": "French_language_in_Laos_0"
+  },
+  "wq-dev_503": {
+   "label": "no",
+   "question": "what language is spoken in switzerland",
+   "answer": "french language",
+   "clip": "French_language_in_Laos_0"
+  },
+  "triviaqa-qw_9488": {
+   "label": "no",
+   "question": "The language known as Putonghua, Guoyu, Gwok Yu and Huayu, is spoken in Taiwan, Malaysia and Singapore and where else that it is the official language",
+   "answer": "china",
+   "clip": "French_language_in_Laos_1"
+  },
+  "wq-dev_100": {
+   "label": "no",
+   "question": "what language is spoken in haiti today",
+   "answer": "french language",
+   "clip": "French_language_in_Laos_0"
+  },
+  "triviaqa-qb_2377": {
+   "label": "no",
+   "question": "Sinology is the study of the language, history and culture of which country",
+   "answer": "china",
+   "clip": "French_language_in_Laos_1"
+  },
+  "wq-dev_957": {
+   "label": "no",
+   "question": "what language did the sioux indians speak",
+   "answer": "french language",
+   "clip": "French_language_in_Laos_9"
+  },
+  "triviaqa-sfq_5378": {
+   "label": "no",
+   "question": "The USS Langley was the country's first type of which vessel",
+   "answer": "aircraft carrier",
+   "clip": "Ship_commissioning_2"
+  },
+  "squad-56f8599aa6d7ea1400e175b2": {
+   "label": "yes",
+   "question": "What did Luther write as an outline of the new faith?",
+   "answer": "two catechisms",
+   "clip": "Martin_Luther_89"
+  },
+  "squad-56f82989aef2371900625e6b": {
+   "label": "yes",
+   "question": "What was planned for Luther by Frederick III after the meeting?",
+   "answer": "luther's disappearance",
+   "clip": "Martin_Luther_60"
+  },
+  "squad-56f8989f9e9bad19000a01a5": {
+   "label": "yes",
+   "question": "How did Luther view the Ottoman Turks?",
+   "answer": "scourge",
+   "clip": "Martin_Luther_131"
+  },
+  "squad-56f8c5909b226e1400dd0f7e": {
+   "label": "yes",
+   "question": "When was Luther's last sermon?",
+   "answer": "15 february 1546",
+   "clip": "Martin_Luther_169"
+  },
+  "squad-56f7cb10a6d7ea1400e17288": {
+   "label": "yes",
+   "question": "What did Martin Luther's marriage allow?",
+   "answer": "clerical marriage",
+   "clip": "Martin_Luther_83"
+  },
+  "squad-56f848e0a6d7ea1400e17530": {
+   "label": "yes",
+   "question": "What did Luther think was required to stop the violence?",
+   "answer": "personal presence and living word",
+   "clip": "Martin_Luther_68"
+  },
+  "squad-56f8c5909b226e1400dd0f7d": {
+   "label": "partial",
+   "question": "Where was Luther's last sermon preached?",
+   "answer": "eisleben",
+   "clip": "Martin_Luther_174"
+  },
+  "squad-56f86966aef2371900626056": {
+   "label": "yes",
+   "question": "How did Luther show the Trinity in his catechisms?",
+   "answer": "as persons",
+   "clip": "Martin_Luther_100"
+  },
+  "squad-56f86e91aef2371900626068": {
+   "label": "yes",
+   "question": "What work of Luther's became popular?",
+   "answer": "bible translation",
+   "clip": "Martin_Luther_106"
+  },
+  "squad-56f84485aef2371900625f74": {
+   "label": "yes",
+   "question": "After rejecting compulsory confession, what did Luther call for?",
+   "answer": "private confession and absolution",
+   "clip": "Martin_Luther_64"
+  },
+  "squad-56f8b7189e9bad19000a038b": {
+   "label": "yes",
+   "question": "Who claimed Luther's writings were a blueprint of actions against Jews?",
+   "answer": "diarmaid macculloch",
+   "clip": "Martin_Luther_160"
+  },
+  "squad-56f8c43d9b226e1400dd0f61": {
+   "label": "yes",
+   "question": "What made Luther even more short tempered than usual?",
+   "answer": "poor physical health",
+   "clip": "Martin_Luther_168"
+  },
+  "triviaqa-sfq_24521": {
+   "label": "yes",
+   "question": "\"Which British comedian and actor played Dr Gregory House in the US TV series \"\"House\"\"?\"",
+   "answer": "hugh laurie",
+   "clip": "Pilot_(House)_1"
+  },
+  "triviaqa-bb_7728": {
+   "label": "yes",
+   "question": "Who (at 2008) plays Doctor Gregory House in the TV series House",
+   "answer": "hugh laurie",
+   "clip": "Pilot_(House)_1"
+  },
+  "triviaqa-qw_1587": {
+   "label": "yes",
+   "question": "Which US TV series is set in the Princeton-Plainsboro Teaching Hospital",
+   "answer": "house",
+   "clip": "Pilot_(House)_1"
+  },
+  "triviaqa-wh_1291": {
+   "label": "no",
+   "question": "Having held the position since 2004, Richard Wallace is the editor of which daily newspaper",
+   "answer": "daily mirror",
+   "clip": "Tower_Block_of_Commons_7"
+  },
+  "squad-5725be0fec44d21400f3d4a7": {
+   "label": "no",
+   "question": "Where was the Manned Spacecraft Center located?",
+   "answer": "houston",
+   "clip": "Chris_Hadfield_3"
+  },
+  "triviaqa-odql_10829": {
+   "label": "yes",
+   "question": "What is the family home of Cavendish's (Dukes of Devonshire)",
+   "answer": "chatsworth",
+   "clip": "Matthew_Brettingham_20"
+  },
+  "triviaqa-sfq_9606": {
+   "label": "yes",
+   "question": "What is the residence of the Duke of Devonshire",
+   "answer": "chatsworth house",
+   "clip": "Matthew_Brettingham_20"
+  },
+  "triviaqa-bb_3814": {
+   "label": "no",
+   "question": "Meaning 'quiet loud' what is the full modern Italian name for the piano",
+   "answer": "piano",
+   "clip": "Matthew_Brettingham_15"
+  },
+  "triviaqa-jp_1626": {
+   "label": "no",
+   "question": "What magazine was started by Hugh Hefner",
+   "answer": "playboy magazine",
+   "clip": "The_Illuminatus!_Trilogy_31"
+  },
+  "triviaqa-qw_13216": {
+   "label": "no",
+   "question": "What is a name for the abstract study of topics such as quantity, structure, space, and change",
+   "answer": "mathematical",
+   "clip": "Evolution_38"
+  },
+  "squad-5725ea6889a1e219009ac09f": {
+   "label": "no",
+   "question": "How old were some of the oldest rock samples found on the moon?",
+   "answer": "4.6 billion",
+   "clip": "Evolution_8"
+  },
+  "squad-572669a9dd62a815002e841a": {
+   "label": "no",
+   "question": "The principle of faunal succession was developed 100 years before whose theory of evolution?",
+   "answer": "charles darwin",
+   "clip": "Evolution_44"
+  },
+  "triviaqa-sfq_4963": {
+   "label": "yes",
+   "question": "Biologically-speaking, what name is given to an organ that serves no evident purpose",
+   "answer": "vestigial",
+   "clip": "Evolution_12"
+  },
+  "triviaqa-tc_2900": {
+   "label": "yes",
+   "question": "Which teeth are the third molars, and are always the last to0 erupt",
+   "answer": "wisdom teeth",
+   "clip": "Evolution_13"
+  }
+ }
+}
