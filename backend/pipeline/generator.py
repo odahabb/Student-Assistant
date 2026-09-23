@@ -25,16 +25,26 @@ log = logging.getLogger(__name__)
 
 MODEL_NAME = os.environ.get("SA_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 
-# Where the model runs. "transformers" loads the weights into this process,
-# which is what the application does and what every recorded result
-# describes. "ollama" sends the same messages to a model already served on
-# this machine by Ollama, which is how a model too large to hold in process —
-# qwen3:14b, say — can be put through the identical pipeline for comparison.
-# Nothing leaves the machine either way: Ollama listens on 127.0.0.1.
+# Where the model runs. "transformers" (the default) loads the weights into
+# this process, so the application needs nothing beyond requirements.txt.
+# "ollama" is the optional quality mode: the same messages go to a larger
+# model already served on this machine by Ollama. qwen3:14b scores 0.339
+# answer F1 on the QASPER dev set against the 1.5B's 0.217, with the same
+# retrieval, and writes a paragraph at about 7 tokens a second against 48.
+# It cannot be loaded in process: in 16-bit it needs about 30 GB, and Ollama
+# serves a 4-bit copy that fits on the Arc in 9.6 GB. Nothing leaves the
+# machine either way: Ollama listens on 127.0.0.1.
+#
+# If Ollama is not running, or is not serving the model, the in-process model
+# answers instead (_use_ollama), so an optional server being down never
+# stops the application answering.
 BACKEND = os.environ.get("SA_BACKEND", "transformers").lower()
 OLLAMA_URL = os.environ.get("SA_OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.environ.get("SA_OLLAMA_MODEL", "qwen3:14b")
 OLLAMA_TIMEOUT = 900
+OLLAMA_PROBE_TIMEOUT = 3
+# The in-process model, which is also the one that answers when Ollama cannot.
+LOCAL_MODEL_NAME = MODEL_NAME
 if BACKEND == "ollama":
     MODEL_NAME = OLLAMA_MODEL
 # Context is budgeted with the same tokenizer whichever backend answers, so
@@ -62,6 +72,7 @@ BUDGET_TOKENIZER = os.environ.get("SA_BUDGET_TOKENIZER",
 # reproduces them (the seq2seq class is still selected automatically).
 ANSWER_STYLE = os.environ.get("SA_ANSWER_STYLE", "short").lower()
 CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", MODEL_NAME)
+LOCAL_CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", LOCAL_MODEL_NAME)
 
 # The shape of a short answer follows the shape of the question. Until
 # 2026-09-22 this asked for a span and nothing else, so a question a reader
@@ -403,10 +414,7 @@ def followup_stream(question: str, history: List[dict]) -> Iterator[str]:
     messages.append({"role": "user", "content": question})
     settings = dict(_chat_settings())
     settings.pop("max_new_tokens", None)
-    if BACKEND == "ollama":
-        yield _ollama_reply(messages, CHAT_MAX_TOKENS, settings)
-        return
-    yield from _stream_messages(messages, CHAT_MAX_TOKENS, settings)
+    yield from _stream_reply(messages, CHAT_MAX_TOKENS, settings)
 
 
 # Loaded models, by name. Short answers, quiz questions and explanations all
@@ -489,14 +497,69 @@ def _budget_tokenizer():
 _budget_tok = None
 
 
-def _ollama_reply(messages: List[dict], max_new_tokens: int,
-                  sampling: Optional[dict] = None) -> str:
+class OllamaUnavailable(RuntimeError):
+    """Ollama could not answer; the caller answers with the in-process model."""
+
+
+# None until the first answer asks; then True, or False for the rest of the
+# process once Ollama has been found missing.
+_ollama_up = None
+
+
+def _use_ollama() -> bool:
     """
-    One reply from the model Ollama is serving, given the same messages the
-    transformers path would build.
+    Whether this answer should come from Ollama. The server is checked once,
+    on first use: if it is not running, or is running without the model, the
+    process switches to the in-process model for good and says so in the log.
+    """
+    global _ollama_up
+    if BACKEND != "ollama" or _ollama_up is False:
+        return False
+    if _ollama_up is None:
+        problem = _ollama_problem()
+        if problem:
+            _fall_back(problem)
+            return False
+        _ollama_up = True
+    return True
+
+
+def _ollama_problem() -> Optional[str]:
+    """Why Ollama cannot answer, or None when it is serving OLLAMA_MODEL."""
+    import json as _json
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(f"{OLLAMA_URL}/api/tags",
+                                    timeout=OLLAMA_PROBE_TIMEOUT) as response:
+            models = _json.loads(response.read()).get("models", [])
+    except Exception as exc:
+        return f"there is no Ollama server at {OLLAMA_URL} ({exc})"
+    names = {m.get("name") for m in models} | {m.get("model") for m in models}
+    if not names & {OLLAMA_MODEL, OLLAMA_MODEL + ":latest"}:
+        return (f"Ollama is not serving {OLLAMA_MODEL} "
+                f"(run: ollama pull {OLLAMA_MODEL})")
+    return None
+
+
+def _fall_back(reason: str) -> None:
+    """Answer with the in-process model from now on."""
+    global _ollama_up, MODEL_NAME, CHAT_MODEL_NAME
+    _ollama_up = False
+    MODEL_NAME = LOCAL_MODEL_NAME
+    CHAT_MODEL_NAME = LOCAL_CHAT_MODEL_NAME
+    log.warning(f"SA_BACKEND=ollama, but {reason}; "
+                f"answering with {LOCAL_MODEL_NAME} instead")
+
+
+def _ollama_open(messages: List[dict], max_new_tokens: int,
+                 sampling: Optional[dict], stream: bool):
+    """
+    Send the same messages the transformers path would build to the model
+    Ollama is serving, and return the open response.
 
     think=False suppresses the reasoning block Qwen3 emits by default, which
-    would otherwise arrive wrapped around every short answer.
+    would otherwise arrive wrapped around every answer.
     """
     import json as _json
     import urllib.request
@@ -508,20 +571,85 @@ def _ollama_reply(messages: List[dict], max_new_tokens: int,
     else:
         options["temperature"] = 0.0      # greedy, as the transformers path is
     body = _json.dumps({"model": OLLAMA_MODEL, "messages": messages,
-                        "stream": False, "think": False,
+                        "stream": stream, "think": False,
                         "options": options}).encode("utf-8")
     request = urllib.request.Request(f"{OLLAMA_URL}/api/chat", body,
                                      {"Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=OLLAMA_TIMEOUT) as response:
+    try:
+        return urllib.request.urlopen(request, timeout=OLLAMA_TIMEOUT)
+    except OSError as exc:     # URLError and HTTPError are both OSErrors
+        _fall_back(f"Ollama stopped answering ({exc})")
+        raise OllamaUnavailable(str(exc)) from exc
+
+
+def _ollama_reply(messages: List[dict], max_new_tokens: int,
+                  sampling: Optional[dict] = None) -> str:
+    """One whole reply from Ollama."""
+    import json as _json
+
+    with _ollama_open(messages, max_new_tokens, sampling, stream=False) as response:
         payload = _json.loads(response.read())
     return (payload.get("message", {}).get("content") or "").strip()
 
 
+def _ollama_stream(messages: List[dict], max_new_tokens: int,
+                   sampling: Optional[dict] = None) -> Iterator[str]:
+    """
+    A reply from Ollama piece by piece. With stream on, Ollama sends one JSON
+    object per line, each carrying the next piece of the message, and a last
+    one marked done. At 7 tokens a second a paragraph from the 14B takes
+    fifteen seconds or more, so a student sees it being written rather than
+    waiting on an empty answer.
+    """
+    import json as _json
+
+    with _ollama_open(messages, max_new_tokens, sampling, stream=True) as response:
+        try:
+            for line in response:
+                if not line.strip():
+                    continue
+                event = _json.loads(line)
+                if event.get("error"):
+                    raise RuntimeError(f"Ollama: {event['error']}")
+                piece = event.get("message", {}).get("content") or ""
+                if piece:
+                    yield piece
+                if event.get("done"):
+                    return
+        except OSError as exc:
+            _fall_back(f"Ollama stopped answering ({exc})")
+            raise OllamaUnavailable(str(exc)) from exc
+
+
+def _stream_reply(messages: List[dict], max_new_tokens: int,
+                  sampling: Optional[dict] = None) -> Iterator[str]:
+    """
+    A reply piece by piece, from Ollama when it is in use and otherwise from
+    the in-process model. If Ollama fails before the first piece, the
+    in-process model answers instead; once part of an answer has been shown,
+    the failure is reported rather than a second answer started under it.
+    """
+    if _use_ollama():
+        started = False
+        try:
+            for piece in _ollama_stream(messages, max_new_tokens, sampling):
+                started = True
+                yield piece
+            return
+        except OllamaUnavailable:
+            if started:
+                raise
+    yield from _stream_messages(messages, max_new_tokens, sampling)
+
+
 def _reply(messages: List[dict], max_new_tokens: int,
            sampling: Optional[dict] = None) -> str:
-    """One reply, from whichever backend is configured."""
-    if BACKEND == "ollama":
-        return _ollama_reply(messages, max_new_tokens, sampling)
+    """One reply, from Ollama when it is in use and otherwise in process."""
+    if _use_ollama():
+        try:
+            return _ollama_reply(messages, max_new_tokens, sampling)
+        except OllamaUnavailable:
+            pass
     tokenizer, model = _get_model()
     inputs = _prompt_inputs(tokenizer, model, messages)
     settings = dict(sampling) if sampling else {"do_sample": False}
@@ -596,10 +724,13 @@ def _chat_settings() -> dict:
 
 def explain(query: str, context_chunks: List[str]) -> str:
     """A short paragraph answering the question from the retrieved passages."""
-    if BACKEND == "ollama":
-        return _fix_number_spacing(
-            _ollama_reply(_chat_messages(query, context_chunks),
-                          CHAT_MAX_TOKENS, _chat_settings()))
+    if _use_ollama():
+        try:
+            return _fix_number_spacing(
+                _ollama_reply(_chat_messages(query, context_chunks),
+                              CHAT_MAX_TOKENS, _chat_settings()))
+        except OllamaUnavailable:
+            pass
     tokenizer, model = _get_chat_model()
     inputs = _chat_inputs(query, context_chunks)
     output = model.generate(**inputs, **_chat_settings())
@@ -643,16 +774,10 @@ def _stream_messages(messages: List[dict], max_new_tokens: int,
 
 def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     """explain(), piece by piece, for the web interface."""
-    if BACKEND == "ollama":
-        # Ollama can stream, but the comparison runs that use this backend do
-        # not, so the answer arrives in one piece rather than adding a second
-        # streaming path to keep correct.
-        yield explain(query, context_chunks)
-        return
     settings = dict(_chat_settings())
     settings.pop("max_new_tokens", None)
-    yield from _stream_messages(_chat_messages(query, context_chunks),
-                                CHAT_MAX_TOKENS, settings)
+    yield from _stream_reply(_chat_messages(query, context_chunks),
+                             CHAT_MAX_TOKENS, settings)
 
 
 # The budget shared out among the retrieved passages. Qwen2.5 could take far
@@ -838,6 +963,10 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     """
     if ANSWER_STYLE == "explain":
         yield from explain_stream(query, context_chunks)
+        return
+    if _use_ollama():
+        # A short answer is a few words, so it arrives whole.
+        yield answer_short(query, context_chunks)
         return
 
     from transformers import TextIteratorStreamer

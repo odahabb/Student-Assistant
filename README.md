@@ -114,10 +114,31 @@ evaluation numbers in `data/eval/` without a model suffix describe;
 questions flan-t5-large answers 20 correctly and Qwen2.5-1.5B-Instruct 18, so
 the move to one model costs two answers and saves loading a second model.
 
+**Quality mode (optional).** `SA_BACKEND=ollama` sends the same prompts to a
+larger model served locally by [Ollama](https://ollama.com), `qwen3:14b` by
+default (`SA_OLLAMA_MODEL`). Retrieval, chunks and prompts are unchanged; only
+the answering model differs. On the QASPER dev set it scores 0.339 answer F1
+against the 1.5B's 0.217, and on the 25 ground-truth questions 20 against 18.
+The cost is speed: a paragraph is written at about 7 tokens a second against
+48, so answers stream in over fifteen seconds or so rather than one or two.
+It needs Ollama installed and `ollama pull qwen3:14b` (9.3 GB). It cannot be
+loaded in process instead: in 16-bit the model needs about 30 GB, and Ollama
+serves a 4-bit copy that fits on the Arc in 9.6 GB. Nothing leaves the
+machine, because Ollama listens on 127.0.0.1. If Ollama is not running, or is
+not serving the model, the app logs why and answers with the 1.5B instead.
+
+```bash
+SA_BACKEND=ollama python -m backend.api
+```
+
 **Device.** `SA_DEVICE` selects `gpu` (Intel Arc via PyTorch XPU, the app's
 default), `cpu` or `npu` (OpenVINO, generator and embedder only). Any
 unavailable device falls back to CPU, so `gpu` is safe on a machine with
-neither the XPU wheel nor the Arc driver. The GPU is several times faster on
+neither the XPU wheel nor the Arc driver. The `npu` path was tested on this
+laptop's Intel AI Boost NPU and does not load: both models are exported with
+dynamic input shapes, which the NPU compiler rejects, so it falls back. Run
+through OpenVINO GenAI with fixed shapes, the 1.5B does answer on the NPU, but
+at about 19 tokens a second and 2 s to the first word, slower than the Arc GPU. The GPU is several times faster on
 every stage that runs a model (`latency_gpu.json` against `latency_cpu.json`):
 a short answer 0.45s against 3.38s, a paragraph 1.45s against 9.36s, a quiz
 question 1.53s against 7.93s.

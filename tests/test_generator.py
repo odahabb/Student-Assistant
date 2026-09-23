@@ -315,3 +315,126 @@ class NumberSpacingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class _FakeResponse:
+    """What urllib.request.urlopen returns: readable whole, or line by line."""
+
+    def __init__(self, payload=None, lines=()):
+        self.payload = payload
+        self.lines = list(lines)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        import json
+        return json.dumps(self.payload).encode("utf-8")
+
+    def __iter__(self):
+        import json
+        return iter(json.dumps(line).encode("utf-8") + b"\n" for line in self.lines)
+
+
+class OllamaBackendTests(unittest.TestCase):
+    """The optional quality mode, and falling back when Ollama is missing."""
+
+    def setUp(self):
+        # _fall_back rebinds these, so every test restores them.
+        for name, value in [("BACKEND", "ollama"), ("_ollama_up", None),
+                            ("MODEL_NAME", generator.OLLAMA_MODEL),
+                            ("CHAT_MODEL_NAME", generator.OLLAMA_MODEL)]:
+            patcher = mock.patch.object(generator, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def serving(self, *names):
+        return _FakeResponse({"models": [{"name": n, "model": n} for n in names]})
+
+    def test_the_in_process_model_is_the_default(self):
+        with mock.patch.object(generator, "BACKEND", "transformers"), \
+             mock.patch("urllib.request.urlopen") as urlopen:
+            self.assertFalse(generator._use_ollama())
+        urlopen.assert_not_called()
+
+    def test_a_missing_server_falls_back_to_the_in_process_model(self):
+        import urllib.error
+        with mock.patch("urllib.request.urlopen",
+                        side_effect=urllib.error.URLError("refused")), \
+             self.assertLogs(generator.log, "WARNING"):
+            self.assertFalse(generator._use_ollama())
+        self.assertEqual(generator.MODEL_NAME, generator.LOCAL_MODEL_NAME)
+        self.assertEqual(generator.CHAT_MODEL_NAME, generator.LOCAL_CHAT_MODEL_NAME)
+
+    def test_a_server_without_the_model_falls_back(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self.serving("llama3.2:latest")), \
+             self.assertLogs(generator.log, "WARNING") as logs:
+            self.assertFalse(generator._use_ollama())
+        self.assertIn("ollama pull", logs.output[0])
+
+    def test_the_server_is_checked_once(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self.serving(generator.OLLAMA_MODEL)) as urlopen:
+            self.assertTrue(generator._use_ollama())
+            self.assertTrue(generator._use_ollama())
+        self.assertEqual(urlopen.call_count, 1)
+
+    def test_a_paragraph_streams_piece_by_piece(self):
+        lines = [{"message": {"content": "Glycolysis "}, "done": False},
+                 {"message": {"content": "happens in the cytoplasm."}, "done": False},
+                 {"message": {"content": ""}, "done": True}]
+        with mock.patch.object(generator, "_ollama_up", True), \
+             mock.patch("urllib.request.urlopen",
+                        return_value=_FakeResponse(lines=lines)) as urlopen:
+            pieces = list(generator.explain_stream("Where?", ["passage"]))
+        self.assertEqual(pieces, ["Glycolysis ", "happens in the cytoplasm."])
+        import json
+        body = json.loads(urlopen.call_args[0][0].data)
+        self.assertTrue(body["stream"])
+        self.assertFalse(body["think"])
+
+    def test_ollama_failing_before_the_first_piece_answers_in_process(self):
+        import urllib.error
+        with mock.patch.object(generator, "_ollama_up", True), \
+             mock.patch("urllib.request.urlopen",
+                        side_effect=urllib.error.URLError("gone")), \
+             mock.patch.object(generator, "_stream_messages",
+                               return_value=iter(["from ", "the 1.5B"])) as local, \
+             self.assertLogs(generator.log, "WARNING"):
+            pieces = list(generator.explain_stream("Where?", ["passage"]))
+        self.assertEqual(pieces, ["from ", "the 1.5B"])
+        local.assert_called_once()
+        self.assertFalse(generator._ollama_up)
+
+    def test_a_short_answer_falls_back_too(self):
+        import urllib.error
+        with mock.patch.object(generator, "_ollama_up", True), \
+             mock.patch("urllib.request.urlopen",
+                        side_effect=urllib.error.URLError("gone")), \
+             mock.patch.object(generator, "_get_model",
+                               side_effect=RuntimeError("in process")) as local, \
+             self.assertLogs(generator.log, "WARNING"), \
+             self.assertRaisesRegex(RuntimeError, "in process"):
+            generator._reply([{"role": "user", "content": "q"}], 8)
+        local.assert_called_once()
+
+    def test_an_error_mid_answer_is_reported_not_restarted(self):
+        class Broken(_FakeResponse):
+            def __iter__(self):
+                import json
+                yield json.dumps({"message": {"content": "Half an "}}).encode()
+                raise ConnectionResetError("dropped")
+
+        with mock.patch.object(generator, "_ollama_up", True), \
+             mock.patch("urllib.request.urlopen", return_value=Broken()), \
+             mock.patch.object(generator, "_stream_messages") as local, \
+             self.assertLogs(generator.log, "WARNING"):
+            stream = generator.explain_stream("Where?", ["passage"])
+            self.assertEqual(next(stream), "Half an ")
+            with self.assertRaises(generator.OllamaUnavailable):
+                next(stream)
+        local.assert_not_called()
