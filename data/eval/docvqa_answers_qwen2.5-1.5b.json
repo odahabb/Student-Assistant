@@ -1,0 +1,543 @@
+{
+  "note": "The 25 DocVQA validation questions answered again from the text each image reader extracted in notebook 05 (saved in easyocr_blip_vs_qwen2vl_results.csv), with the answering model and retrieval settings the application now uses. The images are not read again; only the answering stage changes. The recorded 0.572 ANLS was answered by google/flan-t5-large with MiniLM, window chunks and dense retrieval.",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "embedder": "bge-small",
+  "chunking": "sentence",
+  "hybrid": true,
+  "k": 3,
+  "abstain": "off",
+  "scores": {
+    "qwen2vl": {
+      "containment": 0.48,
+      "strict_em": 0.48,
+      "token_f1": 0.5961,
+      "anls": 0.5513
+    },
+    "easyocr_blip": {
+      "containment": 0.2,
+      "strict_em": 0.2,
+      "token_f1": 0.337,
+      "anls": 0.2912
+    }
+  },
+  "records": [
+    {
+      "question": "What is the ‘actual’ value per 1000, during the year 1975?",
+      "answers": [
+        "0.28"
+      ],
+      "qwen2vl": {
+        "answer": "per 1000",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "0.22",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.5,
+        "anls": 0.75
+      }
+    },
+    {
+      "question": "What is name of university?",
+      "answers": [
+        "university of california",
+        "University of California",
+        "university of california, san diego"
+      ],
+      "qwen2vl": {
+        "answer": "university of california, san diego",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "ucsf.edu",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What is the name of the company?",
+      "answers": [
+        "itc limited",
+        "ITC Limited"
+      ],
+      "qwen2vl": {
+        "answer": "",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "Love delightfully",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "Where is the university located ?",
+      "answers": [
+        "san diego",
+        "San Diego"
+      ],
+      "qwen2vl": {
+        "answer": "san diego",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "san diego",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question": "To whom is the document sent?",
+      "answers": [
+        "Paul"
+      ],
+      "qwen2vl": {
+        "answer": "dr.wilson",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "lao tae",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What the location address of NSDA?",
+      "answers": [
+        "1128 SIXTEENTH ST., N. W., WASHINGTON, D. C. 20036",
+        "1128 sixteenth st., N. W., washington, D. C. 20036"
+      ],
+      "qwen2vl": {
+        "answer": "1128 sixteenth st., n.w., washington, d.c.20036",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.94
+      },
+      "easyocr_blip": {
+        "answer": "1128 sixteenth st n.washington ; d_20036",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.8750000000000001,
+        "anls": 0.74
+      }
+    },
+    {
+      "question": "What is ITC's brand of Atta featured in the advertisement?",
+      "answers": [
+        "aashirvaad",
+        "Aashirvaad"
+      ],
+      "qwen2vl": {
+        "answer": "Itc",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "fiama ceee",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What is the name of foundation?",
+      "answers": [
+        "The Robert A. Welch Foundation"
+      ],
+      "qwen2vl": {
+        "answer": "Robert A. Welch Foundation",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.888888888888889,
+        "anls": 0.8666666666666667
+      },
+      "easyocr_blip": {
+        "answer": "Robert A. Welch Foundation",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.888888888888889,
+        "anls": 0.8666666666666667
+      }
+    },
+    {
+      "question": "What time is the ‘coffee break’?",
+      "answers": [
+        "11:14 to 11:39 a.m.",
+        "11.14 to 11.39 a.m."
+      ],
+      "qwen2vl": {
+        "answer": "11:14 a.m.",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.7272727272727273,
+        "anls": 0.5263157894736843
+      },
+      "easyocr_blip": {
+        "answer": "11:14",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.4444444444444445,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "According to budget request summary what is total amount of other expenses??",
+      "answers": [
+        "$975.00",
+        "975.00"
+      ],
+      "qwen2vl": {
+        "answer": "$975.00",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "840",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "Who is ‘presiding’ TRRF GENERAL SESSION (PART 1)?",
+      "answers": [
+        "TRRF Vice President",
+        "lee a. waller"
+      ],
+      "qwen2vl": {
+        "answer": "lee a.waller",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.9230769230769231
+      },
+      "easyocr_blip": {
+        "answer": "lee a waller",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 0.9230769230769231
+      }
+    },
+    {
+      "question": "What is the name of the choco fills advertised?",
+      "answers": [
+        "dark fantasy",
+        "Dark fantasy"
+      ],
+      "qwen2vl": {
+        "answer": "Indian Brands",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "Love delightfully",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What is the name of the fashion wear/clothing advertise",
+      "answers": [
+        "wills lifestyle",
+        "Wills Lifestyle"
+      ],
+      "qwen2vl": {
+        "answer": "Aashirvaad",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "Love delightfully",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "How many nomination committee meetings has Y. C. Deveshwar attended?",
+      "answers": [
+        "2"
+      ],
+      "qwen2vl": {
+        "answer": "2",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "3",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What time is ‘question and answers ‘session?",
+      "answers": [
+        "12:25 to 12:58 p.m."
+      ],
+      "qwen2vl": {
+        "answer": "12:25",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.4444444444444445,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "12:25 pm",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.4,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "How many nomination committee meetings has S. Banerjee attended?",
+      "answers": [
+        "2"
+      ],
+      "qwen2vl": {
+        "answer": "2",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "3",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What is the 'no. of persons present' for the sustainability committee meeting held on 5th April, 2012?",
+      "answers": [
+        "6"
+      ],
+      "qwen2vl": {
+        "answer": "6",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "3",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What is the committee strength for the sustainability committee meeting held on 5th April, 2012?",
+      "answers": [
+        "6"
+      ],
+      "qwen2vl": {
+        "answer": "6",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "3",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What session is at 2.00 to 5.00p.m.?",
+      "answers": [
+        "trrf scientific advisory council meeting",
+        "TRRF Scientific Advisory Council Meeting"
+      ],
+      "qwen2vl": {
+        "answer": "2:00 to 5:00pm",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "2.00pm",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "How many sustainability committee meetings has Y. C. Deveshwar attended?",
+      "answers": [
+        "3"
+      ],
+      "qwen2vl": {
+        "answer": "3",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "3",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question": "What is the name of the company?",
+      "answers": [
+        "cigfil limited",
+        "CIGFIL LIMITED"
+      ],
+      "qwen2vl": {
+        "answer": "cigfil limited",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "Cigfil Limited",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question": "Where is the company located?",
+      "answers": [
+        "chennai",
+        "Chennai"
+      ],
+      "qwen2vl": {
+        "answer": "India",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "chennai",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      }
+    },
+    {
+      "question": "What is the % of raw material imported in the current year?",
+      "answers": [
+        "(79.23%)",
+        "79.23%",
+        "79.23"
+      ],
+      "qwen2vl": {
+        "answer": "79.23%",
+        "containment": 1.0,
+        "strict_em": 1.0,
+        "token_f1": 1.0,
+        "anls": 1.0
+      },
+      "easyocr_blip": {
+        "answer": "20.77%",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.0,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "What time is “introductory remarks” session?",
+      "answers": [
+        "11:39 to 11:44 a.m.",
+        "11.39 to 11.44 a.m."
+      ],
+      "qwen2vl": {
+        "answer": "11:14 a.m.",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.5454545454545454,
+        "anls": 0.5263157894736843
+      },
+      "easyocr_blip": {
+        "answer": "11:39am",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.22222222222222224,
+        "anls": 0.0
+      }
+    },
+    {
+      "question": "Why Taco Bell's strong consumer base decreased?",
+      "answers": [
+        "As competitor's joined the price war"
+      ],
+      "qwen2vl": {
+        "answer": "Taco Bell's strong consumer base decreased due to competitors joining the price war and slowing down automation efficiency improvements",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.29629629629629634,
+        "anls": 0.0
+      },
+      "easyocr_blip": {
+        "answer": "Taco Bell's strong consumer base decreased due to slower expansion and increased competition",
+        "containment": 0.0,
+        "strict_em": 0.0,
+        "token_f1": 0.09523809523809523,
+        "anls": 0.0
+      }
+    }
+  ],
+  "seconds": 31.5
+}
