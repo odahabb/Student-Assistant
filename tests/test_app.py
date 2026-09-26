@@ -16,8 +16,8 @@ from unittest import mock
 import numpy as np
 from fastapi.testclient import TestClient
 
-# The service sets its default device and embedding model in os.environ on
-# import; undo that so other test modules see the environment they expect.
+# service.py sets its defaults in os.environ when it is imported; they are
+# undone here, so the other test modules see the environment they expect.
 with mock.patch.dict(os.environ):
     from backend import api, service
 from backend.pipeline import generator, quiz
@@ -88,13 +88,20 @@ class ServiceTestCase(unittest.TestCase):
             (folder / f).write_bytes(b"%PDF-1.4 test")
         return name
 
+    # Indexing runs on a background thread, so the test waits for it. The
+    # budget is generous because a loaded machine — a sync client walking the
+    # project folder, say — can hold the thread off for seconds.
+    INDEX_TIMEOUT = 30.0
+
     def wait_ready(self, name):
-        for _ in range(200):
+        """Poll a subject's status until its build finishes, and return it."""
+        deadline = time.monotonic() + self.INDEX_TIMEOUT
+        while time.monotonic() < deadline:
             status = self.client.get(f"/api/subjects/{name}/status").json()
             if status["state"] != "indexing":
                 return status
             time.sleep(0.01)
-        self.fail("index never finished")
+        self.fail(f"index never finished within {self.INDEX_TIMEOUT:g}s")
 
 
 class SubjectTests(ServiceTestCase):
@@ -136,8 +143,8 @@ class SubjectTests(ServiceTestCase):
         self.assertEqual(recent[0]["title"], "About Vision?")
 
     def test_renaming_a_subject_keeps_its_work(self):
-        # Everything a subject owns lives in its folder, so the rename has to
-        # carry the conversation with it and not rebuild the index.
+        # A rename moves the folder, so the conversation goes with it, and
+        # the in-memory index is carried across rather than rebuilt.
         name = self.make_subject()
         self.wait_ready(name)
         read_events(self.client.post(f"/api/subjects/{name}/ask",
@@ -231,8 +238,8 @@ class SubjectTests(ServiceTestCase):
         self.assertEqual(self.client.get(f"/api/subjects/{name}").status_code, 404)
 
     def test_a_folder_that_will_not_delete_still_stops_being_a_subject(self):
-        # Windows holds a handle on a folder inside OneDrive for a moment
-        # after its files go; the subject must disappear anyway.
+        # Windows can hold a handle on a folder inside OneDrive for a moment
+        # after its files go; the subject disappears from the list anyway.
         name = self.make_subject()
         with mock.patch.object(service.shutil, "rmtree",
                                side_effect=PermissionError("Access is denied")):
@@ -263,7 +270,7 @@ class SubjectTests(ServiceTestCase):
         self.assertIn("Study Assistant", page.text)
         script = self.client.get("/app.js")
         self.assertEqual(script.status_code, 200)
-        # An updated server must not be met by yesterday's script.
+        # The page and its script are revalidated on every load.
         self.assertEqual(script.headers["cache-control"], "no-cache")
         self.assertEqual(self.client.get("/api/subjects").headers["cache-control"],
                          "no-store")
@@ -478,7 +485,7 @@ class AskTests(ServiceTestCase):
         chat_id = events[-1]["chat"]["id"]
         self.assertEqual(events[-1]["chat"]["title"],
                          "How many hours of audio was Whisper trained…")
-        # A second question in the same conversation leaves the title alone.
+        # Only the first question names a conversation.
         read_events(self.client.post(f"/api/subjects/{name}/ask",
                                      json={"question": "And what about images?",
                                            "chat": chat_id}))
@@ -613,8 +620,8 @@ class QuizTests(ServiceTestCase):
             question = self.ask_question("a.pdf › Everything in this file")
             seen.add(question["topic"])
             self.answer(question, "wrong")
-        # Questions are filed under the section they came from, never under
-        # the whole-file topic, so mastery stays per section.
+        # A question is filed under the section it came from, never under the
+        # whole-file topic, so mastery stays per section.
         self.assertTrue(seen <= {"a.pdf › Section 1", "a.pdf › Section 2"}, seen)
         progress = self.client.get(f"/api/subjects/{self.name}/progress").json()
         self.assertEqual([r["id"] for r in progress["topics"]],
@@ -623,8 +630,8 @@ class QuizTests(ServiceTestCase):
         self.assertEqual(sum(r["answered"] for r in progress["topics"]), 4)
 
     def test_a_whole_file_topic_does_not_repeat_a_section_question(self):
-        # The file's two sections hold one question each. Asking a section
-        # first must not make the whole-file topic write the same one again.
+        # The file's two sections hold one question each, and the whole-file
+        # topic draws on the same chunks, so it must not repeat one.
         first = self.ask_question("a.pdf › Section 1")
         self.answer(first, "wrong")
         second = self.ask_question("a.pdf › Everything in this file")
@@ -654,7 +661,7 @@ class QuizTests(ServiceTestCase):
                          (1, 1, 1))
         row = next(r for r in progress["topics"] if r["id"] == "a.pdf › Section 2")
         self.assertEqual(row["answered"], 1)
-        # The recommender now puts unpractised topics ahead of this one.
+        # An answered topic drops below the unpractised ones.
         self.assertNotEqual(progress["recommendations"][0]["topic"], "a.pdf › Section 2")
 
     def test_a_question_can_only_be_answered_once(self):
@@ -677,7 +684,7 @@ class QuizTests(ServiceTestCase):
         pool = service.load_pool(self.name, service.signature(self.name))
         self.assertEqual([i.question for i in pool["items"]["a.pdf › Section 1"]],
                          [first["question"]])
-        # Not answered yet, so asking again reuses it instead of writing more.
+        # Unanswered, so the next request reuses it rather than writing more.
         self.assertEqual(self.ask_question("a.pdf › Section 1")["question"],
                          first["question"])
         self.assertEqual(quiz.generate_item.call_count, calls)

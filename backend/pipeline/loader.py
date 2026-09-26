@@ -27,11 +27,8 @@ log = logging.getLogger(__name__)
 warnings.filterwarnings('ignore', message=".*pin_memory.*accelerator.*")
 
 
-# Lazy-loaded model singletons
-#
-# Models are expensive to construct (they load weights from disk). They are
-# loaded once, on first use, and reused across calls — mirroring the
-# _get_model() singleton pattern already used in embedder.py / retriever.py.
+# Lazy-loaded model singletons. Each model is built on first use and reused
+# for the rest of the process, as embedder.py and generator.py do.
 
 _qwen_model = None
 _qwen_processor = None
@@ -54,12 +51,10 @@ QWEN_MAX_EXTRACTION_ATTEMPTS = 3
 
 def _get_qwen_model():
     """
-    Lazy-load Qwen2-VL-2B-Instruct, the primary image extractor.
+    Load Qwen2-VL-2B-Instruct, the primary image extractor, on first use.
 
-    Validated against EasyOCR+BLIP on a 25-sample DocVQA eval (see
-    notebooks/05_choice_image_reader.ipynb): with the retry/fallback
-    logic in _is_degenerate_extraction()/_run_qwen_extraction() below, this
-    produces cleaner, more complete extractions in most cases.
+    Weights are float16 on the Arc GPU and float32 on CPU. Returns
+    (processor, model).
     """
     global _qwen_model, _qwen_processor
     if _qwen_model is None:
@@ -79,10 +74,10 @@ def _get_qwen_model():
 
 def _is_degenerate_extraction(text: str) -> bool:
     """
-    Detects two known Qwen2-VL failure modes on this task: bare bounding-box-
-    style coordinate output (e.g. "(10,7),(984,990)"), and markdown tables
-    with no real data filled in (just headers/pipes). Found during eval —
-    see notebooks/05_choice_image_reader.ipynb.
+    True for output that carries no readable content. Three cases are
+    recognised: nothing at all, bare bounding-box coordinates
+    ("(10,7),(984,990)"), and a markdown table of pipes and headers with
+    almost no words in it.
     """
     stripped = text.strip()
     if not stripped:
@@ -98,10 +93,11 @@ def _is_degenerate_extraction(text: str) -> bool:
 
 def _run_qwen_extraction(path: str) -> str:
     """
-    Extraction-only — Qwen2-VL describes/transcribes the document. Retries on
-    degenerate output, falling back to greedy decoding on the final attempt
-    (greedy proved more reliable than sampling on images that trigger the
-    bbox/empty-table bug — see eval notebook for the comparison).
+    Transcribe and describe an image with Qwen2-VL, and return the text.
+
+    Up to QWEN_MAX_EXTRACTION_ATTEMPTS passes: sampled decoding while output
+    is degenerate (see _is_degenerate_extraction), then greedy decoding on
+    the last attempt. Returns the final attempt's text either way.
     """
     import torch
     from PIL import Image
@@ -142,6 +138,7 @@ def _run_qwen_extraction(path: str) -> str:
 
 
 def _get_ocr_reader():
+    """Load the EasyOCR English reader on first use."""
     global _ocr_reader
     if _ocr_reader is None:
         import easyocr
@@ -152,10 +149,10 @@ def _get_ocr_reader():
 
 def _get_blip_model():
     """
-    Lazy-load BLIP (Salesforce/blip-image-captioning-base) for CPU inference.
-    Used to caption an image's visual content — this is what lets the
-    pipeline handle charts, graphs, and diagrams, where OCR text alone is
-    either absent or doesn't carry the image's actual meaning.
+    Load BLIP (Salesforce/blip-image-captioning-base) on first use.
+
+    BLIP captions what an image shows, which is what the EasyOCR fallback
+    path adds to the transcribed text. Returns (processor, model).
     """
     global _blip_processor, _blip_model
     if _blip_model is None:
@@ -175,20 +172,18 @@ def _get_blip_model():
 
 # Section detection
 #
-# The quiz and recommendation layer tracks mastery per section of a document,
-# so every PDF page is tagged with the section it belongs to. Sources, in order
-# of trust:
+# Every PDF page is tagged with the section it belongs to, which is what the
+# quiz layer groups its topics by. Three sources are tried in order:
 #   1. the PDF's own outline (bookmarks), top level only;
 #   2. headings in the page text — "Lecture 3 - ...", "Chapter 2: ...", or a
 #      top-level number ("2. Approach", "II. TRANSFORMER ARCHITECTURE", or a
-#      bare "3." line followed by its title). Numbered headings are only
-#      accepted as a run counting up from 1, which filters out numbered lines
-#      that are not headings (affiliations, list items, figure labels);
-#   3. fixed groups of pages.
+#      bare "3." line followed by its title). Numbered headings count only as
+#      a run counting up from 1, so numbered lines that are not headings
+#      (affiliations, list items, figure labels) are ignored;
+#   3. fixed groups of PAGE_GROUP_SIZE pages.
 # Assignment is per page: a page takes the first heading that appears on it,
-# otherwise the section carried over from the previous page. Text on a page
-# before its first heading is therefore attributed to the new section — an
-# approximation that is fine at the granularity mastery is tracked at.
+# and otherwise the section carried over from the previous page. Text above a
+# page's first heading is therefore attributed to the new section.
 
 PAGE_GROUP_SIZE = 5
 FRONT_MATTER_TITLE = "Overview"
@@ -204,6 +199,7 @@ _ROMAN = {"I": 1, "V": 5, "X": 10}
 
 
 def _numeral_value(token: str) -> int:
+    """The value of an arabic or roman numeral token ("7", "IV")."""
     if token.isdigit():
         return int(token)
     total, prev = 0, 0
@@ -215,6 +211,7 @@ def _numeral_value(token: str) -> int:
 
 
 def _tidy_title(title: str) -> str:
+    """A heading's text with its spacing normalised and ALL CAPS title-cased."""
     title = " ".join(title.split()).rstrip(".:")
     if title.isupper():
         title = title.title()
@@ -249,8 +246,8 @@ def _sections_from_headings(page_lines: List[List[str]]) -> List[tuple]:
     candidates = _heading_candidates(page_lines)
 
     named = [(p, t) for p, kind, _, t in candidates if kind == "named"]
-    # One run per numbering style, so "1. Introduction" is not followed by an
-    # unrelated "II. ..." line; the longer run wins.
+    # One run per numbering style, counting up from 1, so "1. Introduction" is
+    # never continued by an unrelated "II. ..." line. The longer run wins.
     runs = {"arabic": [], "roman": []}
     for style, run in runs.items():
         expected = 1
@@ -263,9 +260,9 @@ def _sections_from_headings(page_lines: List[List[str]]) -> List[tuple]:
     starts = named if len(named) >= 2 else (numbered if len(numbered) >= 2 else [])
     if not starts:
         return []
-    # A references heading only counts once the body's sections have begun.
-    # Numbered lines after it are appendix tables and lists, not the body's
-    # section run, so the run stops there.
+    # A references heading counts only once the body's sections have begun,
+    # and the run stops there: numbered lines after it belong to appendix
+    # tables and lists rather than to the body.
     first_page = starts[0][0]
     references = [p for p, kind, _, _ in candidates
                   if kind == "references" and p >= first_page]
@@ -293,38 +290,36 @@ def _page_sections(doc, page_lines: List[List[str]]) -> dict:
         on_page = [title for p, title in starts if p == page]
         sections[page] = on_page[0] if on_page else current
         if on_page:
-            # a later heading on the same page carries over to the next page
+            # the last heading on a page carries over to the next one
             current = on_page[-1]
     return sections
 
 
 # Telling slide decks from ordinary documents
 #
-# A slide deck needs different treatment from a paper: its "pages" hold a
-# handful of words, its titles are the only headings it has, and much of what
-# it says is in pictures. These helpers label each page so the preprocessor
-# can pack slides together instead of embedding them one by one.
+# These helpers label each PDF page as a slide or an ordinary page, and give
+# a slide its title and a flag for section dividers. load_pdf passes all
+# three on to the preprocessor, which packs slides instead of splitting them.
 
-SLIDE_MEDIAN_WORDS = 60      # a deck's slides hold far less text than a page
-SLIDE_MIN_PAGES = 4          # too few pages to judge — treat as a document
-# A divider's text is never embedded, so the rule has to be strict: anything
-# beyond the title and a stray page number means the slide says something.
-DIVIDER_MAX_EXTRA_WORDS = 2
+SLIDE_MEDIAN_WORDS = 60      # at or below this median, the pages are slides
+SLIDE_MIN_PAGES = 4          # fewer pages than this are read as a document
+DIVIDER_MAX_EXTRA_WORDS = 2  # words past its title a divider slide may hold
 _BULLET_CHARS = "•●▪■·-*–—"
 _BULLET = re.compile(rf"^[\s{re.escape(_BULLET_CHARS)}]+")
 
 
 def _clean_line(line: str) -> str:
-    """A displayed line without its bullet glyph and surrounding space."""
+    """A line without its bullet glyph or surrounding whitespace."""
     return re.sub(r"\s+", " ", _BULLET.sub("", line)).strip()
 
 
 def _document_kind(doc, texts: List[str]) -> str:
     """
-    "slides" or "pages". Slides are recognised by how little text they carry,
-    and by the landscape shape almost every deck uses; either signal alone is
-    enough, because a text-heavy deck is still a deck and a portrait deck is
-    still mostly pictures.
+    "slides" or "pages" for a whole document.
+
+    Either signal is enough on its own: a median page of at most
+    SLIDE_MEDIAN_WORDS words, or more landscape pages than portrait ones. A
+    document of fewer than SLIDE_MIN_PAGES pages is always "pages".
     """
     if len(texts) < SLIDE_MIN_PAGES:
         return "pages"
@@ -340,9 +335,9 @@ def _document_kind(doc, texts: List[str]) -> str:
 
 def _slide_title(text: str) -> Optional[str]:
     """
-    A slide's title: its first line, which is how decks mark their topics.
-    Returns None for a slide that starts with a bullet or a sentence rather
-    than a title.
+    A slide's title taken from the text layer: its first non-empty line.
+    None when that line runs past 12 words or ends like a sentence, which
+    means the slide opens with prose rather than a title.
     """
     lines = [_clean_line(line) for line in text.splitlines()]
     lines = [line for line in lines if line]
@@ -356,10 +351,10 @@ def _slide_title(text: str) -> Optional[str]:
 
 def _title_from_layout(page) -> Optional[str]:
     """
-    A slide's title taken from its largest type, joined across the lines it
-    wraps onto. Reading the first line instead truncates the common two-line
-    title ("1.101: Bio-inspired / computing"), and font size is the signal the
-    format itself uses to mark a title.
+    A slide's title taken from its layout: every span set in the largest font
+    size on the page, read top to bottom and left to right, so a title that
+    wraps onto two lines comes back whole. None when the page reports no
+    spans, or when the result runs past 12 words or ends like a sentence.
     """
     try:
         spans = [(round(span["size"], 1), span["bbox"][1], span["bbox"][0],
@@ -373,9 +368,8 @@ def _title_from_layout(page) -> Optional[str]:
     if not spans:
         return None
 
-    # A slide set in one size throughout is usually a title or divider slide,
-    # so a single size is not a reason to give up; the length check below is
-    # what separates a title from a slide of running text.
+    # A slide set in a single size throughout is still read as a title; the
+    # length check below is what separates one from a slide of running text.
     biggest = max(size for size, _, _, _ in spans)
     title = " ".join(text for size, _, _, text in
                      sorted((s for s in spans if s[0] >= biggest - 0.1),
@@ -388,9 +382,9 @@ def _title_from_layout(page) -> Optional[str]:
 
 def _is_divider(text: str, title: Optional[str]) -> bool:
     """
-    True for a slide that carries its title and nothing else — a section
-    divider. These are never worth embedding alone; the preprocessor uses
-    them to label the slides that follow.
+    True for a slide holding its title and at most DIVIDER_MAX_EXTRA_WORDS
+    words besides — a section divider. The preprocessor embeds no chunk for
+    one and uses its title to label the slides that follow.
     """
     if not title:
         return False
@@ -401,31 +395,26 @@ def _is_divider(text: str, title: Optional[str]) -> bool:
 
 # Reading the pictures inside a PDF
 #
-# PyMuPDF only reads a page's text layer, so anything drawn as a picture — a
-# diagram, a chart, a screenshot of code, or a slide exported as an image — is
-# invisible to the rest of the pipeline. These helpers render such a page and
-# send it through the same extraction chain as an uploaded image, cheapest
-# method first, because the vision model costs about a minute per page.
+# PyMuPDF reads a page's text layer only, so anything drawn as a picture — a
+# diagram, a chart, a screenshot of code, or a slide exported as an image —
+# reaches the rest of the pipeline as an empty page. These helpers render
+# such a page and read it with EasyOCR, then with Qwen2-VL when OCR finds
+# almost nothing. Results are cached on disk by the rendered image's hash.
 
 FIGURE_RENDER_DPI = 150
-FIGURE_THIN_WORDS = 12        # below this, a page may be mostly picture
-FIGURE_IMAGE_AREA = 0.15      # ... if pictures cover this share of the page
-# When OCR comes back with fewer words than this, the page holds a photograph
-# or a diagram with no legible labels, and only the vision model can say what
-# is on it. Anything more than that — a title slide, a screenshot, a labelled
-# chart — is already searchable text, and a minute of vision model per page
-# would buy a description the student can mostly read off the slide anyway.
-FIGURE_VISION_IF_FEWER = 3
-FIGURE_VISION_MIN_AREA = 0.35   # ... and the picture takes up this much of it
-FIGURE_VISION_PER_DOC = 8       # hard cap: one upload cannot run for hours
-FIGURE_MAX_PAGES = 80           # pages offered to the picture reader at all
+FIGURE_THIN_WORDS = 12        # a page with fewer words than this is a
+FIGURE_IMAGE_AREA = 0.15      # ... candidate if pictures cover this much of it
+FIGURE_VISION_IF_FEWER = 3    # OCR words below which the vision model runs
+FIGURE_VISION_MIN_AREA = 0.35 # ... and the picture must cover this much
+FIGURE_VISION_PER_DOC = 8     # vision-model pages allowed per document
+FIGURE_MAX_PAGES = 80         # pages offered to the picture reader at all
 FIGURE_CACHE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "data", "cache", "figures")
 
 
 class _nothing:
-    """A do-nothing stand-in for a lock the caller did not supply."""
+    """A context manager that does nothing, used when no lock was given."""
 
     def __enter__(self):
         return self
@@ -459,6 +448,7 @@ def _needs_figure_reading(text: str, page) -> bool:
 
 
 def _cached_figure_text(digest: str) -> Optional[str]:
+    """Picture text cached for this rendered page, or None."""
     cached = os.path.join(FIGURE_CACHE, f"{digest}.txt")
     if os.path.exists(cached):
         with open(cached, "r", encoding="utf-8") as f:
@@ -467,30 +457,33 @@ def _cached_figure_text(digest: str) -> Optional[str]:
 
 
 def _cache_figure_text(digest: str, text: str) -> None:
+    """Cache a page's picture text under the rendered image's hash."""
     try:
         os.makedirs(FIGURE_CACHE, exist_ok=True)
         with open(os.path.join(FIGURE_CACHE, f"{digest}.txt"), "w",
                   encoding="utf-8") as f:
             f.write(text)
-    except OSError as e:       # a read-only or full disk must not stop a load
+    except OSError as e:       # a read-only or full disk still loads the file
         log.warning(f"  Could not cache figure text ({e})")
 
 
 def _ocr_page_image(image_path: str) -> str:
-    """EasyOCR alone — about 7 s a page, against about a minute for Qwen2-VL."""
+    """EasyOCR over a rendered page, put back into reading order."""
     reader = _get_ocr_reader()
     return _reorder_ocr_by_layout(reader.readtext(image_path))
 
 
 def _read_page_picture(page, page_number: int, allow_vision: bool = True) -> tuple:
     """
-    Read the picture content of one page. Returns (text, method), where method
-    is "cache", "ocr", "vision" or "" when nothing legible was found.
+    Read the picture content of one page.
 
-    Cheapest first: EasyOCR handles slides whose content is a screenshot or a
-    labelled diagram, which is most of them, and Qwen2-VL is called only when
-    OCR comes back nearly empty and the caller allows it — the photographs and
-    unlabelled diagrams that need describing rather than transcribing.
+    Returns (text, method), where method is "cache", "ocr", "vision", or ""
+    when nothing legible was found. The page is rendered at
+    FIGURE_RENDER_DPI and looked up in the cache first. EasyOCR runs next,
+    and Qwen2-VL only when allow_vision is set and OCR returned fewer than
+    FIGURE_VISION_IF_FEWER words; its output is kept only if it is longer.
+    Text under three words is discarded. The cache is written either way, so
+    a page that yielded nothing is not read twice.
     """
     import hashlib
     import tempfile
@@ -545,29 +538,26 @@ def load_pdf(path: str, figures: str = "off", report=None, lock=None) -> List[di
     Returns one dict per page that had extractable text:
 
         [{"source_file": "lecture_notes.pdf", "page": 1,
-          "section": "Lecture 3 - Supervised Learning", "text": "..."}, ...]
+          "section": "Lecture 3 - Supervised Learning", "text": "...",
+          "kind": "page", "title": None, "divider": False,
+          "from_image": False}, ...]
 
-    Page boundaries are deliberately preserved instead of being concatenated
-    into a single string, so that preprocessor.preprocess() can chunk *within*
-    a page (no chunk spanning two pages) and tag every chunk with the file and
-    page it came from. Pages with no extractable text are skipped, as before.
-    "section" comes from _page_sections() and is what the quiz layer groups
-    pages by.
+    Page boundaries are kept rather than concatenated, so
+    preprocessor.preprocess() chunks within a page and tags every chunk with
+    the file and page it came from. Pages with no extractable text are
+    skipped. "section" comes from _page_sections(); "kind" is "page" or
+    "slide" for the whole document (see _document_kind), and a slide also
+    carries its "title" and whether it is a "divider".
 
-    Every page also carries "kind" ("page" or "slide"), and slides carry
-    "title" and "divider" so the preprocessor can pack a deck by its titles
-    instead of embedding one slide at a time.
+    figures="auto" also reads the pictures on pages whose text layer is thin
+    or empty (see _read_page_picture) and appends what it finds to the page
+    text, marking the page from_image. It is off by default because it costs
+    seconds to a minute per page. report(done, total, page) is called as
+    those pages are read, for a progress display.
 
-    figures="auto" additionally reads the pictures on pages whose text layer
-    is thin or empty (see _read_page_picture), which is how a diagram, a chart
-    or a slide exported as an image gets into the index at all. It is off by
-    default because it costs seconds to a minute per page, and because every
-    result recorded before it existed was measured without it. report(done,
-    total, page) is called as those pages are read, for a progress display.
-
-    lock, if given, is held around each picture — one page at a time, never
-    the whole document — so that a caller sharing the models can answer a
-    question between pages instead of queueing behind the entire file.
+    lock, if given, is held around each picture — one page at a time, not the
+    whole document — so a caller sharing the models can run something else
+    between pages.
     """
     try:
         import fitz
@@ -583,8 +573,8 @@ def load_pdf(path: str, figures: str = "off", report=None, lock=None) -> List[di
     try:
         doc = fitz.open(path)
     except Exception:
-        # PyMuPDF's message repeats the whole temporary path; the name and the
-        # reason are what the student needs.
+        # PyMuPDF's own message repeats the whole temporary path; this reports
+        # the file name and the reason instead.
         raise ValueError(f"{os.path.basename(path)} could not be opened as a "
                          f"PDF — it may be corrupt, or not a PDF at all")
 
@@ -599,7 +589,7 @@ def load_pdf(path: str, figures: str = "off", report=None, lock=None) -> List[di
         for page in doc:
             try:
                 texts.append(page.get_text())
-            except Exception as e:      # a damaged page shouldn't lose the file
+            except Exception as e:      # a damaged page does not lose the file
                 log.warning(f"  Page {len(texts) + 1} could not be read ({e})")
                 texts.append("")
         if not texts:
@@ -628,7 +618,7 @@ def load_pdf(path: str, figures: str = "off", report=None, lock=None) -> List[di
                                                           allow_vision=may_describe)
                     if method == "vision":
                         vision_left -= 1
-                except Exception as e:  # never let a picture stop the upload
+                except Exception as e:  # a failed picture leaves the page as is
                     log.warning(f"  Page {i+1}: reading its picture failed ({e})")
                     text = ""
                 if text:
@@ -674,42 +664,33 @@ def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
     """
     Reconstruct reading order from EasyOCR's raw detections.
 
-    EasyOCR returns detections in the order its detection model found
-    them on the page — NOT in top-to-bottom, left-to-right reading
-    order. For a single paragraph this rarely matters, but for tables
-    and forms it scrambles rows/columns into a meaningless token soup
-    (e.g. a "Revenue | 2023 | 450" row gets split apart and interleaved
-    with unrelated cells from other rows).
-
-    This groups detections into rows by y-coordinate (within
-    y_tolerance pixels, to absorb natural jitter in scan alignment),
-    then sorts each row left-to-right by x-coordinate. This is a
-    heuristic, not a table parser: it does not detect or label table
-    structure, it only restores spatial reading order. See project
-    report for discussion of this scope boundary.
+    EasyOCR returns detections in the order its detection model found them,
+    not in reading order, which interleaves the cells of a table or a form.
+    This groups detections into rows by their y-coordinate and sorts each row
+    by x-coordinate. It restores spatial reading order only: no table
+    structure is detected or labelled.
 
     Args:
-        results     : Raw output of easyocr.Reader.readtext() — a list of
+        results     : output of easyocr.Reader.readtext() — a list of
                       (bounding_box, text, confidence) tuples.
-        y_tolerance : Max pixel difference in row y-position for two
-                      detections to be considered part of the same row.
+        y_tolerance : largest pixel difference in y-position for two
+                      detections to count as the same row.
 
     Returns:
-        Text reconstructed in top-to-bottom, left-to-right order, with
-        one line per detected row.
+        Text in top-to-bottom, left-to-right order, one line per row.
     """
     if not results:
         return ""
 
-    # Each detection's box is 4 (x, y) corner points; use the average
-    # y of the top two corners as that detection's row position.
+    # A detection's box is four (x, y) corners: its row position is the mean
+    # y of the top two, and its column position the x of the top-left one.
     items = []
     for box, text, confidence in results:
         top_y = (box[0][1] + box[1][1]) / 2.0
         left_x = box[0][0]
         items.append((top_y, left_x, text))
 
-    items.sort(key=lambda item: item[0])  # rough top-to-bottom pass
+    items.sort(key=lambda item: item[0])  # top to bottom, before grouping
 
     rows = []
     current_row = [items[0]]
@@ -724,7 +705,7 @@ def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
             current_row_y = top_y
     rows.append(current_row)
 
-    # Within each row, sort left-to-right
+    # Then left to right within each row
     lines = []
     for row in rows:
         row_sorted = sorted(row, key=lambda item: item[1])
@@ -733,32 +714,24 @@ def _reorder_ocr_by_layout(results, y_tolerance: int = 15) -> str:
     return "\n".join(lines)
 
 
-IMAGE_MIN_PIXELS = 32        # smaller than this holds nothing to read
+IMAGE_MIN_PIXELS = 32        # images narrower or shorter than this are refused
 
 
 def load_image(path: str) -> str:
     """
-    Extract content from an image, primarily using Qwen2-VL-2B-Instruct to
-    transcribe visible text and describe any charts/tables/figures in one
-    pass. Falls back to EasyOCR + BLIP if Qwen2-VL fails to load or run
-    (e.g. model download failure, out-of-memory) — see
-    _load_image_easyocr_blip() below.
+    Extract the content of an image as text.
 
-    Validated against the EasyOCR+BLIP approach on a 25-sample DocVQA eval
-    (notebooks/05_choice_image_reader.ipynb): Qwen2-VL extraction, with
-    the retry/degenerate-output-detection safety net in _run_qwen_extraction(),
-    produced higher exact-match/F1 scores on the downstream RAG pipeline.
-
-    Known limitation (documented, not solved): like BLIP, Qwen2-VL's chart
-    descriptions are not guaranteed to recover precise numerical values
-    (e.g. exact bar heights) — see project report for discussion of this as
-    an accepted scope boundary.
+    Qwen2-VL-2B-Instruct transcribes the visible text and describes any
+    charts, tables and figures in one pass. If it fails to load or run, or
+    returns nothing usable, EasyOCR + BLIP answer instead (see
+    _load_image_easyocr_blip). The file is opened and checked first, so a
+    corrupt or tiny image raises before any model is loaded.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Image not found: {path}")
 
-    # Open it once here so a corrupt or absurdly small file fails with a
-    # sentence, rather than inside a model as "Truncated File Read".
+    # Checked here, so a corrupt or tiny file raises a readable error rather
+    # than failing inside a model as "Truncated File Read".
     name = os.path.basename(path)
     try:
         from PIL import Image
@@ -788,16 +761,16 @@ def load_image(path: str) -> str:
 
 def _load_image_easyocr_blip(path: str) -> str:
     """
-    Fallback extraction method — EasyOCR (spatially-reordered text) + BLIP
-    (semantic caption), combined. Used only when Qwen2-VL is unavailable.
+    The fallback extractor: EasyOCR's text, in reading order, followed by
+    BLIP's caption of what the image shows. Used when Qwen2-VL cannot run.
     """
-    # --- EasyOCR branch: spatially-reordered text extraction ---
+    # Text, put back into reading order
     reader = _get_ocr_reader()
     ocr_results = reader.readtext(path)
     ocr_text = _reorder_ocr_by_layout(ocr_results)
     log.info(f"OCR complete — {len(ocr_text)} characters extracted")
 
-    # --- BLIP branch: semantic caption ---
+    # A caption of what the image shows
     from PIL import Image
     processor, model = _get_blip_model()
     raw_image = Image.open(path).convert("RGB")
@@ -806,7 +779,7 @@ def _load_image_easyocr_blip(path: str) -> str:
     caption = processor.decode(output_ids[0], skip_special_tokens=True)
     log.info(f"BLIP caption: {caption}")
 
-    # --- Combine ---
+    # Both parts, labelled, as one passage
     parts = []
     if ocr_text.strip():
         parts.append(f"Extracted text: {ocr_text}")
@@ -821,9 +794,10 @@ def _load_image_easyocr_blip(path: str) -> str:
 
 def load_audio(path: str, model_size: str = "base") -> str:
     """
-    Transcribe an audio file to text using OpenAI Whisper.
-    model_size options: tiny | base | small | medium | large
-    Use 'base' for speed during development, 'small' for better accuracy.
+    Transcribe an audio file into a single string with OpenAI Whisper.
+
+    model_size is one of tiny | base | small | medium | large. The segments
+    behind the transcript are available from load_audio_segments.
     """
     try:
         import whisper
@@ -841,10 +815,10 @@ def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
         [{"source_file": "lecture.m4a", "kind": "audio", "text": "...",
           "start": 0.0, "end": 7.4}, ...]
 
-    A recording has no pages and no headings, so these segments and the pauses
-    between them are the only structure it offers. The preprocessor packs them
-    into chunks and breaks at the longest pauses, and the timestamps let an
-    answer cite the moment it came from.
+    The preprocessor packs these segments into chunks and breaks at the
+    pauses between them (see preprocessor._pack_audio); the timestamps are
+    what lets an answer cite the moment it came from. A Whisper build that
+    returns no segments falls back to one entry holding the whole transcript.
     """
     try:
         import whisper
@@ -861,8 +835,8 @@ def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
     try:
         result = model.transcribe(path)
     except Exception as e:
-        # Whisper re-raises ffmpeg's entire banner on a bad file; the student
-        # needs the one useful sentence, not forty lines of build flags.
+        # Whisper re-raises ffmpeg's whole banner on a bad file; only its last
+        # line is kept.
         reason = str(e).strip().splitlines()[-1][:120] if str(e).strip() else ""
         raise ValueError(
             f"{os.path.basename(path)} could not be transcribed — it may not "
@@ -876,7 +850,7 @@ def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
         for s in result.get("segments", []) if s.get("text", "").strip()
     ]
     if not segments and result.get("text", "").strip():
-        # Some builds return no segments; keep the transcript as one piece.
+        # Some Whisper builds return no segments: keep the transcript whole.
         segments = [{"source_file": source_file, "kind": "audio",
                      "text": result["text"], "start": 0.0, "end": 0.0}]
 
@@ -887,14 +861,14 @@ def load_audio_segments(path: str, model_size: str = "base") -> List[dict]:
 
 def load_text(raw: str) -> str:
     """
-    Plain text passthrough — validates input and returns as-is.
+    Plain text passthrough: check the input and return it unchanged.
     """
     if not isinstance(raw, str):
         raise TypeError(f"Expected string, got {type(raw)}")
     if not raw.strip():
         raise ValueError("Input text is empty")
-    # A file of null bytes or other control characters reads as "text" but
-    # holds nothing anyone can search; indexing it only pollutes the subject.
+    # A file of null bytes or other control characters decodes as "text" but
+    # holds nothing to search, so it is refused rather than indexed.
     readable = sum(1 for ch in raw if ch.isprintable() or ch in "\n\r\t")
     if readable < len(raw) * 0.5:
         raise ValueError("This file holds no readable text — it looks binary "
@@ -903,7 +877,7 @@ def load_text(raw: str) -> str:
     return raw
 
 
-# Unified entry point — this is what the rest of the pipeline calls
+# Unified entry point, called by the rest of the pipeline
 
 SUPPORTED_TYPES = ("pdf", "image", "audio", "text")
 
@@ -916,10 +890,10 @@ def load_input(source: str, input_type: str) -> Union[str, List[dict]]:
         input_type  : One of 'pdf' | 'image' | 'audio' | 'text'
 
     Returns:
-        For 'pdf'  : a list of per-page dicts (see load_pdf) — page boundaries
-                     are preserved so chunking can stay inside a page.
-        Otherwise  : extracted text as a single string.
-        Both shapes are accepted directly by preprocessor.preprocess().
+        For 'pdf'   : a list of per-page dicts (see load_pdf).
+        For 'audio' : a list of per-segment dicts (see load_audio_segments).
+        Otherwise   : the extracted text as a single string.
+        All three shapes are accepted by preprocessor.preprocess().
 
     Raises:
         ValueError        : If input_type is not supported
@@ -942,7 +916,7 @@ def load_input(source: str, input_type: str) -> Union[str, List[dict]]:
     return loaders[input_type](source)
 
 
-# Auto-detect type from file extension 
+# Input type by file extension
 
 EXTENSION_MAP = {
     ".pdf"  : "pdf",
@@ -961,14 +935,14 @@ EXTENSION_MAP = {
 def load_file(path: str, figures: str = "off",
               report: Optional[Callable] = None, lock=None) -> Union[str, List[dict]]:
     """
-    Convenience wrapper — detects input type from file extension automatically.
+    load_input with the input type taken from the file extension.
 
     Example:
-        pages = load_file("lecture_notes.pdf")   # auto-detected as pdf → per-page list
-        text  = load_file("scanned_doc.png")     # auto-detected as image → string
+        pages = load_file("lecture_notes.pdf")   # pdf   -> per-page list
+        text  = load_file("scanned_doc.png")     # image -> string
 
-    figures and report apply to PDFs only (see load_pdf) and are ignored for
-    the other types, so callers can pass them without checking the extension.
+    figures, report and lock apply to PDFs only (see load_pdf) and are
+    ignored for the other types, so a caller need not check the extension.
     """
     _, ext = os.path.splitext(path.lower())
     input_type = EXTENSION_MAP.get(ext)
@@ -981,7 +955,7 @@ def load_file(path: str, figures: str = "off",
 
     log.info(f"Auto-detected '{ext}' → input_type='{input_type}'")
     if input_type == "text":
-        # load_input's "text" type takes the text itself, not a path.
+        # load_input's "text" type takes the text itself rather than a path.
         if not os.path.exists(path):
             raise FileNotFoundError(f"Text file not found: {path}")
         with open(path, "r", encoding="utf-8", errors="replace") as f:

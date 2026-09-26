@@ -41,7 +41,8 @@ class SlideDetectionTests(unittest.TestCase):
         self.assertEqual([p["divider"] for p in pages], [True, False, False, False])
 
     def test_a_wrapped_title_is_joined_rather_than_truncated(self):
-        # The title is long enough to wrap onto a second line on the slide.
+        # A title long enough to wrap onto a second line, which
+        # _title_from_layout joins back together.
         pages = self.deck([("Bio-inspired computing and artificial life", []),
                            ("Selection", ["Pick the fittest of the population"]),
                            ("Crossover", ["Swap genes between two parents"]),
@@ -59,8 +60,8 @@ class SlideDetectionTests(unittest.TestCase):
 
 class PictureReadingTests(unittest.TestCase):
     def blank_page_deck(self):
-        # Slide 2 has no text at all, standing in for a slide that is one big
-        # picture; the loader should offer it to the vision chain.
+        # Slide 2 carries no text at all, standing in for a slide that is one
+        # picture, so the loader offers it to the picture reader.
         path = make_deck([("Selection", ["Pick the fittest of the population"]),
                           ("", []),
                           ("Crossover", ["Swap genes between two parents"]),
@@ -197,7 +198,8 @@ class SlidePackingTests(unittest.TestCase):
                 for page, title, text, divider in specs]
 
     def test_consecutive_slides_are_packed_up_to_the_limit(self):
-        # Slides continuing one topic, as a deck's "Selection (2)" slides do.
+        # Slides continuing one topic, as a deck's "Selection (2)" slides do,
+        # so the title does not break the chunk.
         units = self.slides(*[(i, "Selection", "Selection " + " ".join(
             f"word{j}" for j in range(8)), False) for i in range(1, 7)])
         chunks = preprocessor.preprocess(units, chunk_tokens=30, overlap=5,

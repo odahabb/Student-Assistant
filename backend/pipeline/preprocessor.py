@@ -4,11 +4,13 @@ Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
 Step 2 of pipeline: PREPROCESSING
-Cleans raw text and splits it into overlapping chunks for embedding.
+Cleans raw text and turns it into the chunks that get embedded.
 
-Chunking is page-bounded for PDFs: each page is windowed independently, so no
-chunk ever spans a page boundary, and every chunk records the file and page it
-came from (see Chunk below).
+What a chunk is depends on the medium. A page of prose is larger than a chunk
+and is split (preprocess); a slide or a spoken segment is smaller and is
+packed together with its neighbours (_pack_slides, _pack_audio). Chunking is
+page-bounded either way: no chunk spans a page boundary, and every chunk
+records the file, page and section it came from (see Chunk).
 """
 
 import logging
@@ -20,25 +22,22 @@ from backend.pipeline.embedder import _get_model
 
 log = logging.getLogger(__name__)
 
-# Re-exported so `from backend.pipeline.preprocessor import Chunk` keeps working
-# for callers that think of Chunk as this stage's output type.
+# Chunk is re-exported, so it can be imported from this module as well as
+# from backend.pipeline.chunk.
 __all__ = ["Chunk", "preprocess"]
 
 
 # Page-1 boilerplate stripping
 #
-# A paper's first page mixes the abstract — which is dense with the facts a
-# student actually asks about — with author names, affiliations, ORCID URLs and
-# emails. Because chunks are fixed-width token windows, that boilerplate shares
-# a window with real content and drags the window's embedding away from the
-# topic, so the answer-bearing chunk loses to more topically uniform chunks
-# elsewhere in the document.
+# A paper's first page mixes its abstract with author names, affiliations,
+# ORCID URLs and emails, all of which end up in the same token windows as the
+# abstract. These rules drop those lines from page 1 only.
 #
-# This strips those lines from page 1 only. It is deliberately conservative:
-# every rule needs a positive signal of boilerplate, because dropping real
-# content is worse than leaving some boilerplate behind. Titles and section
-# headers are protected — prose and titles contain lowercase function words
-# ("via", "of", "and"), which author and affiliation lines do not.
+# Every rule needs a positive signal of boilerplate before it fires, and the
+# whole filter stands down when it would remove more than
+# _MAX_REMOVAL_FRACTION of the page. Prose and titles carry lower-case
+# function words ("via", "of", "and") where author and affiliation lines do
+# not, which is what most of the rules below test.
 
 _EMAIL_RE = re.compile(r'[^\s@]+@[^\s@]+\.[A-Za-z]{2,}')
 _ORCID_RE = re.compile(r'orcid', re.I)
@@ -62,10 +61,10 @@ _MAX_REMOVAL_FRACTION = 0.7
 
 def _is_name_run_candidate(line: str) -> bool:
     """
-    A line that looks like one entry in a block of author names — 1-5 tokens,
-    all capitalised or markers, no lowercase words (e.g. "Shayne Longpre*",
-    "Ed H. Chi"). Only stripped when several appear consecutively, so a lone
-    section header such as "Related Work" survives.
+    One entry in a block of author names: up to four tokens, no lower-case
+    words, and two or three of them alphabetic ("Shayne Longpre*",
+    "Ed H. Chi"). _strip_page1_boilerplate drops these only in runs of three
+    or more, so a lone heading such as "Related Work" survives.
     """
     stripped = _AUTHOR_MARKER_RE.sub('', line).strip()
     if not stripped or _LOWERCASE_WORD_RE.search(stripped):
@@ -74,9 +73,9 @@ def _is_name_run_candidate(line: str) -> bool:
     if not 1 <= len(tokens) <= 4:
         return False
     alpha = [t for t in tokens if any(ch.isalpha() for ch in t)]
-    # At most three name tokens ("Ed H. Chi", "Shixiang Shane Gu"). Capping here
-    # keeps four-word title case titles such as "Scaling Instruction-Finetuned
-    # Language Models" out of the author run that immediately follows them.
+    # At most three alphabetic tokens ("Ed H. Chi", "Shixiang Shane Gu"), so
+    # a four-word title-case title such as "Scaling Instruction-Finetuned
+    # Language Models" is not read as part of the author run below it.
     return 2 <= len(alpha) <= 3 and all(t[0].isupper() for t in alpha)
 
 
@@ -93,7 +92,7 @@ def _is_boilerplate_line(line: str) -> bool:
 
     words = stripped.split()
     ends_sentence = stripped.endswith(('.', ':', ';'))
-    # Affiliations are mostly proper nouns; prose is mostly lowercase words.
+    # Affiliations are mostly proper nouns, prose mostly lower-case words.
     lowercase_fraction = (len(_LOWERCASE_WORD_RE.findall(stripped)) / len(words)
                           if words else 0.0)
 
@@ -121,17 +120,17 @@ def _is_boilerplate_line(line: str) -> bool:
 
 def _strip_page1_boilerplate(text: str, source_file: Optional[str] = None) -> str:
     """
-    Remove author/affiliation/ORCID/email lines from a first page's text.
+    Remove author, affiliation, ORCID and email lines from a first page.
 
-    Returns the text unchanged if the rules would remove most of the page,
-    which would suggest the heuristic has misfired rather than that the page is
-    genuinely almost all boilerplate.
+    The document title — the first non-blank line — is always kept, and the
+    text comes back unchanged when the rules would remove more than
+    _MAX_REMOVAL_FRACTION of the page's non-blank lines.
     """
     lines = text.splitlines()
     drop = [_is_boilerplate_line(line) for line in lines]
 
-    # The first non-blank line of page 1 is the document title. Never strip it —
-    # it is the most useful line on the page for retrieval.
+    # The first non-blank line of page 1 is the document title, and is kept
+    # whichever rules match it.
     first_non_blank = next((i for i, line in enumerate(lines) if line.strip()), None)
     if first_non_blank is not None:
         drop[first_non_blank] = False
@@ -173,12 +172,13 @@ def _strip_page1_boilerplate(text: str, source_file: Optional[str] = None) -> st
 def _as_pages(source: Union[str, Sequence[dict], dict],
               source_file: Optional[str]) -> List[dict]:
     """
-    Normalise preprocess()'s input into a list of {source_file, page, text}
-    dicts, so the chunking loop below has one shape to deal with.
+    Normalise preprocess()'s input into one list of page dicts, so the rest
+    of the module has a single shape to work with.
 
-    A plain string (image / audio / plain-text input) becomes a single
-    page-less entry; loader.load_pdf()'s per-page list passes through with its
-    page numbers intact.
+    A plain string (image or plain-text input) becomes a single page-less
+    entry. The per-page list from loader.load_pdf and the per-segment list
+    from loader.load_audio_segments pass through with their metadata, each
+    missing key filled in with its default.
     """
     if isinstance(source, str):
         return [{"source_file": source_file, "page": None, "section": None,
@@ -207,8 +207,8 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
             "page": entry.get("page"),
             "section": entry.get("section"),
             "text": entry["text"],
-            # Set by loader.load_pdf for slides and load_audio_segments for
-            # recordings; absent for ordinary pages and plain strings.
+            # "slide" from loader.load_pdf, "audio" from
+            # load_audio_segments, "page" for everything else.
             "kind": entry.get("kind", "page"),
             "title": entry.get("title"),
             "divider": entry.get("divider", False),
@@ -221,32 +221,33 @@ def _as_pages(source: Union[str, Sequence[dict], dict],
 
 # Packing units that are smaller than a chunk
 #
-# A page of prose is bigger than a chunk, so chunking it means splitting. A
-# slide and a spoken sentence are far smaller, so chunking them means the
-# opposite: packing them together until they are worth embedding, and breaking
-# where the medium says one topic ends and the next begins.
+# Slides and spoken segments are packed together until a chunk is full, and
+# broken where the medium marks a change of topic: a new slide title, or a
+# pause in the recording.
 
-SLIDE_TOPIC_BREAK = 0.5      # a new title ends a chunk once it is half full
-AUDIO_PAUSE_SECONDS = 2.0    # a pause this long is where a speaker changes topic
-AUDIO_PAUSE_BREAK = 0.5      # ... and it ends a chunk once it is half full
+SLIDE_TOPIC_BREAK = 0.5      # share of a chunk past which a new title breaks it
+AUDIO_PAUSE_SECONDS = 2.0    # a gap this long counts as a pause
+AUDIO_PAUSE_BREAK = 0.5      # share of a chunk past which a pause breaks it
 
 
 def _tokens(tokenizer, text: str) -> int:
+    """How many tokens a piece of text costs in a chunk."""
     return len(tokenizer.encode(text, add_special_tokens=False))
 
 
-# Bullets from symbol fonts (Wingdings and friends) arrive as private-use
-# characters such as U+F06C. They carry no meaning for the embedder, for BM25
-# or for the reader, so they go before anything else sees them.
+# Bullet glyphs, including the private-use characters (U+F06C and friends)
+# that symbol fonts such as Wingdings produce. They are replaced by a space
+# before the text is embedded or indexed.
 _SYMBOL_GLYPH = re.compile(r"[-•●▪■]+")
 
 
 def _collapse(text: str) -> str:
+    """Text with its bullet glyphs and repeated whitespace removed."""
     return re.sub(r"\s+", " ", _SYMBOL_GLYPH.sub(" ", text)).strip()
 
 
 def _packed_chunk(units: List[dict], section: Optional[str]) -> Chunk:
-    """One chunk out of several consecutive slides."""
+    """One chunk built from consecutive slides, covering their page range."""
     text = " ".join(_collapse(u["text"]) for u in units if u["text"].strip())
     pages = [u["page"] for u in units if u["page"] is not None]
     return Chunk(
@@ -262,7 +263,7 @@ def _packed_chunk(units: List[dict], section: Optional[str]) -> Chunk:
 
 def _oversized(tokenizer, unit: dict, section: Optional[str], chunk_tokens: int,
                overlap: int) -> Iterator[Chunk]:
-    """A single slide or segment longer than a whole chunk: split it as prose."""
+    """Split a slide or segment that is longer than a chunk, as prose is split."""
     for window in _sentence_windows(tokenizer, _collapse(unit["text"]),
                                     chunk_tokens, overlap):
         chunk = _packed_chunk([unit], section)
@@ -277,12 +278,12 @@ def _pack_slides(tokenizer, units: List[dict], chunk_tokens: int,
     """
     Pack a deck's slides into chunks of at most chunk_tokens.
 
-    Slides are packed in order until the chunk is full, or until a new title
-    arrives once the chunk is already half full, so a chunk covers one part of
-    the talk rather than an arbitrary run of slides. A divider — a slide
-    holding only its title — is never embedded on its own: it becomes the
-    section label for the slides that follow it, which is what gives a deck
-    with no PDF outline and no numbered headings real topics to quiz on.
+    Slides are added in order until the chunk is full, or until a slide with
+    a new title arrives while the chunk is at least SLIDE_TOPIC_BREAK full. A
+    divider slide (one holding only its title) produces no chunk of its own:
+    it ends the current chunk and its title becomes the section label for
+    every chunk after it, until the next divider. A slide longer than a whole
+    chunk is split by _oversized.
     """
     chunks: List[Chunk] = []
     buffer: List[dict] = []
@@ -331,10 +332,11 @@ def _pack_audio(tokenizer, units: List[dict], chunk_tokens: int,
     """
     Pack a transcript's segments into chunks of at most chunk_tokens.
 
-    A recording has no headings to cut at, so the breaks come from the
-    speaker: a pause of AUDIO_PAUSE_SECONDS or more ends a chunk once it is
-    half full, on the assumption that a lecturer pauses between points. Each
-    chunk keeps the time it was spoken, so an answer can cite the moment.
+    Segments are added in order until the chunk is full, and a gap of
+    AUDIO_PAUSE_SECONDS or more between two segments ends the chunk once it
+    is at least AUDIO_PAUSE_BREAK full. Each chunk carries the seconds it
+    spans and is sectioned "Part n (mm:ss-mm:ss)", so an answer can cite the
+    moment it came from.
     """
     chunks: List[Chunk] = []
     buffer: List[dict] = []
@@ -383,10 +385,8 @@ def _pack_audio(tokenizer, units: List[dict], chunk_tokens: int,
 def _window(tokenizer, cleaned: str, chunk_tokens: int,
             overlap: int) -> Iterator[str]:
     """
-    Split one page's cleaned text into overlapping token windows.
-
-    This is the original chunking loop, unchanged — it just operates on a
-    single page's text now instead of the whole document.
+    Split one page's cleaned text into token windows of chunk_tokens, each
+    starting `overlap` tokens before the previous one ended.
     """
     token_ids = tokenizer.encode(cleaned, add_special_tokens=False)
     if not token_ids:
@@ -408,10 +408,10 @@ _SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[])")
 def _sentence_windows(tokenizer, cleaned: str, chunk_tokens: int,
                       overlap: int) -> Iterator[str]:
     """
-    Pack whole sentences into windows of at most chunk_tokens tokens, so no
-    chunk starts or ends mid-sentence. The next window repeats the trailing
-    sentences of the previous one, up to `overlap` tokens. A sentence longer
-    than a whole window falls back to _window().
+    Pack whole sentences into windows of at most chunk_tokens, so no chunk
+    starts or ends mid-sentence. Each window repeats the trailing sentences
+    of the one before it, up to `overlap` tokens. A single sentence longer
+    than a window is split by _window instead.
     """
     sentences = [s for s in _SENTENCE_END.split(cleaned) if s.strip()]
     lengths = [len(tokenizer.encode(s, add_special_tokens=False)) for s in sentences]
@@ -430,7 +430,7 @@ def _sentence_windows(tokenizer, cleaned: str, chunk_tokens: int,
                                                 add_special_tokens=False))
         if j >= len(sentences):
             break
-        # step back over trailing sentences that fit in the overlap budget
+        # step back over the trailing sentences that fit in the overlap
         back, carried = j, 0
         while back - 1 > i and carried + lengths[back - 1] <= overlap:
             back -= 1
@@ -440,12 +440,12 @@ def _sentence_windows(tokenizer, cleaned: str, chunk_tokens: int,
 
 # Heading-aware chunking
 #
-# A page is cut at every heading line — numbered ("2.1. Data Processing",
-# "3 Results", "II. CAUSES"), lettered appendix headings ("A. Evaluation
-# Datasets") or named ("Lecture 4 - Overfitting") — and each block is packed
-# into sentence windows on its own, so no chunk mixes two subsections. This
-# works on raw lines, before whitespace is collapsed, because headings are only
-# recognisable as whole lines.
+# The page is cut at every heading line — numbered ("2.1. Data Processing",
+# "3 Results", "II. CAUSES"), lettered ("A. Evaluation Datasets") or named
+# ("Lecture 4 - Overfitting") — and each block is packed into sentence
+# windows on its own, so no chunk mixes two subsections. It runs on the raw
+# lines, before whitespace is collapsed, since a heading is only recognisable
+# as a whole line.
 
 _SUBHEADING = re.compile(
     r"^(?:(?:\d{1,2}(?:\.\d{1,2}){0,3}\.?|[IVX]{1,5}\.|[A-H]\.)\s+[A-Z][A-Za-z]"
@@ -454,12 +454,14 @@ _BARE_SECTION_NUMBER = re.compile(r"^\d{1,2}(?:\.\d{1,2}){0,3}\.?$")
 
 
 def _section_number_ok(line: str) -> bool:
-    """Section numbers start between 1 and 20; table cells like "0.1" or "69" don't."""
+    """True unless the line opens with a number outside the 1-20 a section
+    number uses, which is what separates a heading from a table cell."""
     first = re.match(r"^(\d+)", line)
     return first is None or 1 <= int(first.group(1)) <= 20
 
 
 def _is_heading(line: str) -> bool:
+    """Whether a whole line reads as a section or subsection heading."""
     words = line.split()
     return (0 < len(words) <= 12 and "," not in line
             and not line.rstrip().endswith((".", ";"))
@@ -472,7 +474,7 @@ def _heading_blocks(page_text: str) -> List[str]:
     lines = [line.strip() for line in page_text.splitlines()]
     blocks, current = [], []
     for i, line in enumerate(lines):
-        # "3." on its own line, with the title on the next line
+        # A heading line, or a bare "3." with its title on the line below
         starts = _is_heading(line) or (
             _BARE_SECTION_NUMBER.match(line) and i + 1 < len(lines)
             and not re.search(r"\d", lines[i + 1])
@@ -488,6 +490,7 @@ def _heading_blocks(page_text: str) -> List[str]:
 
 def _heading_windows(tokenizer, page_text: str, chunk_tokens: int,
                      overlap: int) -> Iterator[str]:
+    """Sentence windows over each heading block of a page in turn."""
     for block in _heading_blocks(page_text):
         cleaned = re.sub(r"\s+", " ", block).strip()
         if cleaned:
@@ -496,19 +499,20 @@ def _heading_windows(tokenizer, page_text: str, chunk_tokens: int,
 
 # Semantic chunking
 #
-# The usual RAG sense of the term: embed every sentence, and start a new chunk
-# where two neighbouring sentences are least alike — here, at the least similar
-# quarter of neighbouring pairs on the page. Segments under MIN_SEGMENT_TOKENS are
-# merged into the one before (or after, for the first), and a segment too long
-# for one chunk is packed into sentence windows. Sentences are always embedded
-# with all-MiniLM-L6-v2, so the chunks are the same whichever model is used for
-# retrieval.
+# Every sentence on the page is embedded, and a new chunk starts where two
+# neighbouring sentences are least alike: at the SEMANTIC_BREAK_PERCENTILE
+# least similar neighbouring pairs. A segment under MIN_SEGMENT_TOKENS is
+# merged into the one before it (or after it, for the first), and a segment
+# too long for one chunk is packed into sentence windows. Sentences are
+# always embedded with all-MiniLM-L6-v2, so the chunk boundaries do not
+# depend on the model used for retrieval.
 
 SEMANTIC_BREAK_PERCENTILE = 25
 MIN_SEGMENT_TOKENS = 40
 
 
 def _sentence_vectors(sentences: List[str]):
+    """Unit-norm MiniLM vectors, one per sentence."""
     from backend.pipeline.embedder import embed
     return embed(sentences, model="minilm")
 
@@ -523,7 +527,7 @@ def _semantic_windows(tokenizer, cleaned: str, chunk_tokens: int,
 
     vectors = _sentence_vectors(sentences)
     sims = [float(vectors[i] @ vectors[i + 1]) for i in range(len(sentences) - 1)]
-    # the k least similar neighbour pairs, so ties cannot add extra breaks
+    # exactly k break points, so a tie cannot add extra ones
     k = max(1, len(sims) * SEMANTIC_BREAK_PERCENTILE // 100)
     breaks = set(sorted(range(len(sims)), key=lambda i: sims[i])[:k])
 
@@ -561,29 +565,29 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
                strip_page1_boilerplate: bool = True,
                chunking: str = "window") -> List[Chunk]:
     """
-    Clean raw text and split it into overlapping chunks sized to fit the
-    embedder's 256-token limit (220-token windows, 40-token overlap by default).
+    Clean raw text and turn it into chunks sized to fit the embedder's
+    256-token limit (220-token windows with 40 tokens of overlap by default).
 
     Accepts either:
-      - a plain string — image, audio or plain-text input; pass source_file
-        explicitly if you want the chunks tagged with a filename, or
-      - the per-page list returned by loader.load_pdf():
-        [{"source_file": ..., "page": ..., "text": ...}, ...]
+      - a plain string — image or plain-text input; pass source_file to have
+        the chunks tagged with a filename, or
+      - a list of page dicts, as loader.load_pdf and
+        loader.load_audio_segments return.
 
     Pages are chunked independently, so a chunk never spans a page boundary.
-    Every returned Chunk carries .source_file, .page and .section (page and
-    section are None for plain string input).
+    Every returned Chunk carries .source_file, .page and .section, which are
+    None for plain string input.
 
-    strip_page1_boilerplate removes author/affiliation/ORCID/email lines from
-    page 1 only (see _strip_page1_boilerplate). Pass False to reproduce the
-    behaviour from before that filter existed.
+    strip_page1_boilerplate removes author, affiliation, ORCID and email
+    lines from page 1 only (see _strip_page1_boilerplate).
 
-    chunking selects how each page is split, always within chunk_tokens:
+    chunking selects how a page of prose is split, always within chunk_tokens:
       "window"   fixed token windows with overlap (the default)
       "sentence" whole sentences packed into windows (_sentence_windows)
-      "heading"  cut at section/subsection headings, then sentence windows
+      "heading"  cut at section and subsection headings, then sentence windows
       "semantic" cut where neighbouring sentences are least similar
-    The alternatives are compared in notebooks/06_choice_embedder.ipynb.
+    A deck of slides and a transcript are packed rather than split, and the
+    mode does not apply to them.
     """
     if chunking not in CHUNKING_MODES:
         raise ValueError(f"chunking must be one of {CHUNKING_MODES}")
@@ -593,8 +597,8 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
         if not isinstance(page["text"], str):
             raise TypeError(f"Expected string, got {type(page['text'])}")
 
-    # Length check is on the document as a whole, as before — a short page in
-    # an otherwise-fine PDF isn't an extraction failure.
+    # The length check is on the document as a whole: one short page in an
+    # otherwise readable PDF is not an extraction failure.
     combined = " ".join(page["text"] for page in pages)
     if len(combined.strip()) < 20:
         name = pages[0]["source_file"] if pages else None
@@ -605,8 +609,7 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
     tokenizer = _get_model().tokenizer
 
     # Slides and spoken segments are smaller than a chunk, so they are packed
-    # rather than split, and the chunking mode does not apply to them: there
-    # is nothing to cut inside a six-word slide. See _pack_slides/_pack_audio.
+    # rather than split and the chunking mode does not apply to them.
     kinds = {page["kind"] for page in pages}
     if kinds == {"slide"}:
         return _pack_slides(tokenizer, pages, chunk_tokens, overlap)
@@ -616,16 +619,16 @@ def preprocess(text: Union[str, Sequence[dict], dict], chunk_tokens: int = 220,
     chunks: List[Chunk] = []
     for page in pages:
         page_text = page["text"]
-        # Page 1 only — later pages carry no title-block boilerplate.
+        # Page 1 only: later pages carry no title-block boilerplate.
         if strip_page1_boilerplate and page["page"] == 1:
             page_text = _strip_page1_boilerplate(page_text, page["source_file"])
 
-        # Collapse extra whitespace
+        # Collapse runs of whitespace
         cleaned = re.sub(r'\s+', ' ', page_text).strip()
         if not cleaned:
             continue
         if chunking == "heading":
-            # needs the raw lines to see headings
+            # reads the raw lines, since a heading is a whole line
             windows = _heading_windows(tokenizer, page_text, chunk_tokens, overlap)
         else:
             splitter = {"window": _window, "sentence": _sentence_windows,

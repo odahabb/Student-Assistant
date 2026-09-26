@@ -194,12 +194,13 @@ record: the retrieval diagnostics (`rank_diagnostics.json`,
 `easyocr_blip_vs_qwen2vl_results_cpu_partial.csv` is an earlier, partial CPU
 run; the reported numbers come from `easyocr_blip_vs_qwen2vl_results.csv`.
 
-`backend/scripts/` keeps the tools that are not evaluations:
-`build_slide_ground_truth.py` (writes `slide_ground_truth.json`),
-`draft_candidate_ground_truth.py` and `make_report_figures.py` (draws
-`data/eval/figures/*.png` from the results). `backend/scripts/vendor/` holds
-QASPER's official evaluator, copied unchanged so those numbers mean what they
-mean in the paper.
+`backend/scripts/` keeps the tools the evaluations depend on. None of it is
+part of the running app, which imports nothing from this folder:
+`build_slide_ground_truth.py` writes `slide_ground_truth.json` for notebooks
+03 and 06, and `backend/scripts/vendor/` holds QASPER's official evaluator,
+copied unchanged so those numbers mean what they mean in the paper. The
+figures in `data/eval/figures/` are final and are embedded in the report; the
+script that drew them from the results in `data/eval/` has been removed.
 
 ### Data
 

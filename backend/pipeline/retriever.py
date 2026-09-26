@@ -9,8 +9,7 @@ Embeds a query and retrieves the top-k most similar chunks from the FAISS index.
 Given a BM25 index (sparse.build_index) as well, retrieval is hybrid: every
 chunk gets a dense score (cosine similarity) and a keyword score (BM25), each
 is min-max scaled to 0..1 over the corpus, and the two are mixed with
-DENSE_WEIGHT on the dense side. Without one, retrieval is dense only, as it
-was for every result recorded before hybrid retrieval was added.
+DENSE_WEIGHT on the dense side. Without one, retrieval is dense only.
 """
 
 from typing import List, Optional
@@ -19,15 +18,13 @@ import numpy as np
 
 from backend.pipeline.embedder import _get_model, query_prefix
 
-# 0.4 dense / 0.6 keyword, taken unchanged from the retriever it was borrowed
-# from. notebooks/06_choice_embedder.ipynb sweeps it on both question sets: the four papers
-# do best at 0.15-0.20 and the fifteen slide decks at 0.75-0.80, so a value
-# fitted to either would be the worse choice on the other. 0.4 lies between
-# them and is within one or two questions of the best on both.
+# Share of the fused score that comes from the dense side: 0.4 dense, 0.6
+# keyword.
 DENSE_WEIGHT = 0.4
 
 
 def _scaled(values: np.ndarray) -> np.ndarray:
+    """Min-max scale scores to 0..1; an all-equal array scales to zeros."""
     lo, hi = float(values.min()), float(values.max())
     return (values - lo) / ((hi - lo) or 1.0)
 

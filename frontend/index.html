@@ -8,7 +8,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5d50'/%3E%3Cpath d='M9 9h9a5 5 0 0 1 5 5v9H14a5 5 0 0 1-5-5z' fill='%23f6f1e7'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <script>
-    // Apply the saved theme before first paint to avoid a flash.
+    // The saved theme is applied before the first paint, so the page does
+    // not flash the other one.
     try {
       const t = localStorage.getItem("sa-theme");
       if (t) document.documentElement.dataset.theme = t;
@@ -102,8 +103,8 @@
           <h1 id="subject-name"></h1>
           <p class="meta" id="subject-meta"></p>
 
-          <!-- An empty subject has nothing to ask about, so the page offers the
-               one thing that helps instead of a composer that cannot be used. -->
+          <!-- Shown in place of the composer while the subject is empty;
+               filled by renderOnboard in app.js. -->
           <div class="onboard" id="subject-onboard" hidden></div>
 
           <form class="composer start" id="composer">
@@ -193,6 +194,6 @@
 
 <div class="toasts" id="toasts" role="status"></div>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

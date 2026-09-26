@@ -5,9 +5,8 @@ Student: Omar Dahab — 23100704
 
 The Chunk type shared by the preprocessing and storage stages.
 
-It lives in its own module so vector_store.py can serialise/deserialise chunks
-without importing preprocessor.py, which would drag the embedding model's
-dependencies into a module that otherwise only needs faiss and numpy.
+It sits in its own module, so vector_store.py can serialise and deserialise
+chunks while importing nothing beyond faiss and numpy.
 """
 
 from typing import Optional
@@ -17,31 +16,28 @@ class Chunk(str):
     """
     A text chunk together with the source it came from.
 
-    Deliberately a `str` subclass: every downstream stage (embedder,
-    vector_store, retriever, generator) consumes chunks as plain strings, so
-    making Chunk a str lets the metadata ride along without any of those
-    modules having to change. `chunk.text` is the same value as `str(chunk)`.
+    A `str` subclass, so the embedder, vector store, retriever and generator
+    all consume a Chunk as plain text while the metadata travels with it.
+    `chunk.text` is the same value as `str(chunk)`.
 
     source_file : filename the chunk came from (e.g. "lecture_notes.pdf"),
-                  or None when the caller didn't supply one.
+                  or None when the caller supplied no name.
     page        : 1-based page number for PDF input; None for images, audio
-                  and plain text, where page numbers don't apply.
+                  and plain text.
     section     : title of the document section the chunk belongs to (see
-                  loader._page_sections); None when the input had no sections.
-                  The quiz layer groups chunks into topics by it.
-    kind        : "page", "slide" or "audio" — what the source is, so the
-                  interface can say "slide 12" rather than "page 12".
-    page_end    : last page/slide when a chunk covers several of them (slide
-                  decks pack consecutive slides together); None otherwise, and
-                  then the chunk covers `page` alone.
+                  loader._page_sections), or None when the input had no
+                  sections. The quiz layer groups chunks into topics by it.
+    kind        : "page", "slide" or "audio" — what the source is, which
+                  decides whether the interface says "slide 12" or "page 12".
+    page_end    : last page or slide when a chunk covers several of them, as
+                  packed slides do; None when the chunk covers `page` alone.
     start, end  : position in seconds within an audio recording; None for
                   every other kind of input.
-    from_image  : True when some of the text was read out of a picture by the
-                  vision model rather than from a text layer, so the interface
-                  can say so and the reader can treat it with more caution.
+    from_image  : True when part of the text was read out of a picture by
+                  OCR or the vision model rather than from a text layer.
 
-    Note: string operations (.strip(), slicing, re.sub, ...) return a plain
-    str, not a Chunk — the metadata does not propagate through them.
+    String operations (.strip(), slicing, re.sub, ...) return a plain str,
+    not a Chunk: the metadata does not propagate through them.
     """
 
     def __new__(cls, text: str, source_file: Optional[str] = None,
@@ -83,16 +79,15 @@ class Chunk(str):
 
     @property
     def text(self) -> str:
-        """The chunk's text. Same value as str(chunk); provided for callers
-        that prefer to be explicit about which part of the chunk they want."""
+        """The chunk's text — the same value as str(chunk)."""
         return str(self)
 
     def to_record(self) -> dict:
         """JSON-serialisable form, used by vector_store to persist chunks."""
         record = {"text": str(self), "source_file": self.source_file,
                   "page": self.page, "section": self.section}
-        # Only written when set, so records for ordinary text documents keep
-        # the shape they had before slides and audio carried extra metadata.
+        # The slide, audio and picture fields are written only when set, so a
+        # record for an ordinary page holds just the four keys above.
         if self.kind != "page":
             record["kind"] = self.kind
         if self.page_end is not None:
@@ -109,9 +104,8 @@ class Chunk(str):
         """
         Rebuild a Chunk from its persisted form.
 
-        Accepts a bare string as well, so chunk files written before chunks
-        carried metadata still load — they simply come back with source_file
-        and page set to None.
+        A bare string is accepted too and comes back with every metadata
+        field set to its default.
         """
         if isinstance(record, str):
             return cls(record)

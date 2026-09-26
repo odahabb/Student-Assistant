@@ -1,3 +1,8 @@
+"""
+Tests for the Chunk type, the FAISS store it is saved to and loaded from, the
+dense retrieval path, and device selection. Nothing here loads a model.
+"""
+
 import json
 import os
 import tempfile

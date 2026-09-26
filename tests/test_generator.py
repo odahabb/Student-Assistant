@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/generator.py: the context budget, the question
+shapes, the conversation turn gate, the text tidying, and the Ollama backend.
+No model is loaded — generation is replaced by stubs.
+"""
+
 import unittest
 from unittest import mock
 
@@ -14,7 +20,7 @@ class AllocateBudgetTests(unittest.TestCase):
             self.assertTrue(all(a <= n for a, n in zip(allocation, lengths)))
 
     def test_rank_decay_favours_the_top_chunk(self):
-        # Worked example used in the report.
+        # The top-ranked chunk keeps the largest share of the budget.
         self.assertEqual(generator._allocate_budget([500, 400, 300], 700),
                          [273, 231, 196])
 
@@ -49,11 +55,11 @@ class BudgetContextTests(unittest.TestCase):
 
 class AnswerStyleTests(unittest.TestCase):
     """
-    Which model answers depends on where the answer is going: a paragraph for
-    the chat view, a short span for the quiz and the evaluation scripts.
+    SA_ANSWER_STYLE decides the shape of an answer: a paragraph for the chat
+    view, a short span for the quiz.
     """
 
-    def test_short_is_the_default_so_measurements_keep_meaning(self):
+    def test_short_is_the_default(self):
         self.assertEqual(generator.ANSWER_STYLE, "short")
 
     def test_explain_style_answers_in_prose(self):
@@ -197,9 +203,8 @@ class TurnRoutingTests(unittest.TestCase):
                              "followup", message)
 
     def test_a_message_naming_new_subject_matter_is_never_a_follow_up(self):
-        # The dangerous mistake: answering from the conversation when the
-        # student has asked about something it never covered. A wasted
-        # retrieval costs seconds; this costs a made-up answer.
+        # A message naming something the conversation has not covered is
+        # retrieved for, whatever markers it carries.
         for message in ("what about tournament selection?",
                         "and roulette wheel selection?",
                         "how is it used in breeding?",
@@ -269,8 +274,7 @@ class ModelTurnGateTests(unittest.TestCase):
 class DecodedSpacingTests(unittest.TestCase):
     """
     Chunk text is wordpiece-decoded, so punctuation carries spaces around it
-    and a copied span arrives damaged. On QASPER these answers scored zero
-    against the very strings they were copied from.
+    and a span copied out of a passage arrives with that spacing.
     """
 
     def test_decoded_punctuation_is_rejoined(self):
@@ -285,8 +289,8 @@ class DecodedSpacingTests(unittest.TestCase):
             self.assertEqual(generator.fix_decoded_spacing(damaged), clean)
 
     def test_a_sentence_boundary_is_not_closed_up(self):
-        # The dangerous case: joining across a full stop would run a
-        # paragraph's sentences together.
+        # A full stop between two sentences is left alone; only one inside
+        # a decoded name is closed up.
         for prose in ("It scores a solution. It guides selection.",
                       "The model is small. Training took four days.",
                       "See Table 2. Results follow."):
@@ -343,7 +347,7 @@ class OllamaBackendTests(unittest.TestCase):
     """The optional quality mode, and falling back when Ollama is missing."""
 
     def setUp(self):
-        # _fall_back rebinds these, so every test restores them.
+        # _fall_back rebinds these module globals, so each test restores them.
         for name, value in [("BACKEND", "ollama"), ("_ollama_up", None),
                             ("MODEL_NAME", generator.OLLAMA_MODEL),
                             ("CHAT_MODEL_NAME", generator.OLLAMA_MODEL)]:

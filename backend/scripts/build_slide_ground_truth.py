@@ -3,42 +3,29 @@ backend/scripts/build_slide_ground_truth.py
 Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
-Builds a retrieval ground truth for slide decks, which the four-paper set does
-not cover. The decks are the fifteen lecture decks in data/projects/AI —
-real course material, not a benchmark, which is the point: the packing rules
-in preprocessor._pack_slides were written for material like this.
+Builds the retrieval ground truth for slide decks used by
+notebooks/03_eval_slides.ipynb, from the lecture decks in data/projects/AI,
+and writes it to data/eval/slide_ground_truth.json.
 
-Labelling by construction, not by judgement
--------------------------------------------
-A question is written from ONE slide's text, taken straight from the loader
-before any chunker has seen it, and that slide is the label. The label is
-therefore a fact about how the question was produced, not an opinion about
-where the answer lives — the author of this project never decides which page
-is correct, so the evaluation cannot be talked into agreeing with the system.
+How a labelled question is produced
+-----------------------------------
+Each question is written by the system's own question model from ONE slide's
+text, taken from the loader before any chunker has seen it, and that slide is
+the question's label. quiz.well_formed rejects malformed pairs. No round-trip
+filter is applied, since that would need an index and would tie the set to
+whichever chunking built it.
 
 Two pools come out of the same pass:
 
-  text_layer — slides whose text PyMuPDF reads directly. Used to compare
-               chunking strategies (notebooks/03_eval_slides.ipynb), which is fair
-               because the questions are written before any chunking.
+  text_layer — slides whose text PyMuPDF reads directly.
   picture    — slides where reading the rendered page recovered text the text
-               layer does not hold. The question is written from that
-               recovered text ALONE, so a system that does not read pictures
-               cannot retrieve the answer at all (notebooks/03_eval_slides.ipynb).
+               layer does not hold; the question is written from that
+               recovered text alone.
 
-The question writer is the system's own model, so these questions are as
-answerable as the quiz's. quiz.well_formed rejects the malformed ones; no
-round-trip filter is applied, because that would need an index and would bias
-the set towards whichever chunking built it.
-
-One more filter is needed, and it is mechanical too. A question like "What is
-the visible text in the document?" or "What does 4.207 represent?" names
-nothing that could distinguish one slide from another, so no retriever could
-be expected to find its source and scoring one against the label would measure
-nothing. A question is therefore kept only if it contains at least one term
-that is rare across the whole corpus (RARE_TERM_SHARE), counted over slides,
-and a term that is only a slide number does not count. The threshold is
-applied identically to every question before any retrieval runs.
+A question is then kept only if it names at least one term appearing on at
+most RARE_TERM_SHARE of the corpus's slides, so that it points at one slide
+rather than another. Slide numbers and STOPWORDS do not count as terms, and
+the filter runs over every question before any retrieval does.
 
 Run from anywhere (slow the first time: it reads every deck twice):
     python backend/scripts/build_slide_ground_truth.py
@@ -66,16 +53,12 @@ EVAL_DIR = ROOT / "data" / "eval"
 OUT_PATH = EVAL_DIR / "slide_ground_truth.json"
 
 SEED = 11
-# A slide needs enough on it to ask about; a title and a picture caption do not.
-MIN_SLIDE_WORDS = 30
-MIN_PICTURE_WORDS = 20
-SLIDES_PER_DECK = 3
+MIN_SLIDE_WORDS = 30         # words a slide needs before it is asked about
+MIN_PICTURE_WORDS = 20       # ... or, for a slide read from its picture
+SLIDES_PER_DECK = 3          # questions wanted from each pool of each deck
 PICTURES_PER_DECK = 2
-# Attempts before giving up on a deck's pool: the question writer rejects
-# roughly one attempt in eight.
-MAX_ATTEMPTS = 4
-# A question must name something that appears on at most this share of the
-# corpus's slides, or it cannot point at one slide rather than another.
+MAX_ATTEMPTS = 4             # tries per wanted question before giving up
+# Share of the corpus's slides a term may appear on and still count as rare.
 RARE_TERM_SHARE = 0.02
 # Words too common to carry any of that weight, plus the numbering used in
 # these decks' slide titles ("4.207"), which names a slide, not an idea.
@@ -150,7 +133,7 @@ def questions_for(name, pool, source, wanted, rng, rare, report):
     for page, text in pool[:wanted * MAX_ATTEMPTS]:
         if len(entries) >= wanted:
             break
-        # no retrieve_fn: the round-trip filter would need an index
+        # no retrieve_fn, so the round-trip filter is skipped
         item, reason = quiz.generate_item(Chunk(text, name, page["page"],
                                                 page.get("section")))
         if item is None:
@@ -178,7 +161,7 @@ def questions_for(name, pool, source, wanted, rng, rare, report):
 
 
 def main():
-    # Slide text carries Unicode the Windows console cannot encode.
+    # Slide text carries characters the Windows console cannot encode.
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:

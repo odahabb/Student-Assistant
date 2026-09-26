@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/sparse.py and the hybrid path in retriever.py:
+tokenisation, BM25 scoring, and how the dense and keyword scores are fused.
+The embedding model is a fake, so no model is loaded.
+"""
+
 import unittest
 from unittest import mock
 
@@ -56,7 +62,8 @@ class FakeEncoder:
 
 class HybridRetrieveTests(unittest.TestCase):
     def setUp(self):
-        # chunk 0 is closest in embedding space; chunk 2 holds the exact term
+        # chunk 0 is closest in embedding space, chunk 2 holds the term
+        # itself, so the fused ranking depends on the weight
         vectors = np.array([[1.0, 0.0], [0.8, 0.6], [0.6, 0.8]], dtype=np.float32)
         self.index = faiss.IndexFlatL2(2)
         self.index.add(vectors)

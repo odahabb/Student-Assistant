@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/recommender.py: the Rasch mastery estimate, how it
+moves with each answer, the level it picks next, and what it recommends.
+Nothing here loads a model.
+"""
+
 import os
 import tempfile
 import unittest

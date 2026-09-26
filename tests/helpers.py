@@ -1,5 +1,7 @@
 """
-Shared test helpers. Nothing here loads a model.
+Fakes and fixture builders shared by the tests: stand-ins for the tokenizer
+and the embedding model, and helpers that write small PDFs. Nothing here
+loads a model.
 """
 
 import os

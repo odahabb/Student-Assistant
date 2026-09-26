@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/loader.py: page and section extraction from PDFs,
+the OCR reading-order pass, and the errors a bad file raises. The PDFs are
+written by tests/helpers.py; no model is loaded.
+"""
+
 import os
 import tempfile
 import unittest
@@ -27,7 +33,8 @@ class LoadPdfTests(unittest.TestCase):
         path = self.pdf([[BODY]] * 4,
                         toc=[[1, "Intro", 1], [2, "Detail", 2], [1, "Methods", 3]])
         sections = [p["section"] for p in loader.load_pdf(path)]
-        # level-2 entries are ignored; pages carry the last level-1 section
+        # level-2 outline entries are ignored, and a page carries the last
+        # level-1 section to have started
         self.assertEqual(sections, ["Intro", "Intro", "Methods", "Methods"])
 
     def test_lecture_headings_define_sections(self):

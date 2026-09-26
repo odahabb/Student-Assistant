@@ -38,19 +38,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional
 
-# The Intel Arc GPU unless told otherwise. Set before importing any pipeline
-# module: device.py reads this when models are built, and falls back to the
-# CPU on its own if the XPU torch wheel or the Arc driver is missing, so this
-# is safe on a machine without either. Measured on the same stages
-# (data/eval/latency_gpu.json against latency_cpu.json): a short answer 0.45s
-# against 3.38s, a paragraph 1.45s against 9.36s, a quiz question 1.53s
-# against 7.93s. SA_DEVICE=cpu reproduces the earlier behaviour.
+# The settings the application runs under, each overridable from the
+# environment. They are set before any pipeline module is imported, because
+# device.py and embedder.py read them when their models are built.
+#
+# SA_DEVICE=gpu runs on the Intel Arc, falling back to the CPU by itself when
+# the XPU torch wheel or the Arc driver is missing (see
+# backend/pipeline/device.py), so it is safe on a machine without either.
 os.environ.setdefault("SA_DEVICE", "gpu")
-# bge-small-en-v1.5 answered 18/25 evaluation questions end to end against 12
-# for all-MiniLM-L6-v2 (data/eval/generation_analysis_bge-small.json).
 os.environ.setdefault("SA_EMBEDDER", "bge-small")
-# The chat view explains in a paragraph; the quiz still uses short answers
-# (see generator.ANSWER_STYLE).
+# The chat view explains in a paragraph. The quiz calls answer_short
+# directly, so its reference answers stay short either way.
 os.environ.setdefault("SA_ANSWER_STYLE", "explain")
 
 import faiss
@@ -72,28 +70,26 @@ SUPPORTED_EXTENSIONS = sorted({ext.lstrip(".") for ext in EXTENSION_MAP})
 # File types that go through a vision or speech model before chunking.
 SLOW_EXTENSIONS = {ext for ext in EXTENSION_MAP if ext not in (".pdf", ".txt")}
 
-# Retrieval depth is a development-time setting, not a user-facing control.
-TOP_K = 3
-# Sentence-aware chunks with hybrid retrieval answered 20/25 evaluation
-# questions end to end, the best of the configurations tested (data/eval/).
-CHUNKING = "sentence"
-# Hybrid retrieval: BM25 keyword scores mixed with the embeddings.
-HYBRID = True
-# How many questions a topic is worth. Two was a flat rule, which asked as
-# much of a topic built from one slide as of one built from forty: the short
-# topic ran out of material and repeated itself, while the long one was never
-# examined past its first couple of pages. A topic now earns a question for
-# every CHUNKS_PER_QUESTION passages it holds, within these bounds.
+# How the pipeline is configured here. None of these is a user-facing
+# control: the interface reports them through settings() but cannot change
+# them.
+TOP_K = 3                  # passages retrieved per question
+CHUNKING = "sentence"      # see preprocessor.preprocess
+HYBRID = True              # mix BM25 keyword scores with the embeddings
+
+# How many questions a topic is worth: one for every CHUNKS_PER_QUESTION
+# passages it holds, within these bounds (see questions_worth).
 QUESTIONS_PER_TOPIC = 2           # the floor, and what a small topic gets
 CHUNKS_PER_QUESTION = 3
 MAX_QUESTIONS_PER_TOPIC = 8
+
 # Read the pictures on pages whose text layer is thin or empty — diagrams,
 # charts, screenshots, and slides exported as images. Off in the library
-# (loader.load_pdf), on here, because a student's slides are largely pictures.
+# (loader.load_pdf), on here, as the second indexing pass.
 FIGURES = "auto"
 STUDY_DIR = "_study"
-# Above this many passages from one file, the interface says so: a single
-# huge upload is slow to index and outweighs everything else in retrieval.
+# Passages from one file above which the interface warns that it may crowd
+# out the subject's other documents.
 LARGE_DOCUMENT_CHUNKS = 3000
 NO_ANSWER = "I couldn't find an answer to that in this subject's materials."
 
@@ -105,17 +101,18 @@ _ILLEGAL_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
 class NotFound(LookupError):
-    """A subject, document or question that doesn't exist."""
+    """A subject, document, conversation or question that does not exist."""
 
 
 # Subjects and documents on disk
 
-# A folder that could not be removed outright is renamed with this prefix and
-# swept later; it is not a subject any more (see delete_subject).
+# The prefix given to a folder that could not be removed outright. It is no
+# longer listed as a subject, and is swept up later (see delete_subject).
 DELETED_PREFIX = ".deleted-"
 
 
 def subject_names() -> List[str]:
+    """Every subject folder, in case-insensitive name order."""
     if not PROJECTS_DIR.is_dir():
         return []
     return sorted((p.name for p in PROJECTS_DIR.iterdir()
@@ -133,6 +130,7 @@ def subject_path(name: str) -> Path:
 
 
 def create_subject(name: str) -> str:
+    """Create a subject folder and return the name it was given on disk."""
     safe = _ILLEGAL_NAME_CHARS.sub("", name).strip().strip(".")
     if not safe:
         raise ValueError("That name can't be used as a folder name.")
@@ -142,14 +140,14 @@ def create_subject(name: str) -> str:
 
 def rename_subject(old: str, new: str) -> str:
     """
-    Rename a subject, keeping its documents, conversations, quiz questions and
-    progress. All of those live inside the subject's folder, so moving the
-    folder moves them; what does not move by itself is the in-memory index and
-    the questions already handed out, which are keyed by name here.
+    Rename a subject, keeping its documents, conversations, quiz questions
+    and progress.
 
-    A build in flight is renamed out from under its own thread, which would
-    then look for documents under a folder that no longer exists, so a subject
-    that is still being read refuses the rename and says so.
+    Those all live inside the subject's folder, so moving the folder moves
+    them; the in-memory index and the questions already handed out are keyed
+    by name and are moved across here. A subject whose documents are still
+    being read refuses the rename, since the build thread would go on looking
+    for a folder that no longer exists.
     """
     folder = subject_path(old)
     safe = _ILLEGAL_NAME_CHARS.sub("", new).strip().strip(".")
@@ -158,8 +156,8 @@ def rename_subject(old: str, new: str) -> str:
     if safe == old:
         return old
     target = PROJECTS_DIR / safe
-    # A case-only change is a rename on Windows even though the paths compare
-    # equal, so only a genuinely different folder counts as taken.
+    # On Windows a case-only change is still a rename although the paths
+    # compare equal, so only a genuinely different folder counts as taken.
     if target.exists() and target.resolve() != folder.resolve():
         raise ValueError(f"There is already a subject called {safe!r}.")
     with _state_lock:
@@ -214,10 +212,12 @@ def add_document(name: str, filename: str, data: bytes) -> bool:
 
 
 def remove_document(name: str, filename: str) -> None:
+    """Delete one document from a subject."""
     document_path(name, filename).unlink()
 
 
 def add_samples(name: str) -> int:
+    """Copy the sample documents into a subject; returns how many were added."""
     added = 0
     folder = subject_path(name)
     if SAMPLE_DIR.is_dir():
@@ -230,10 +230,12 @@ def add_samples(name: str) -> int:
 
 
 def study_path(name: str, filename: str) -> Path:
+    """The path of a file in a subject's _study folder."""
     return subject_path(name) / STUDY_DIR / filename
 
 
 def _write_json(path: Path, payload) -> None:
+    """Write JSON through a temporary file, so a crash cannot truncate it."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".tmp")
     temp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -244,6 +246,8 @@ def _write_json(path: Path, payload) -> None:
 
 @dataclass
 class SubjectIndex:
+    """One subject's chunks and indexes, with what its build produced."""
+
     signature: tuple
     chunks: list
     vectors: Optional[faiss.Index]
@@ -266,16 +270,17 @@ _state_lock = threading.Lock()
 def build_index(name: str, sig, report=lambda **_: None,
                 figures: str = "off") -> SubjectIndex:
     """
-    Ingest every document in a subject into one combined index.
+    Read every document in a subject and build one combined index over all
+    of them.
 
-    The index is held in memory rather than written through vector_store's
-    single fixed path, since several subjects coexist and would otherwise
-    overwrite each other's store. Chunking, embedding and retrieval are
-    unchanged; only where the index lives differs.
+    The index is held in memory rather than written through vector_store,
+    whose paths are fixed and would have the subjects overwrite each other.
+    A document that cannot be read is recorded in `failures` and skipped, so
+    one bad upload does not lose the subject. report(**fields) is called as
+    each document is read, for a progress display.
 
     figures="auto" also reads the pictures on pages with little or no text,
-    which is slow; _build_in_background does that as a second pass so the
-    subject can be asked questions in the meantime.
+    which is slow; _build_in_background runs that as a second pass.
     """
     started = time.time()
     paths = documents(name)
@@ -285,16 +290,16 @@ def build_index(name: str, sig, report=lambda **_: None,
                stage="reading", pictures=None)
 
         def picture_progress(read, total_pictures, page):
-            """Reading pictures is the slow part; show it page by page."""
+            """Report the picture pass page by page, as it is the slow part."""
             report(done=done, total=len(paths), current=path.name,
                    stage="pictures",
                    pictures={"done": read, "total": total_pictures, "page": page})
 
         try:
             if figures == "auto" and path.suffix.lower() == ".pdf":
-                # The picture pass takes minutes, so it takes the model lock
-                # one page at a time; a question asked meanwhile waits for a
-                # page, not for the whole document.
+                # The picture pass takes the model lock one page at a time,
+                # so a question asked meanwhile waits for a page rather than
+                # for the whole document.
                 loaded = load_file(str(path), figures=figures,
                                    report=picture_progress, lock=MODEL_LOCK)
             else:
@@ -304,8 +309,8 @@ def build_index(name: str, sig, report=lambda **_: None,
             with MODEL_LOCK:
                 file_chunks = preprocess(loaded, source_file=path.name,
                                          chunking=CHUNKING)
-        except Exception as exc:  # a bad upload shouldn't sink the subject
-            # One readable line: some libraries raise pages of diagnostics.
+        except Exception as exc:  # a bad upload does not sink the subject
+            # Cut to one line: some libraries raise pages of diagnostics.
             reason = " ".join(str(exc).split())[:200] or exc.__class__.__name__
             failures.append({"name": path.name, "error": reason})
             continue
@@ -314,8 +319,8 @@ def build_index(name: str, sig, report=lambda **_: None,
         entry = {"name": path.name, "chunks": len(file_chunks),
                  "pages": max(pages) if pages else None}
         if len(file_chunks) > LARGE_DOCUMENT_CHUNKS:
-            # Indexed in full, but the student should know why this upload
-            # took minutes and why it dominates the subject's answers.
+            # Still indexed in full; the note explains why the upload was
+            # slow and why it dominates the subject's answers.
             entry["note"] = (f"very large — {len(file_chunks)} passages, which "
                              f"may crowd out your other documents")
         per_document.append(entry)
@@ -335,14 +340,13 @@ def build_index(name: str, sig, report=lambda **_: None,
 
 def _build_in_background(name: str, sig) -> None:
     """
-    Build a subject's index in two passes.
+    Build a subject's index in two passes, on the calling thread.
 
-    The first pass reads text only and takes seconds, and the subject can be
-    asked questions as soon as it lands. The second pass reads the pictures on
-    pages whose text layer is thin — minutes on a deck of diagrams — and
-    replaces the index when it finishes. Waiting for the pictures before
-    answering anything would mean a student uploading a term's slides could
-    not ask a question for the best part of an hour.
+    The first pass reads text only, and the subject can be asked questions as
+    soon as it is published. The second pass reads the pictures on pages
+    whose text layer is thin, which takes minutes on a deck of diagrams, and
+    replaces the index when it finishes. The job's state moves from
+    "indexing" to "enriching" between them, and to "error" if either raises.
     """
     job = _building[name]
 
@@ -351,9 +355,9 @@ def _build_in_background(name: str, sig) -> None:
 
     def publish(index) -> bool:
         """
-        Store the finished index, unless the documents changed while it was
-        being built — a stale index would answer from files the student has
-        already replaced.
+        Store the finished index, unless a newer build has taken over or the
+        documents changed while this one was running. False when it was
+        discarded for either reason.
         """
         with _state_lock:
             if _building.get(name) is not job:
@@ -401,15 +405,14 @@ def index_status(name: str, start: bool = True) -> dict:
         if not sig:
             return {"state": "empty"}
         if index is not None and index.signature == sig:
-            # Nothing readable came out of any document: the subject cannot
-            # answer anything, and saying "ready" would invite a question that
-            # crashes on an empty index.
+            # "unreadable" when nothing came out of any document: there is an
+            # index, but no chunk in it to answer from.
             state = "ready" if index.chunks else "unreadable"
             status = {"state": state, "chunks": len(index.chunks),
                       "documents": index.per_document, "failures": index.failures,
                       "seconds": round(index.seconds, 1)}
             if job is not None and job.get("state") == "enriching":
-                # Answers work already; the pictures are still being read.
+                # Answers already work; the pictures are still being read.
                 status["enriching"] = {"current": job.get("current"),
                                        "pictures": job.get("pictures"),
                                        "done": job.get("done"),
@@ -419,8 +422,8 @@ def index_status(name: str, start: bool = True) -> dict:
             status = {k: v for k, v in job.items() if k != "signature"}
             status["slow"] = slow
             return status
-        # Any job left here is for an older set of documents. Its own publish
-        # step will see that and drop its result, so a fresh build starts now.
+        # Any job still here is for an older set of documents; its own
+        # publish step drops its result, so a fresh build starts now.
         if not start:
             return {"state": "stale"}
         job = {"state": "indexing", "signature": sig, "done": 0,
@@ -433,7 +436,7 @@ def index_status(name: str, start: bool = True) -> dict:
 
 
 def ready_index(name: str) -> SubjectIndex:
-    """The subject's index if it is up to date, else raise IndexNotReady."""
+    """The subject's index when it is up to date, else raise IndexNotReady."""
     status = index_status(name)
     if status["state"] != "ready":
         raise IndexNotReady(status)
@@ -441,12 +444,15 @@ def ready_index(name: str) -> SubjectIndex:
 
 
 class IndexNotReady(RuntimeError):
+    """A subject was asked something before its index was ready."""
+
     def __init__(self, status: dict):
         super().__init__(f"Index is {status['state']}")
         self.status = status
 
 
 def forget(name: str) -> None:
+    """Drop a subject's in-memory index; the next question rebuilds it."""
     with _state_lock:
         _indexes.pop(name, None)
 
@@ -454,6 +460,7 @@ def forget(name: str) -> None:
 # Asking
 
 def describe(chunk) -> dict:
+    """A retrieved chunk as the interface shows it, text included."""
     return {"file": getattr(chunk, "source_file", None),
             "page": getattr(chunk, "page", None),
             "page_end": getattr(chunk, "page_end", None),
@@ -468,9 +475,9 @@ def describe(chunk) -> dict:
 # Conversations
 #
 # A subject holds any number of conversations, one JSON file each under
-# <subject>/_study/chats/. A student revising a term's material asks about
-# several things, and keeping those threads apart is the difference between a
-# record they can come back to and one long scroll.
+# <subject>/_study/chats/, named by the conversation's id. Each holds its
+# title, its timestamps and its messages, and an assistant message carries
+# the sources and the turn kind its answer came from.
 
 CHATS_DIR = "chats"
 TITLE_MAX_WORDS = 8
@@ -492,8 +499,9 @@ def _chat_path(name: str, chat_id: str) -> Path:
 
 def chat_title(question: str) -> str:
     """
-    A conversation's title, taken from the question that started it: enough of
-    it to recognise the thread in a list, without a paragraph in the sidebar.
+    A conversation's title: the first TITLE_MAX_WORDS words of the question
+    that started it, cut to TITLE_MAX_CHARS and ellipsised if that shortened
+    it.
     """
     words = question.strip().split()
     title = " ".join(words[:TITLE_MAX_WORDS])
@@ -506,8 +514,8 @@ def chat_title(question: str) -> str:
 
 def _migrate_single_chat(name: str) -> None:
     """
-    Move the one-chat-per-subject file written by earlier versions into the
-    conversations folder, so an existing subject keeps its history.
+    Move a subject's single chat.json, as earlier versions wrote it, into
+    the conversations folder as one conversation.
     """
     legacy = study_path(name, "chat.json")
     if not legacy.exists():
@@ -536,7 +544,7 @@ def chat_list(name: str) -> List[dict]:
     for path in folder.glob("*.json"):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):     # a half-written file must not hide the rest
+        except (OSError, ValueError):     # a half-written file hides only itself
             continue
         chats.append({"id": record.get("id", path.stem),
                       "title": record.get("title") or "New conversation",
@@ -551,8 +559,8 @@ def subject_overview(name: str) -> dict:
     """
     What the subjects grid shows for one subject: its documents, how many
     conversations it holds, when it was last used, and whether its index is
-    already built. Deliberately cheap — listing subjects must not start
-    indexing every one of them.
+    already built. The index status is read with start=False, so listing the
+    subjects starts no builds.
     """
     docs = documents(name)
     chats = chat_list(name)
@@ -608,6 +616,7 @@ def chat_history(name: str, chat_id: Optional[str] = None) -> List[dict]:
 
 
 def delete_chat(name: str, chat_id: str) -> None:
+    """Delete one conversation."""
     _chat_path(name, chat_id).unlink()
 
 
@@ -621,7 +630,7 @@ def clear_chat(name: str) -> None:
 
 
 def _sweep_deleted() -> None:
-    """Remove folders left behind by an earlier delete that could not finish."""
+    """Remove the folders an earlier delete could only rename aside."""
     if not PROJECTS_DIR.is_dir():
         return
     for path in PROJECTS_DIR.iterdir():
@@ -634,14 +643,15 @@ def _sweep_deleted() -> None:
 
 def delete_subject(name: str) -> None:
     """
-    Delete a subject: its documents, its conversations, its quiz questions and
-    its progress. Nothing here is recoverable, so the interface asks first.
+    Delete a subject: its documents, its conversations, its quiz questions
+    and its progress. Nothing here is recoverable, and the interface confirms
+    before calling it.
 
     On Windows a folder inside a synchronised OneDrive tree can refuse to be
     removed for a moment even once it is empty, because the sync client still
-    holds a handle on it. Deleting the subject must not fail for that: after a
-    few attempts the folder is renamed out of the way — it stops being a
-    subject immediately — and swept up on the next delete.
+    holds a handle on it, so the removal is retried. A folder that still
+    refuses is renamed with DELETED_PREFIX, which takes it out of the subject
+    list at once, and swept up by the next delete.
     """
     folder = subject_path(name)
     forget(name)
@@ -667,7 +677,7 @@ def delete_subject(name: str) -> None:
         raise RuntimeError(
             f"{name} could not be deleted — another program is using its "
             f"folder ({exc}). Close anything reading those files and try again.")
-    try:                          # gone from the student's view either way
+    try:                          # already out of the subject list either way
         shutil.rmtree(aside, ignore_errors=True)
     except OSError:
         pass
@@ -682,12 +692,11 @@ def _route_turn(question: str, history: list) -> tuple:
     """
     (kind, question to retrieve on) for this turn of a conversation.
 
-    A student's second message is usually not a second question. "can you put
-    that more simply?" needs the answer already given, not three more
-    passages; "what about tournament selection?" needs the documents but does
-    not say what it is about. Classifying the turn costs one short generation
-    and saves a retrieval and a long one whenever the answer is already in the
-    conversation.
+    The first message of a conversation is always "new". After that,
+    generator.classify_turn sorts the message into "new", "continuation" or
+    "followup"; a continuation is rewritten to stand alone before it is
+    retrieved on, and a follow-up is answered from the conversation with no
+    retrieval at all.
     """
     from backend.pipeline.generator import classify_turn, standalone_question
     if not history:
@@ -710,10 +719,9 @@ def _tidy(text: str) -> str:
 
 def _readable(text: str) -> str:
     """
-    Passage text as a person should see it. What is indexed stays exactly as
-    it was — every recorded retrieval number describes that — but the copy put
-    in front of the student has the wordpiece decode's spacing repaired, so a
-    source reads "vendor lock-in" rather than "vendor lock - in".
+    Passage text as the interface shows it, with the wordpiece decode's
+    spacing repaired, so a source reads "vendor lock-in" rather than "vendor
+    lock - in". What is indexed is untouched.
     """
     from backend.pipeline.generator import fix_decoded_spacing
     return fix_decoded_spacing(text)
@@ -722,11 +730,14 @@ def _readable(text: str) -> str:
 def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dict]:
     """
     Answer a question, as a series of events:
+      {"type": "turn", "kind": ...}            once the turn is classified
       {"type": "sources", "sources": [...]}   once retrieval is done
       {"type": "token", "text": ...}          as the answer is written
       {"type": "done", "answer": ..., "seconds": ..., "chat": {...}}
-    The finished exchange is appended to the conversation given by chat_id, or
-    to a new one, which takes its title from this question.
+
+    A follow-up turn retrieves nothing and so sends no sources event. The
+    finished exchange is appended to the conversation given by chat_id, or to
+    a new one, which takes its title from this question.
     """
     question = question.strip()
     if not question:
@@ -734,16 +745,15 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
     if chat_id is not None:
         _chat_path(name, chat_id)      # fail before answering, not after
     history = chat(name, chat_id)["messages"] if chat_id is not None else []
-    # Before the lock, as it always was: a subject whose documents are still
-    # being read should answer 409 at once rather than queue behind whatever
-    # is holding the model.
+    # Outside the lock, so a subject whose documents are still being read
+    # raises IndexNotReady at once rather than queueing behind the model.
     index = ready_index(name)
     started = time.time()
     with MODEL_LOCK:
         kind, lookup = _route_turn(question, history)
         if kind == "followup":
-            # Nothing is retrieved, so nothing new is cited: the sources of
-            # the answer being discussed are still the sources on screen.
+            # Nothing is retrieved, so nothing new is cited and the sources of
+            # the answer being discussed stay on screen.
             sources = []
             yield {"type": "turn", "kind": kind}
             pieces = []
@@ -772,7 +782,7 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
     record["messages"].append({"role": "assistant", "content": answer,
                                "sources": sources, "seconds": seconds,
                                "turn": kind, "time": time.time()})
-    # A conversation is named after the question that started it.
+    # An unnamed conversation takes its title from this question.
     if not record.get("title") or record["title"] == "New conversation":
         record["title"] = chat_title(question)
     record["updated"] = time.time()
@@ -785,20 +795,20 @@ def ask(name: str, question: str, chat_id: Optional[str] = None) -> Iterator[dic
 # Quiz
 
 def _pool_key(sig) -> str:
-    # The answering model is part of the key: the stored reference answers
-    # were written by it, so a different one must not inherit them. Imported
-    # here rather than at the top, so that nothing loads transformers until a
-    # question is actually asked.
+    """What a saved quiz pool is valid for: the documents and the settings
+    that produced its questions."""
+    # Imported here rather than at the top, so nothing loads transformers
+    # until a question is actually asked.
     from backend.pipeline import generator
     return repr((CHUNKING, model_key(), HYBRID, generator.MODEL_NAME, sig))
 
 
 def load_pool(name: str, sig) -> dict:
     """
-    Saved quiz items by topic id, plus the chunk indices already tried for
-    each topic. Discarded when the documents, chunking mode, embedding model,
-    retrieval mode or answering model change, since chunk indices, the
-    reference answers or the round-trip check would differ.
+    The saved quiz items by topic id, plus the chunk indices already tried
+    for each topic. An empty pool comes back when the saved one was written
+    under different settings (see _pool_key), since its chunk indices and
+    reference answers would no longer match.
     """
     path = study_path(name, "quiz_pool.json")
     if path.exists():
@@ -813,6 +823,7 @@ def load_pool(name: str, sig) -> dict:
 
 
 def save_pool(name: str, sig, pool: dict) -> None:
+    """Write a subject's quiz pool, keyed to the settings that built it."""
     _write_json(study_path(name, "quiz_pool.json"), {
         "signature": _pool_key(sig),
         "items": {tid: [i.to_record() for i in items]
@@ -822,14 +833,17 @@ def save_pool(name: str, sig, pool: dict) -> None:
 
 
 def load_progress(name: str) -> Progress:
+    """A subject's quiz history and mastery estimates."""
     return Progress.load(study_path(name, "progress.json"))
 
 
 def reset_progress(name: str) -> None:
+    """Delete a subject's quiz history; its questions are kept."""
     study_path(name, "progress.json").unlink(missing_ok=True)
 
 
 def times_asked(progress: Progress) -> dict:
+    """How many times each question has been asked, by question text."""
     counts = {}
     for attempt in progress.attempts:
         counts[attempt.get("question")] = counts.get(attempt.get("question"), 0) + 1
@@ -837,6 +851,7 @@ def times_asked(progress: Progress) -> dict:
 
 
 def topic_label(topic_id: str) -> str:
+    """A topic id as the interface shows it."""
     return topic_id.replace(" › ", " — ")
 
 
@@ -849,6 +864,8 @@ def subject_topics(chunks) -> List[quiz.Topic]:
 
 
 def topics(name: str) -> List[dict]:
+    """Every topic in a subject, with its size and how many questions it is
+    worth, for the quiz screen's topic picker."""
     return [{"id": t.id, "document": t.source_file, "section": t.section,
              "scope": t.scope, "passages": len(t.chunk_indices),
              "questions": questions_worth(t)}
@@ -857,11 +874,9 @@ def topics(name: str) -> List[dict]:
 
 def questions_worth(topic) -> int:
     """
-    How many questions a topic should be able to offer, from how much material
-    it holds. A topic of three passages is worth the floor; one of twenty-four
-    is worth the ceiling. Without this a one-slide topic exhausted itself and
-    began repeating, and a forty-slide topic was only ever asked about its
-    first few pages.
+    How many questions a topic is worth: one for every CHUNKS_PER_QUESTION
+    passages it holds, bounded by QUESTIONS_PER_TOPIC below and
+    MAX_QUESTIONS_PER_TOPIC above.
     """
     earned = len(topic.chunk_indices) // CHUNKS_PER_QUESTION
     return max(QUESTIONS_PER_TOPIC, min(MAX_QUESTIONS_PER_TOPIC, earned))
@@ -869,15 +884,15 @@ def questions_worth(topic) -> int:
 
 def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
     """
-    Try up to `add` new questions for a topic from chunks not tried before.
-    Returns how many were added.
+    Write up to `add` new questions for a topic, from chunks not tried
+    before, and save the pool. Returns how many were added.
     """
     items = pool["items"].setdefault(topic.id, [])
     tried = pool["tried"].setdefault(topic.id, set())
     untried = [i for i in topic.chunk_indices if i not in tried]
     random.Random(len(tried)).shuffle(untried)
     # A whole-file topic draws on the same chunks as that file's sections, so
-    # compare against every question already written from this document.
+    # duplicates are checked against every question from this document.
     known = {quiz.normalize(i.question)
              for group in pool["items"].values() for i in group
              if i.source_file == topic.source_file} | {
@@ -893,8 +908,8 @@ def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
         if item is None or quiz.normalize(item.question) in known:
             continue
         if topic.scope != "document":
-            # A question from a whole-file topic keeps the section it came
-            # from, so mastery and levels stay per section.
+            # A question from a whole-file topic keeps the topic id of the
+            # section it came from, so mastery stays per section.
             item.topic_id = topic.id
         items.append(item)
         known.add(quiz.normalize(item.question))
@@ -905,8 +920,8 @@ def extend_topic(name, index: SubjectIndex, pool, topic, add: int) -> int:
 
 def pick_item(items, progress: Progress):
     """
-    The item asked least often so far, avoiding a repeat of the previous
-    question when there is any alternative. Ties are broken at random.
+    The item asked least often so far, skipping the previous question when
+    there is any alternative. Ties are broken at random.
     """
     asked = times_asked(progress)
     last = progress.attempts[-1].get("question") if progress.attempts else None
@@ -915,28 +930,29 @@ def pick_item(items, progress: Progress):
     return random.choice([i for i in choices if asked.get(i.question, 0) == fewest])
 
 
-# Questions handed out and not yet answered, by id. One student, one machine:
-# kept in memory, so a restart simply means asking for a new question.
+# Questions handed out and not yet answered, by id. Kept in memory only, so
+# a restart means asking for a new question.
 _issued: Dict[str, dict] = {}
 _quiz_lock = threading.Lock()
 
 
 def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
     """
-    Choose a topic (the recommender's pick when topic is None), make sure it
-    has questions, and hand out the next one. None if no usable question
-    could be written.
+    Choose a topic, make sure it has unasked questions, and hand out the
+    next one at the level the recommender picks. With topic None, the topics
+    are tried in the recommender's order, weakest first. Returns None when no
+    usable question could be written.
     """
     index = ready_index(name)
     by_id = {t.id: t for t in subject_topics(index.chunks)}
     if topic is not None and topic not in by_id:
         raise NotFound(f"No topic called {topic!r}")
 
-    with _quiz_lock:   # two tabs asking at once would write the pool twice
+    with _quiz_lock:   # or two tabs asking at once write the pool twice
         progress = load_progress(name)
         if topic is None:
-            # Recommend sections, not whole files: a file is only ever chosen
-            # deliberately, and its mastery is the average of its sections.
+            # Sections only: a whole-file topic is never recommended, it is
+            # chosen deliberately from the topic picker.
             sections = [t.id for t in by_id.values() if t.scope == "section"]
             candidates = [r.topic_id
                           for r in progress.recommend(sections, n=len(sections))]
@@ -950,14 +966,15 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
             t = by_id[topic_id]
             items = pool["items"].get(topic_id, [])
             untried = set(t.chunk_indices) - pool["tried"].get(topic_id, set())
-            # New topic, or every question in it already asked: write more.
+            # A new topic, or one whose questions have all been asked.
             if untried and all(asked.get(i.question, 0) for i in items):
                 extend_topic(name, index, pool, t,
                              add=questions_worth(t) if not items else 1)
                 items = pool["items"].get(topic_id, [])
             if any(not asked.get(i.question, 0) for i in items):
                 break
-            # Only repeats left here — use them only if no later topic has fresh ones.
+            # Only repeats in this topic: keep them in case no later topic
+            # has anything fresh.
             fallback = fallback or items
         else:
             items = fallback
@@ -971,14 +988,14 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
             def everything():
                 return [i for group in pool["items"].values() for i in group]
 
-            # Distractors come from other questions; write some for other
-            # topics if there aren't enough yet.
+            # Distractors come from other items' answers, so write questions
+            # for other topics until there are enough.
             others = [t for t in candidates + list(by_id) if not pool["items"].get(t)]
             while len(everything()) < quiz.MC_OPTIONS and others:
                 extend_topic(name, index, pool, by_id[others.pop(0)],
                              add=QUESTIONS_PER_TOPIC)   # just enough distractors
             options = quiz.multiple_choice(item, everything())
-            if len(options) < 3:   # still too few distractors — ask as short answer
+            if len(options) < 3:   # too few distractors: ask it as level 2
                 level, options = 2, None
 
         qid = uuid.uuid4().hex
@@ -997,7 +1014,8 @@ def new_question(name: str, topic: Optional[str] = None) -> Optional[dict]:
 
 
 def answer_question(name: str, qid: str, answer: str) -> dict:
-    """Grade an answer, record it, and return the outcome."""
+    """Grade an answer to a question handed out earlier, record it against
+    the topic's mastery, and return the outcome with the source passage."""
     answer = answer.strip()
     if not answer:
         raise ValueError("Give an answer first.")
@@ -1032,6 +1050,8 @@ def answer_question(name: str, qid: str, answer: str) -> dict:
 # Progress
 
 def progress_summary(name: str) -> dict:
+    """Everything the progress screen shows: totals, a row per topic, the
+    recommended topics and the most recent answers."""
     topic_list = quiz.build_topics(ready_index(name).chunks)
     progress = load_progress(name)
     answered = len(progress.attempts)
@@ -1066,6 +1086,8 @@ def progress_summary(name: str) -> dict:
 
 
 def settings() -> dict:
+    """The configuration the interface displays, and what it may offer: the
+    supported file types, the quiz levels, and whether samples exist."""
     from backend.pipeline import generator
     from backend.pipeline.device import get_torch_device, should_use_npu
     explaining = generator.ANSWER_STYLE == "explain"

@@ -7,9 +7,9 @@ https://qasper-dataset.s3.us-west-2.amazonaws.com/qasper-test-and-evaluator-v0.3
   (2021) 'A dataset of information-seeking questions and answers anchored in
   research papers', in Proceedings of NAACL-HLT 2021, pp. 4599-4610.
 
-Copied rather than reimplemented so that Answer F1 and Evidence F1 mean here
-exactly what they mean in the paper and on the leaderboard. Only this header
-is added.
+Copied rather than reimplemented, so Answer F1 and Evidence F1 are computed
+here exactly as they are in the paper and on the leaderboard. This header is
+the only addition; nothing below it is modified.
 """
 
 """

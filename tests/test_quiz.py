@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/quiz.py: grouping chunks into topics, grading an
+answer against a reference, and the checks a generated question has to pass.
+Question writing and grading similarity are stubbed, so no model is loaded.
+"""
+
 import random
 import unittest
 

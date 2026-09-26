@@ -3,11 +3,11 @@ backend/pipeline/device.py
 Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
-Shared device-selection helper for the RAG pipeline.
+Shared device selection for the RAG pipeline.
 
-Controlled by env var SA_DEVICE: "gpu" (default) | "cpu" | "npu".
-Always falls back to "cpu" if the requested device isn't actually usable —
-this module never hard-fails on missing hardware/drivers/optional packages.
+Controlled by the SA_DEVICE env var: "gpu" (default) | "cpu" | "npu".
+Falls back to "cpu" when the requested device is not usable; nothing here
+raises on missing hardware, drivers or optional packages.
 """
 
 import os
@@ -18,13 +18,13 @@ log = logging.getLogger(__name__)
 
 def get_torch_device() -> str:
     """
-    Returns a torch device string: "cpu" or "xpu".
+    Return a torch device string: "cpu" or "xpu".
 
-    Used by embedder.py, retriever.py, generator.py, and loader.py (BLIP/EasyOCR)
-    for torch .to(device)/SentenceTransformer(device=...) calls.
+    Used by embedder.py, retriever.py, generator.py and loader.py (BLIP and
+    EasyOCR) for .to(device) and SentenceTransformer(device=...) calls.
 
-    NPU is NOT returned here — NPU uses a completely separate OpenVINO code
-    path (see should_use_npu() below), not torch.
+    "npu" is never returned: the NPU runs through OpenVINO rather than torch
+    (see should_use_npu below).
     """
     requested = os.environ.get("SA_DEVICE", "gpu").lower()
     if requested != "gpu":
@@ -44,9 +44,9 @@ def get_torch_device() -> str:
 
 def should_use_npu() -> bool:
     """
-    True only when SA_DEVICE=npu was explicitly requested. Callers (generator.py,
-    embedder.py) are responsible for actually attempting the OpenVINO NPU path and
-    falling back to get_torch_device()/cpu if it fails.
+    True when SA_DEVICE=npu. Callers (generator.py, embedder.py) attempt the
+    OpenVINO NPU path themselves and fall back to get_torch_device() if it
+    fails.
     """
     return os.environ.get("SA_DEVICE", "gpu").lower() == "npu"
 
@@ -61,17 +61,14 @@ def get_easyocr_device():
 
 def patch_dataparallel_for_xpu():
     """
-    EasyOCR unconditionally wraps its detector/recognizer models in
-    torch.nn.DataParallel for any non-"cpu" device (detection.py, recognition.py)
-    — a legacy assumption that the only non-CPU device is CUDA. DataParallel's
-    scatter() calls torch._C._scatter, a CUDA-only C++ binding that does not exist
-    for Intel's XPU backend, so EasyOCR on "xpu" crashes with
-    AttributeError: module 'torch._C' has no attribute '_scatter'.
+    Replace torch.nn.DataParallel process-wide with a passthrough wrapper.
 
-    There's only one Arc GPU here, so DataParallel's multi-GPU splitting isn't
-    needed anyway — this replaces it process-wide with a thin passthrough that
-    just runs the wrapped module directly. Safe because nothing else in this
-    project uses torch.nn.DataParallel.
+    EasyOCR wraps its detector and recogniser in DataParallel for any non-CPU
+    device. DataParallel's scatter() calls torch._C._scatter, which exists
+    only for CUDA, so on "xpu" EasyOCR raises AttributeError: module
+    'torch._C' has no attribute '_scatter'. The replacement runs the wrapped
+    module directly and does no device splitting. Applied once per process;
+    nothing else in the project uses DataParallel.
     """
     import torch.nn as nn
 

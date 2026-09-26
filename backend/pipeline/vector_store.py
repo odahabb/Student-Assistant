@@ -22,13 +22,12 @@ CHUNKS_PATH = "data/processed/chunks.json"
 
 def build_and_save(embeddings: np.ndarray, chunks: Sequence[str]) -> None:
     """
-    Build a FAISS IndexFlatL2 index from embeddings, add all vectors,
-    and save the index and the chunks to disk.
+    Build a FAISS IndexFlatL2 index from the embeddings and write it, with
+    the chunks, to INDEX_PATH and CHUNKS_PATH.
 
-    Chunks are stored as {text, source_file, page} records so a chunk's
-    provenance survives the round trip — retrieval on a reloaded store can
-    still say which file and page an answer came from. Plain strings are
-    accepted too and persist with null metadata.
+    Chunks are stored as Chunk.to_record() dicts, so a reloaded store still
+    knows which file, page and section each chunk came from. Plain strings
+    are accepted too and are stored with no metadata.
     """
     os.makedirs(os.path.dirname(INDEX_PATH), exist_ok=True)
 
@@ -50,10 +49,9 @@ def load() -> Tuple[faiss.Index, List[Chunk]]:
     """
     Load the FAISS index and chunks from disk.
 
-    Returns Chunk objects, which behave as plain strings everywhere downstream
-    and additionally carry .source_file / .page. Chunk files written before
-    metadata existed (a bare JSON list of strings) still load, with both
-    fields set to None.
+    Returns (index, chunks), where each chunk is a Chunk carrying its
+    metadata. A chunks file holding a bare JSON list of strings loads too,
+    with the metadata fields set to None.
     """
     if not os.path.exists(INDEX_PATH) or not os.path.exists(CHUNKS_PATH):
         raise FileNotFoundError("Vector store not found — run build_and_save() first")

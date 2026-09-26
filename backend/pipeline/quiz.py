@@ -8,32 +8,32 @@ Turns a subject's indexed chunks into short quiz questions, grouped by topic
 (document section), and grades a student's answers. Adaptive difficulty and
 revision recommendations live in recommender.py.
 
-Question generation reuses the pipeline's own models, so the quiz adds no new
-model to the system:
+Question generation reuses the pipeline's own models, so the quiz loads no
+model of its own:
 
   1. a chunk is picked from a topic;
   2. Qwen2.5-1.5B-Instruct writes a question about a fact in that chunk;
-  3. generator.generate() answers the question from that chunk alone — this is
+  3. generator.answer_short() answers it from that chunk alone, which becomes
      the reference answer;
   4. round-trip check: the question is answered again through normal
      retrieval over the whole subject, and the item is kept only if the two
-     answers agree (the "roundtrip consistency" filter of Alberti et al.,
-     2019). This drops questions that are ambiguous, or whose answer only
-     makes sense with the passage in view.
+     answers agree (roundtrip consistency, Alberti et al., 2019). This drops
+     questions that are ambiguous, or whose answer only makes sense with the
+     passage in view.
 
-Difficulty comes from the answer format rather than the question wording,
-because a 1.5B model does not reliably follow instructions to write harder
-("why"/"how") questions:
+Difficulty comes from the answer format rather than the question's wording:
 
-  level 1 — multiple choice (recognition)
+  level 1 — multiple choice, with distractors from other items' answers
   level 2 — short answer, with the source section shown as a hint
-  level 3 — short answer, no hint (recall)
+  level 3 — short answer, no hint
 
-Grading compares the student's answer with the reference answer: containment
-in either direction counts as correct outright; an answer missing a number
-the reference states is wrong; otherwise the score is the higher of token F1
-and MiniLM cosine similarity, and GRADE_THRESHOLD decides correctness
-(calibrated in notebooks/09_eval_quiz.ipynb).
+Grading compares the student's answer with the reference answer. Containment
+in either direction is correct outright; an answer missing a number the
+reference states is wrong; otherwise the score is the higher of token F1 and
+MiniLM cosine similarity, and GRADE_THRESHOLD decides correctness.
+
+recommender.py turns the graded answers into the mastery estimate that picks
+the level and the next topic.
 """
 
 import random
@@ -48,28 +48,28 @@ LEVELS = {
     3: "Short answer",
 }
 
+# The section name given to chunks that have none.
 WHOLE_DOCUMENT = "Whole document"
-# A topic that spans a whole file rather than one of its sections, so the
-# student can revise a PDF end to end instead of a section at a time.
+# The section name of a topic covering a whole file rather than one section.
 WHOLE_FILE = "Everything in this file"
 SKIPPED_SECTIONS = re.compile(
     r"^(references|bibliography|works cited|acknowledge?ments?)$", re.IGNORECASE)
 
-MIN_CHUNK_WORDS = 40
-MAX_QUESTION_WORDS = 30
-MAX_ANSWER_WORDS = 12
+MIN_CHUNK_WORDS = 40       # chunks shorter than this are not quizzed on
+MAX_QUESTION_WORDS = 30    # bounds well_formed() applies to a written
+MAX_ANSWER_WORDS = 12      # ... question and its reference answer
 QUESTION_PROMPT = ("Write one question about a specific fact stated in the "
                    "passage below. It must be answerable from the passage "
                    "alone, in a few words. Reply with the question only."
                    "\n\nPassage: {passage}\n\nQuestion:")
-# An instruction-tuned model likes to label or quote what it was asked for.
+# The "Question:" label an instruction-tuned model puts on what it writes.
 _QUESTION_PREFIX = re.compile(r"^\s*(?:question\s*\d*\s*[:.\-]|q\s*[:.\-])\s*",
                               re.IGNORECASE)
-GRADE_THRESHOLD = 0.7
-MC_OPTIONS = 4
+GRADE_THRESHOLD = 0.7      # score at or above which an answer is correct
+MC_OPTIONS = 4             # options on a level-1 question, including the answer
 
-# Bibliography text makes poor quiz material ("Who wrote ... (2021)?"). Chunk
-# text is tokenizer-decoded, so punctuation is space-separated: "( 2024 )".
+# Markers of bibliography text, which is skipped rather than quizzed on. Chunk
+# text is tokenizer-decoded, so its punctuation is space-separated: "( 2024 )".
 _REFERENCE_PATTERNS = [
     r"\(\s*(?:19|20)\d\d\s*[a-z]?\s*\)",
     r"\barxiv\b",
@@ -87,18 +87,21 @@ _UNUSABLE_ANSWERS = {"", "unanswerable", "none", "unknown", "no answer", "n/a"}
 
 
 def reference_signals(text: str) -> int:
-    """Count of bibliography markers (citation years, arXiv, DOI, URLs, et al.)."""
+    """How many bibliography markers a passage holds: citation years, arXiv,
+    DOI, URLs, "et al." and the names of venues."""
     t = " ".join(str(text).lower().split())
     return sum(len(re.findall(p, t)) for p in _REFERENCE_PATTERNS)
 
 
 def looks_like_reference_list(text: str) -> bool:
+    """True once a passage carries REFERENCE_SIGNAL_THRESHOLD markers."""
     return reference_signals(text) >= REFERENCE_SIGNAL_THRESHOLD
 
 
 def normalize(text: str) -> str:
+    """Lower-case, punctuation-free text for comparing two answers."""
     text = str(text).lower()
-    # keep "0.83" as one token so it cannot match a bare "0"
+    # "0.83" is kept as one token, so it cannot match a bare "0"
     text = re.sub(r"(?<=\d)\s*\.\s*(?=\d)", "_", text)
     text = re.sub(r"[^a-z0-9_\s]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
@@ -108,6 +111,8 @@ def normalize(text: str) -> str:
 
 @dataclass
 class Topic:
+    """One thing to be quizzed on, and the chunks its questions come from."""
+
     id: str
     source_file: Optional[str]
     section: str
@@ -117,10 +122,12 @@ class Topic:
 
 
 def topic_id(source_file: Optional[str], section: Optional[str]) -> str:
+    """A topic's id: its file and section, joined by a separator."""
     return f"{source_file or 'Untitled'} › {section or WHOLE_DOCUMENT}"
 
 
 def usable_for_quiz(chunk) -> bool:
+    """Whether a chunk is long enough, and ordinary enough, to quiz on."""
     section = getattr(chunk, "section", None) or ""
     return (not SKIPPED_SECTIONS.match(section.strip())
             and len(str(chunk).split()) >= MIN_CHUNK_WORDS
@@ -129,14 +136,12 @@ def usable_for_quiz(chunk) -> bool:
 
 def build_topics(chunks: Sequence, whole_documents: bool = False) -> List[Topic]:
     """
-    Group a subject's chunks into topics — one per (document, section) — in
+    Group a subject's chunks into topics, one per (document, section), in
     the order they first appear. Reference lists and very short chunks are
-    left out; a topic with no usable chunk is dropped.
+    left out, and a topic with no usable chunk is dropped.
 
-    With whole_documents, each multi-section file also gets a topic covering
-    all of its chunks, listed before its sections, so a quiz can range over a
-    whole PDF. The evaluation script leaves this off: Chapter 5's numbers
-    describe one question per section.
+    With whole_documents, each file of more than one section also gets a
+    topic covering all of its chunks, listed before its sections.
     """
     topics: Dict[str, Topic] = {}
     for i, chunk in enumerate(chunks):
@@ -155,8 +160,8 @@ def build_topics(chunks: Sequence, whole_documents: bool = False) -> List[Topic]
 
 def with_document_topics(section_topics: Sequence[Topic]) -> List[Topic]:
     """
-    Put a whole-file topic in front of each document's section topics. A file
-    with only one section already is that topic, so it is left alone.
+    Put a whole-file topic in front of each document's section topics. A
+    file of one section already is that topic, so it is left alone.
     """
     by_document: Dict[Optional[str], List[Topic]] = {}
     for topic in section_topics:
@@ -178,12 +183,15 @@ def with_document_topics(section_topics: Sequence[Topic]) -> List[Topic]:
 
 @dataclass
 class Grade:
+    """The outcome of grading one answer, and which rule decided it."""
+
     score: float
     correct: bool
     method: str
 
 
 def token_f1(answer: str, reference: str) -> float:
+    """F1 over the normalised tokens the two strings share."""
     a, r = normalize(answer).split(), normalize(reference).split()
     if not a or not r:
         return 0.0
@@ -205,8 +213,10 @@ def _numbers(text: str) -> List[str]:
 
 
 def _cosine(a: str, b: str) -> float:
+    """Cosine similarity of the two strings' MiniLM embeddings."""
     from backend.pipeline.embedder import embed
-    # Always MiniLM: GRADE_THRESHOLD was calibrated on its similarities.
+    # Always MiniLM, whatever SA_EMBEDDER selects for retrieval, since
+    # GRADE_THRESHOLD is a threshold on its similarities.
     vectors = embed([a, b], model="minilm")
     return float(vectors[0] @ vectors[1])   # vectors are unit-norm
 
@@ -216,6 +226,10 @@ def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,
     """
     Score a free-text answer against the reference answer.
 
+    Containment in either direction scores 1.0; an answer missing a number
+    the reference states scores 0.0; otherwise the score is the higher of
+    token F1 and cosine similarity, and `threshold` decides correctness.
+
     similarity defaults to MiniLM cosine similarity; tests pass a stub so
     grading can be checked without loading a model.
     """
@@ -223,8 +237,8 @@ def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,
     if not a or not r:
         return Grade(0.0, False, "empty")
 
-    # Embeddings rate "861 hours" close to "680,000 hours", so when the
-    # reference states numbers, the answer must state the same ones.
+    # Embeddings rate "861 hours" close to "680,000 hours", so a reference
+    # that states numbers requires the answer to state the same ones.
     missing = set(_numbers(reference)) - set(_numbers(answer))
     if missing:
         return Grade(0.0, False, "number_mismatch")
@@ -244,6 +258,8 @@ def grade(answer: str, reference: str, threshold: float = GRADE_THRESHOLD,
 
 @dataclass
 class QuizItem:
+    """One generated question with its reference answer and its source."""
+
     topic_id: str
     question: str
     answer: str
@@ -264,9 +280,9 @@ class QuizItem:
 
 def clean_question(text: str) -> str:
     """
-    The question alone: the first line, without a "Question:" label or
-    surrounding quotes. well_formed() rejects whatever is left if the model
-    wrote something other than a question.
+    The question alone: the first line of what the model wrote, without a
+    "Question:" label or surrounding quotes. well_formed() decides whether
+    what is left is usable.
     """
     line = str(text).strip().splitlines()[0] if str(text).strip() else ""
     return _QUESTION_PREFIX.sub("", line).strip().strip('"“”').strip()
@@ -295,17 +311,17 @@ def generate_item(chunk, answer_fn: Optional[Callable] = None,
     """
     Try to make one quiz item from a chunk.
 
-    answer_fn(question, chunks) defaults to generator.generate and
+    answer_fn(question, chunks) defaults to generator.answer_short and
     question_fn(prompt) to generator.complete. retrieve_fn(question) should
-    return the chunks normal retrieval would give for the question; when it
-    is None the round-trip check is skipped.
+    return the chunks normal retrieval would give for the question; with it
+    None, the round-trip check is skipped.
 
     Returns (item, None) on success or (None, reason) on rejection.
     """
     if answer_fn is None or question_fn is None:
-        # answer_short, not generate: a quiz needs a reference answer short
-        # enough to compare with what the student types, whatever style the
-        # chat view is answering in.
+        # answer_short rather than generate: a reference answer has to be
+        # short enough to compare with what the student types, whatever style
+        # the chat view is answering in.
         from backend.pipeline.generator import answer_short, complete
         answer_fn = answer_fn or answer_short
         question_fn = question_fn or (lambda prompt: complete(prompt, max_new_tokens=48))
@@ -337,8 +353,9 @@ def generate_item(chunk, answer_fn: Optional[Callable] = None,
 def roundtrip_check(item: QuizItem, answer_fn: Callable, retrieve_fn: Callable,
                     similarity: Optional[Callable[[str, str], float]] = None) -> bool:
     """
-    Answer the item's question through normal retrieval and compare with its
-    reference answer. Records the outcome on the item; True when they agree.
+    Answer the item's question through normal retrieval and compare that
+    with its reference answer. The answer and score are recorded on the item;
+    returns True when the two agree.
     """
     item.roundtrip_answer = answer_fn(item.question, retrieve_fn(item.question)).strip()
     check = grade(item.roundtrip_answer, item.answer, similarity=similarity)
@@ -351,11 +368,13 @@ def build_pool(chunks: Sequence, topics: Sequence[Topic], per_topic: int = 2,
                progress: Optional[Callable[[int, int], None]] = None,
                **generate_kwargs) -> List[QuizItem]:
     """
-    Generate up to per_topic items for every topic.
+    Generate up to per_topic items for every topic, at most
+    max_attempts_per_topic tries each.
 
-    Chunks are tried in a seeded random order so the pool covers a topic
-    rather than always starting from its first chunk. Duplicate questions are
-    skipped. progress(done, total), if given, is called after each topic.
+    Chunks are tried in an order seeded by `seed`, so the pool covers a topic
+    rather than always starting at its first chunk. Questions duplicating one
+    already in the pool are skipped. progress(done, total), if given, is
+    called after each topic.
     """
     rng = random.Random(seed)
     pool: List[QuizItem] = []
@@ -383,9 +402,9 @@ def multiple_choice(item: QuizItem, pool: Sequence[QuizItem],
                     rng: Optional[random.Random] = None,
                     n_options: int = MC_OPTIONS) -> List[str]:
     """
-    Options for a level-1 question: the reference answer plus distractors
-    taken from other items' answers, preferring ones from the same topic.
-    May return fewer than n_options when the pool is small.
+    Options for a level-1 question, shuffled: the reference answer plus
+    distractors taken from other items' answers, those from the same topic
+    first. Fewer than n_options come back when the pool is small.
     """
     rng = rng or random.Random()
     taken = {normalize(item.answer)}

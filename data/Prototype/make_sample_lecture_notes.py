@@ -1,5 +1,8 @@
-"""Build a real 3-page PDF fixture so page-bounded chunking can be exercised.
-Kept out of the repo — this is a test fixture, not project data."""
+"""Write a three-page PDF with one section heading per page, used as a fixture
+for page-bounded chunking.
+
+    python data/Prototype/make_sample_lecture_notes.py <output.pdf>
+"""
 import sys
 import fitz
 

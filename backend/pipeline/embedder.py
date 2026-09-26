@@ -8,17 +8,16 @@ Encodes text chunks into dense 384-d vectors.
 Runs on CPU by default; supports optional Intel Arc GPU / NPU acceleration
 via the SA_DEVICE env var (see backend/pipeline/device.py).
 
-Three embedding models are supported, chosen with the SA_EMBEDDER env var:
+Three models are available, selected with the SA_EMBEDDER env var:
 
-  minilm     all-MiniLM-L6-v2 — the original model
-  multi-qa   multi-qa-MiniLM-L6-cos-v1 — MiniLM trained for question answering
-  bge-small  BAAI/bge-small-en-v1.5 — a retrieval model that expects an
-             instruction in front of search queries, which the retriever adds
+  minilm     all-MiniLM-L6-v2
+  multi-qa   multi-qa-MiniLM-L6-cos-v1
+  bge-small  BAAI/bge-small-en-v1.5, which expects an instruction in front of
+             a search query; retriever.py adds it from query_prefix()
 
-The comparison is in data/eval/embedder_comparison.json. All three use the
-same bert-base-uncased tokenizer, so chunk boundaries do not depend on the
-choice. The quiz grader always uses minilm, because its threshold was
-calibrated on MiniLM similarities.
+All three share the bert-base-uncased tokenizer, so chunk boundaries are the
+same whichever is selected. Models are loaded once and cached by key. The
+quiz grader always asks for minilm explicitly.
 """
 
 import logging
@@ -47,7 +46,7 @@ _models: Dict[str, SentenceTransformer] = {}
 
 
 def model_key(key: Optional[str] = None) -> str:
-    """The embedding model to use: `key` if given, else SA_EMBEDDER, else minilm."""
+    """The model key to use: `key` if given, else SA_EMBEDDER, else minilm."""
     key = key or os.environ.get("SA_EMBEDDER", DEFAULT_MODEL)
     if key not in MODELS:
         log.warning(f"Unknown SA_EMBEDDER '{key}' — using {DEFAULT_MODEL}")
@@ -56,10 +55,12 @@ def model_key(key: Optional[str] = None) -> str:
 
 
 def query_prefix(key: Optional[str] = None) -> str:
+    """The instruction a model wants in front of a query, or "" if none."""
     return MODELS[model_key(key)]["query_prefix"]
 
 
 def _get_model(key: Optional[str] = None) -> SentenceTransformer:
+    """The loaded SentenceTransformer for `key`, built on first use."""
     key = model_key(key)
     if key in _models:
         return _models[key]
@@ -82,9 +83,8 @@ def _get_model(key: Optional[str] = None) -> SentenceTransformer:
 def with_section_context(chunk) -> str:
     """
     The text to embed for a chunk when section context is on: the section
-    title in front of the chunk ("Model. whisper uses an encoder ..."). Only
-    the vector changes — the stored chunk text, and what the generator sees,
-    stay the same.
+    title, then the chunk ("Model. whisper uses an encoder ..."). Only the
+    vector changes; the stored chunk text is untouched.
     """
     section = getattr(chunk, "section", None)
     return f"{section}. {chunk}" if section else str(chunk)
@@ -93,11 +93,12 @@ def with_section_context(chunk) -> str:
 def embed(chunks: List[str], section_context: bool = False,
           model: Optional[str] = None) -> np.ndarray:
     """
-    Encode a list of text chunks into a 2D numpy array of shape (n_chunks, 384).
+    Encode a list of text chunks into a 2D numpy array of shape
+    (n_chunks, 384). Vectors are L2-normalised, so a dot product between two
+    of them is their cosine similarity.
 
     section_context=True embeds each chunk with its section title in front
-    (with_section_context), an experimental variant that did not help
-    (data/eval/retrieval_variants.json). `model` overrides SA_EMBEDDER.
+    (see with_section_context). `model` overrides SA_EMBEDDER.
     """
     encoder = _get_model(model)
     texts = [with_section_context(c) for c in chunks] if section_context else chunks

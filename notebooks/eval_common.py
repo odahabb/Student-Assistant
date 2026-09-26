@@ -5,13 +5,14 @@ Student: Omar Dahab — 23100704
 
 Helpers shared by the evaluation notebooks.
 
-  repo_root()  the repository root, whether a notebook runs from notebooks/
-               or from the root, so every notebook reads and writes the same
-               data/ paths
-  judge()      the answer-grading rule every end-to-end number in this project
-               uses (notebooks 01, 03 and 11), with its normalisation helpers.
-               It lived in backend/scripts/generation_analysis.py and moved
-               here unchanged when the evaluations became notebooks.
+  repo_root()       the repository root, whether a notebook runs from
+                    notebooks/ or from the root, so every notebook reads and
+                    writes the same data/ paths
+  judge()           the answer-grading rule the end-to-end numbers use
+                    (notebooks 01, 03 and 11)
+  grounded_share()  how much of an answer's vocabulary comes from its passages
+  normalise(), numbers_in(), token_f1(), squash()
+                    the string handling judge() is built from
 """
 
 import re
@@ -38,11 +39,11 @@ def normalise(text: str) -> str:
 
 
 def numbers_in(text: str):
+    """Every number in a string, after normalisation."""
     return set(re.findall(r'\d+(?:\.\d+)?', normalise(text)))
 
 
-# Stop words carry no claim, so they say nothing about whether an answer
-# stuck to its passages.
+# Words grounded_share() ignores, since they carry no claim of their own.
 _FUNCTION_WORDS = {
     "the", "a", "an", "and", "or", "but", "if", "of", "to", "in", "on", "for",
     "with", "that", "this", "these", "those", "is", "are", "was", "were", "be",
@@ -56,12 +57,13 @@ _FUNCTION_WORDS = {
 
 def grounded_share(answer: str, context: str) -> float:
     """
-    Share of the answer's content words that appear in the retrieved passages.
+    Share of the answer's content words that appear in the retrieved
+    passages, counting words over three letters that are not in
+    _FUNCTION_WORDS. An answer with no content words scores 1.0.
 
-    A blunt instrument: it cannot tell a paraphrase from an invention, and a
-    wrong claim made in the passages' own vocabulary scores well. It is
-    reported as a symptom — an answer far below the rest is worth reading —
-    not as a measure of faithfulness.
+    This is a vocabulary overlap, not a measure of faithfulness: it cannot
+    tell a paraphrase from an invention, and a wrong claim made in the
+    passages' own words scores well.
     """
     words = [w for w in normalise(answer).split()
              if len(w) > 3 and w not in _FUNCTION_WORDS]
@@ -72,6 +74,7 @@ def grounded_share(answer: str, context: str) -> float:
 
 
 def token_f1(a: str, b: str) -> float:
+    """F1 over the normalised tokens two strings share, counting repeats."""
     ta, tb = normalise(a).split(), normalise(b).split()
     if not ta or not tb:
         return 0.0
@@ -91,11 +94,11 @@ def judge(expected: str, produced: str) -> dict:
     """
     Decide whether a generated answer carries the ground-truth answer.
 
-    flan-t5 answers tersely and extractively ("3197" for "3,197 sentence
-    pairs"), so exact string equality is far too strict. The rule is:
-    containment either way, or a high token overlap, or - when the expected
-    answer is numeric - every one of its numbers appearing in the output.
-    Every signal is stored so a borderline call can be re-judged by hand.
+    Returns (correct, signals). An answer counts as correct on any of:
+    exact match, containment in either direction, token F1 of 0.6 or more,
+    or — for a numeric expected answer — every one of its numbers appearing
+    in the output. Every signal is returned as well, so a borderline call can
+    be re-judged by hand.
     """
     exp, got = normalise(expected), normalise(produced)
     expected_numbers = numbers_in(expected)
@@ -106,8 +109,7 @@ def judge(expected: str, produced: str) -> dict:
         "answer_in_expected": bool(got) and len(got) >= 2 and got in exp,
         "token_f1": round(token_f1(expected, produced), 3),
         # Every content word of the expected answer appears somewhere in the
-        # output. A paragraph that explains the right fact passes this where
-        # strict containment fails on wording ("CoT" vs "chain-of-thought").
+        # output, in any order — recorded, but not one of the rules below.
         "expected_words_present": all(
             w in set(normalise(produced).split())
             for w in normalise(expected).split() if len(w) > 2) if expected else False,
@@ -123,11 +125,13 @@ def judge(expected: str, produced: str) -> dict:
         or signals["token_f1"] >= 0.6
         or signals["all_expected_numbers_present"]
     )
-    # Flag the grey zone rather than pretending the rule is unambiguous.
+    # Marks the band where the token-F1 rule is closest to its threshold.
     signals["needs_human_review"] = bool(
         not correct and 0.3 <= signals["token_f1"] < 0.6)
     return correct, signals
 
 
 def squash(text: str) -> str:
+    """A string reduced to its lower-case letters and digits, for comparing
+    two labels that may be punctuated differently."""
     return re.sub(r"[^a-z0-9]", "", str(text).lower())

@@ -1,3 +1,9 @@
+"""
+Tests for backend/pipeline/preprocessor.py: the four chunking modes, the page
+boundaries chunks stay inside, and the page-1 boilerplate filter. The
+tokenizer and the embedding model are fakes, so no model is loaded.
+"""
+
 import unittest
 from unittest import mock
 
@@ -59,7 +65,7 @@ class PreprocessTests(unittest.TestCase):
             self.assertTrue(chunk.startswith("Sentence"), chunk)
             self.assertTrue(chunk.endswith("words."), chunk)
             self.assertLessEqual(len(chunk.split()), 20)
-        # one trailing sentence (6 tokens) is repeated as overlap
+        # the trailing sentence (6 tokens) is repeated as the overlap
         self.assertEqual(chunks[1].split()[:2], ["Sentence", "2"])
         self.assertIn("Sentence 9", chunks[-1])
 
@@ -165,7 +171,8 @@ class BoilerplateTests(unittest.TestCase):
         self.assertEqual(preprocessor._strip_page1_boilerplate(page), page)
 
     def test_page_left_alone_when_rules_would_remove_most_of_it(self):
-        # The title line is always kept, so 5 of 7 lines (71%) would go.
+        # The title line is always kept, so the rules would remove 5 of 7
+        # lines (71%), which is over _MAX_REMOVAL_FRACTION.
         emails = [f"person{i}@example.org" for i in range(5)]
         page = "\n".join(["A Title", *emails, "Some real text here."])
         self.assertEqual(preprocessor._strip_page1_boilerplate(page), page)

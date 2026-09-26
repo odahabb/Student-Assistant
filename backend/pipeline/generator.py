@@ -4,11 +4,17 @@ Multimodal RAG Educational Assistant
 Student: Omar Dahab — 23100704
 
 Step 6 of pipeline: GENERATION
-Generates an answer from retrieved context using Qwen2.5-1.5B-Instruct — the
-same instruction-tuned model that writes the quiz questions, so the system
-loads one language model rather than two.
-Runs on CPU by default; supports optional Intel Arc GPU / NPU acceleration
-via the SA_DEVICE env var (see backend/pipeline/device.py).
+Answers a question from the retrieved context with Qwen2.5-1.5B-Instruct,
+the same model that writes the quiz questions, so one set of weights serves
+both. Runs on the Intel Arc GPU by default, with optional NPU and CPU paths
+selected by the SA_DEVICE env var (see backend/pipeline/device.py).
+
+Env vars read here:
+  SA_MODEL           the in-process model (SA_CHAT_MODEL for the chat view)
+  SA_ANSWER_STYLE    "short" or "explain" (see ANSWER_STYLE)
+  SA_BACKEND         "transformers" or "ollama" (see BACKEND)
+  SA_ABSTAIN         "off", "firm" or "check" (see ABSTAIN)
+  SA_TURN_GATE       "rule" or "model" (see TURN_GATE)
 """
 
 import logging
@@ -26,62 +32,45 @@ log = logging.getLogger(__name__)
 MODEL_NAME = os.environ.get("SA_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
 
 # Where the model runs. "transformers" (the default) loads the weights into
-# this process, so the application needs nothing beyond requirements.txt.
-# "ollama" is the optional quality mode: the same messages go to a larger
-# model already served on this machine by Ollama. qwen3:14b scores 0.339
-# answer F1 on the QASPER dev set against the 1.5B's 0.217, with the same
-# retrieval, and writes a paragraph at about 7 tokens a second against 48.
-# It cannot be loaded in process: in 16-bit it needs about 30 GB, and Ollama
-# serves a 4-bit copy that fits on the Arc in 9.6 GB. Nothing leaves the
-# machine either way: Ollama listens on 127.0.0.1.
+# this process. "ollama" sends the same messages to a larger model served on
+# this machine by Ollama, which listens on 127.0.0.1, so nothing leaves the
+# machine either way.
 #
-# If Ollama is not running, or is not serving the model, the in-process model
-# answers instead (_use_ollama), so an optional server being down never
-# stops the application answering.
+# The server is probed once, on the first answer. If it is not running, or is
+# not serving OLLAMA_MODEL, the process switches to the in-process model for
+# good (see _use_ollama and _fall_back).
 BACKEND = os.environ.get("SA_BACKEND", "transformers").lower()
 OLLAMA_URL = os.environ.get("SA_OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.environ.get("SA_OLLAMA_MODEL", "qwen3:14b")
 OLLAMA_TIMEOUT = 900
 OLLAMA_PROBE_TIMEOUT = 3
-# The in-process model, which is also the one that answers when Ollama cannot.
+# The in-process model, which also answers whenever Ollama cannot.
 LOCAL_MODEL_NAME = MODEL_NAME
 if BACKEND == "ollama":
     MODEL_NAME = OLLAMA_MODEL
-# Context is budgeted with the same tokenizer whichever backend answers, so
-# the passages a model is given are identical and only the model differs.
-# Loading a tokenizer does not load any weights.
+# Context is budgeted with this tokenizer whichever backend answers, so both
+# receive identical passages. Loading a tokenizer loads no weights.
 BUDGET_TOKENIZER = os.environ.get("SA_BUDGET_TOKENIZER",
                                   "Qwen/Qwen2.5-1.5B-Instruct")
 
-# Two answering styles, because the two places an answer is used want
-# opposite things. Both are now the same model under different instructions
-# and decoding settings, so only one set of weights is ever in memory.
+# Two answering styles, selected by SA_ANSWER_STYLE. Both run the same
+# weights under different instructions and decoding settings.
 #
-#   "short"   — extractive: a span, a number, a few words, decoded greedily.
-#               This is what the quiz compares a student's answer against.
-#   "explain" — a short paragraph, sampled, for the chat view, where a student
-#               asking "what is a fitness function?" wants the idea explained
-#               rather than a phrase lifted off a slide.
+#   "short"   — extractive: a span, a number or a few words, decoded greedily.
+#               The quiz compares a student's answer against this.
+#   "explain" — a short paragraph, sampled, for the chat view.
 #
-# SA_ANSWER_STYLE selects it. The library default stays "short" so the
-# evaluation scripts keep measuring the configuration they were written for;
-# backend/service.py turns on "explain" for the application.
-#
-# Until 2026-09-21 the short style and the quiz ran on google/flan-t5-large.
-# Chapter 5's recorded numbers describe that model; SA_MODEL=google/flan-t5-large
-# reproduces them (the seq2seq class is still selected automatically).
+# The library default is "short"; backend/service.py sets "explain" for the
+# application. SA_MODEL=google/flan-t5-large selects a seq2seq model instead,
+# which loads through a different class (see _is_seq2seq).
 ANSWER_STYLE = os.environ.get("SA_ANSWER_STYLE", "short").lower()
 CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", MODEL_NAME)
 LOCAL_CHAT_MODEL_NAME = os.environ.get("SA_CHAT_MODEL", LOCAL_MODEL_NAME)
 
-# The shape of a short answer follows the shape of the question. Until
-# 2026-09-22 this asked for a span and nothing else, so a question a reader
-# would answer "yes" got a phrase lifted off the page instead: on QASPER,
-# boolean questions scored 0.0000 and questions wanting a sentence 0.04, while
-# span questions scored 0.22. The model knew the answers and returned them in
-# the wrong form. The two rules below are what a person would do, not a fit to
-# that benchmark — a student asking "does BERT use absolute position
-# embeddings?" wants yes or no, not a clause from the middle of a paragraph.
+# A short answer takes the shape of its question. question_shape() sorts the
+# question into "span", "boolean" or "sentence" in code, and each shape gets
+# its own system prompt below, so no single prompt has to choose between the
+# three.
 SHORT_SYSTEM = (
     "You answer comprehension questions about passages from a student's own "
     "course material. Reply with the words from the passage that answer the "
@@ -90,24 +79,14 @@ SHORT_SYSTEM = (
     "asks for, and write numbers and units exactly as the passage does. Answer "
     "unanswerable only when the passages genuinely do not contain the answer."
 )
-# A short answer has to take the shape of its question, and asking one prompt
-# to choose between three shapes does not work at this model size: given the
-# three rules as bullets, Qwen2.5-1.5B answered "No" to "how many TPUs were
-# used?". The question is therefore classified here, in code, and each shape
-# gets a prompt that asks for one thing.
-#
-# This is not a fit to QASPER, where the defect showed up as boolean questions
-# scoring 0.0000 and how/why questions 0.04 against 0.22 for spans. A student
-# asking "does BERT use absolute position embeddings?" wants yes or no, and
-# one asking "why does it use them?" wants a sentence.
-# Spelling out when to decline, and warning off outside knowledge, was tried
-# and cost boolean answers a tenth (0.50 to 0.40 on QASPER). The short form
-# is what ships.
+# Used when question_shape() returns "boolean": one word, and its own way to
+# decline, so the support gate in answer_short is skipped for these.
 BOOLEAN_SYSTEM = (
     "You answer a yes or no question from the passages given. Reply with "
     "exactly one word: Yes, or No, or unanswerable if the passages do not "
     "settle it. Nothing else."
 )
+# Used when question_shape() returns "sentence".
 SENTENCE_SYSTEM = (
     "You answer a question about passages from a student's own course "
     "material, in one short sentence of your own words drawn only from the "
@@ -119,7 +98,8 @@ SENTENCE_MAX_TOKENS = 60
 _BOOLEAN_OPENERS = re.compile(
     r"^\s*(do|does|did|is|are|was|were|can|could|will|would|has|have|had|"
     r"should|shall|must|may|might|am)\b", re.IGNORECASE)
-# "How many" and its relatives want a number, not a sentence.
+# "How many" and its relatives open like an explanation but want a number, so
+# they are matched before _EXPLAINING and answered as a span.
 _COUNTING = re.compile(r"^\s*how\s+(many|much|long|often|far|big|large|old)\b",
                        re.IGNORECASE)
 _EXPLAINING = re.compile(r"^\s*(how|why|in what way|for what reason)\b",
@@ -140,61 +120,26 @@ def question_shape(query: str) -> str:
 
 SHORT_MAX_TOKENS = 48
 
-# Saying "I don't know" is a skill the model has to be asked for separately.
-# Given three passages it will answer almost anything, and for a student that
-# means invented facts stated with the same confidence as the rest.
+# How hard the model is pushed to decline a question its passages do not
+# answer, selected by SA_ABSTAIN:
 #
-# SA_ABSTAIN selects how that is handled, because the choice is a real
-# trade-off rather than a bug with one fix, and both directions are measured
-# (notebooks/01_eval_pdf_text.ipynb, on QASPER's unanswerable class):
-#
-#   "off"   — the wording above and nothing more. What every result recorded
-#             before 2026-09-21 describes.
-#   "firm"  — the same, plus an explicit instruction not to guess.
-#   "check" — a separate yes/no question first: do these passages contain the
-#             answer? Only then is the answer asked for. Two generations
-#             instead of one, and the judgement is made without the pressure
-#             of having to produce an answer in the same breath.
-#
-# Abstention cannot help on a question set where everything is answerable; it
-# can only lose answers the model would have got right. The gain is on
-# question sets that contain unanswerable questions.
-#
-# Measured on the whole QASPER dev set with qwen3:14b, which is the closest
-# question set to what a student asks of their own notes:
-#
-#                     answer F1   extractive   abstractive   unanswerable
-#   check               0.3359       0.286         0.137         0.730
-#   off                 0.3394       0.369         0.203         0.090
-#
-# A wash on the headline, and the composition decides it. The check declined
-# 351 questions; only 73 deserved it. Four of every five refusals threw away a
-# question the documents answered, and no second signal separates the two —
-# the overlap between a question's words and its retrieved passages is 0.53
-# for the refusals that were right and 0.58 for the ones that were wrong, so
-# every threshold on it made the score worse. A warning in place of a refusal
-# was considered and rejected for the same reason: a caution that is wrong
-# four times in five teaches the student to ignore it.
-#
-# So the check is off by default. It costs a second generation on every
-# question, and what it buys — 0.730 against 0.090 on the unanswerable class —
-# is worth having only where a large share of the questions have no answer in
-# the documents at all. A student asking about their own uploaded notes is not
-# in that situation. SHORT_SYSTEM still tells the model
-# it may answer "unanswerable", and with the check off it still did so 28
-# times across the dev set.
+#   "off"   — the system prompts above and nothing more (the default). They
+#             already allow the reply "unanswerable".
+#   "firm"  — the same, plus FIRM_CLAUSE, an explicit instruction not to
+#             guess.
+#   "check" — a separate yes/no generation first (passages_answer): do these
+#             passages contain the answer? The answer is only asked for once
+#             that says yes. Two generations instead of one, and skipped for
+#             boolean questions (see answer_short).
 ABSTAIN = os.environ.get("SA_ABSTAIN", "off").lower()
 ABSTAIN_ANSWER = "unanswerable"
 FIRM_CLAUSE = (
     " Do not guess and do not answer from your own knowledge: if the answer is "
     "not stated in the passages, the only correct reply is unanswerable."
 )
-# "state the answer" was too literal a test. A yes/no question's answer is
-# never written down anywhere — a passage says what a model does, not "yes" —
-# so the gate declined boolean questions almost always, and on a probe where
-# the model answers 4 of 4 correctly with the gate off it answered none with
-# it on. It now asks whether the passages carry the information the question
-# is about, which is the thing the gate was always meant to test.
+# The gate used by SA_ABSTAIN=check. It asks whether the passages carry the
+# information the question is about, not whether they state the answer in so
+# many words.
 SUPPORT_SYSTEM = (
     "You decide whether a question can be answered from the passages given, "
     "and nothing else. Reply with one word, yes or no. Reply yes if the "
@@ -209,8 +154,7 @@ INSTRUCTION_SYSTEM = (
     "Follow the instruction exactly and reply with the requested text only, "
     "with no preamble, label or explanation."
 )
-# Enough freedom to phrase an explanation, not enough to wander off the
-# passages: every claim is still supposed to come from the context.
+# Decoding for the chat view: sampled, unlike the greedy short answer.
 CHAT_TEMPERATURE = 0.6
 CHAT_TOP_P = 0.9
 CHAT_MAX_TOKENS = 260
@@ -224,45 +168,33 @@ CHAT_SYSTEM = (
     "question, say so in one sentence."
 )
 
-# Not every turn in a conversation is a new question, and treating them all
-# alike makes the chat feel like a search box rather than a conversation.
-# "what is a fitness function?" needs the documents. "can you say that more
-# simply?" needs only the answer already given, and retrieving for it wastes
-# five seconds and puts three irrelevant passages on screen. "what about
-# tournament selection?" needs the documents again, but the question does not
-# say what it is about, so it has to be made to stand alone before retrieval
-# can work — the conversational query rewriting that QReCC and the papers
-# around it describe.
+# Each turn of a conversation is sorted into one of three kinds, which
+# decides whether the documents are searched again:
 #
-#   "new"          a question that stands on its own: retrieve and answer
-#   "continuation" about the same material, but leaning on what came before:
-#                  rewrite it to stand alone, then retrieve and answer
+#   "new"          stands on its own: retrieve and answer
+#   "continuation" about the same material but leaning on what came before:
+#                  rewrite it to stand alone (standalone_question), then
+#                  retrieve and answer
 #   "followup"     about the answer just given rather than the material:
 #                  answer from the conversation, retrieve nothing
 #
-# How the decision is made is itself a measured choice. Asking the model to
-# sort a turn into the three kinds was tried first and is kept behind
-# SA_TURN_GATE=model. On fourteen hand-written turns it was right eight times,
-# and every one of its mistakes was the dangerous kind: it called "what about
-# tournament selection?" a follow-up and would have answered it from the
-# conversation, with no passages and nothing to cite. The rule below was right
-# on all fourteen. The probe set and the rule were written together, so that
-# score flatters it; what makes it safe is not the score but its shape. It
-# declines to retrieve only when the message carries an explicit marker about
-# the previous answer AND introduces no subject matter of its own, and both
-# ways of being wrong fall back to retrieving, which is what the app did
-# before any of this existed.
+# SA_TURN_GATE picks how the decision is made. "rule" (the default) is the
+# test in classify_turn: a turn is a follow-up only when it carries an
+# explicit marker about the previous answer (FOLLOWUP_MARKER) and introduces
+# no subject matter of its own (introduces_new_subject). "model" asks the
+# model to sort the turn instead, under TURN_SYSTEM. Both fall back to
+# retrieving when they cannot tell.
 TURN_GATE = os.environ.get("SA_TURN_GATE", "rule").lower()
 TURN_KINDS = ("new", "continuation", "followup")
 
-# Phrases that talk about the answer rather than the subject.
+# Phrases that talk about the answer rather than about the subject.
 FOLLOWUP_MARKER = re.compile(
     r"\b(simpl\w*|rephras\w*|reword\w*|shorter|briefer|summar\w*|again|repeat|"
     r"restate|translat\w*|bullet points?|in (english|arabic|french|spanish)|"
     r"elaborate|clarify)\b|what do you mean|your (last |previous )?answer|"
     r"that answer|(explain|expand on) (that|this|it)\b|"
     r"where did (that|this|it) come from", re.IGNORECASE)
-# Words that carry no subject matter, so introducing them means nothing.
+# Words that carry no subject matter, so introduces_new_subject ignores them.
 _EMPTY_WORDS = {
     "a", "about", "again", "all", "an", "and", "answer", "any", "are", "as",
     "ask", "at", "be", "briefer", "bullet", "but", "by", "can", "clarify",
@@ -279,15 +211,16 @@ _EMPTY_WORDS = {
 
 
 def _content_words(text: str):
+    """The subject-matter words of a message, _EMPTY_WORDS removed."""
     return {w for w in re.findall(r"[a-z][a-z0-9-]{2,}", str(text).lower())
             if w not in _EMPTY_WORDS}
 
 
 def introduces_new_subject(question: str, history: List[dict]) -> bool:
     """
-    Whether the message names something the conversation has not mentioned.
-    "say that more simply" does not; "what about tournament selection?" does,
-    and no amount of rereading the last answer will cover it.
+    Whether the message names something the last TURN_HISTORY_MESSAGES
+    messages have not mentioned. "say that more simply" does not; "what about
+    tournament selection?" does.
     """
     seen = set()
     for message in list(history)[-TURN_HISTORY_MESSAGES:]:
@@ -320,12 +253,13 @@ FOLLOWUP_SYSTEM = (
     "answering would need something from their documents that is not in the "
     "conversation, say so in one sentence."
 )
-# How much of the conversation the gate and the rewriter see. Two exchanges is
-# enough to resolve "it" and "that", and keeps the prompt short.
+# How many recent messages the gate, the rewriter and the follow-up answer
+# are given.
 TURN_HISTORY_MESSAGES = 4
 
 
 def _transcript(history: List[dict], limit: int = TURN_HISTORY_MESSAGES) -> str:
+    """The last `limit` messages as "Student:" / "Assistant:" lines."""
     lines = []
     for message in list(history)[-limit:]:
         who = "Student" if message.get("role") == "user" else "Assistant"
@@ -337,11 +271,10 @@ def _transcript(history: List[dict], limit: int = TURN_HISTORY_MESSAGES) -> str:
 
 def classify_turn(question: str, history: List[dict]) -> str:
     """
-    Whether this message is a new question, a continuation of the topic, or a
-    follow-up about the answer just given. Always "new" without a history.
+    Whether this message is a new question, a continuation of the topic, or
+    a follow-up about the answer just given. Always "new" without a history.
 
-    The default gate is the rule described above; SA_TURN_GATE=model asks the
-    model instead, which is how the two were compared.
+    SA_TURN_GATE selects the rule (the default) or the model; see TURN_GATE.
     """
     if not history:
         return "new"
@@ -350,9 +283,8 @@ def classify_turn(question: str, history: List[dict]) -> str:
     if FOLLOWUP_MARKER.search(question) and not introduces_new_subject(
             question, history):
         return "followup"
-    # Everything else is retrieved for. Whether it is called a continuation
-    # depends on whether it had to be rewritten to stand alone, which the
-    # caller discovers by doing the rewrite.
+    # Everything else is retrieved for; a continuation is the case where the
+    # message has to be rewritten to stand alone first.
     return "continuation" if _leans_on_history(question) else "new"
 
 
@@ -379,8 +311,7 @@ def _classify_turn_by_model(question: str, history: List[dict]) -> str:
     for kind in TURN_KINDS:
         if reply.startswith(kind):
             return kind
-    # An unparseable reply must not cost the student an answer: treat it as a
-    # new question, which is the behaviour the app had before this existed.
+    # An unparseable reply falls back to retrieving.
     return "new"
 
 
@@ -396,8 +327,8 @@ def standalone_question(question: str, history: List[dict]) -> str:
              f"Latest message: {question}\n\nStandalone question:"}],
         REWRITE_MAX_TOKENS).strip().splitlines()
     first = rewritten[0].strip().strip('"“”') if rewritten else ""
-    # A rewrite that lost the question, or ran away with it, is not an
-    # improvement on what the student typed.
+    # A rewrite that is no longer a question, or has run away with it, is
+    # discarded in favour of what the student typed.
     if not first.endswith("?") or len(first.split()) > 40:
         return question
     return first
@@ -418,8 +349,8 @@ def followup_stream(question: str, history: List[dict]) -> Iterator[str]:
 
 
 # Loaded models, by name. Short answers, quiz questions and explanations all
-# use MODEL_NAME, so they share one set of weights; SA_CHAT_MODEL can still
-# point the chat view at a different one.
+# use MODEL_NAME and so share one set of weights, unless SA_CHAT_MODEL points
+# the chat view at another.
 _loaded = {}
 _load_lock = threading.Lock()
 _model_is_ov = False
@@ -427,9 +358,9 @@ _model_is_ov = False
 
 def _is_seq2seq(name: str) -> bool:
     """
-    Encoder-decoder families, which load through a different class and have no
-    chat template. Only flan-t5 is expected here, as the reproduction path for
-    Chapter 5's measurements.
+    Whether `name` is an encoder-decoder model. These load through
+    AutoModelForSeq2SeqLM and have no chat template, so _prompt_inputs
+    flattens the messages into a plain prompt for them.
     """
     return "t5" in name.lower()
 
@@ -472,7 +403,7 @@ def _load(name: str):
         )
         try:
             model.to(device)
-        except Exception as e:      # an unusable GPU must not cost the answer
+        except Exception as e:      # an unusable GPU falls back to the CPU
             log.warning(f"Could not place {name} on {device} ({e}) — using cpu")
             model.to("cpu")
         _loaded[name] = (tokenizer, model)
@@ -481,10 +412,9 @@ def _load(name: str):
 
 def _budget_tokenizer():
     """
-    The tokenizer used only to measure context against MAX_INPUT_TOKENS. Under
-    the transformers backend it is the answering model's own; under Ollama
-    there is no local tokenizer, so the default one is loaded and the passages
-    come out identical to a transformers run.
+    The tokenizer used to measure context against MAX_INPUT_TOKENS. Under the
+    transformers backend it is the answering model's own; under Ollama, where
+    there is no local tokenizer, BUDGET_TOKENIZER is loaded instead.
     """
     if BACKEND == "ollama":
         global _budget_tok
@@ -501,7 +431,7 @@ class OllamaUnavailable(RuntimeError):
     """Ollama could not answer; the caller answers with the in-process model."""
 
 
-# None until the first answer asks; then True, or False for the rest of the
+# None until the first answer asks, then True, or False for the rest of the
 # process once Ollama has been found missing.
 _ollama_up = None
 
@@ -555,11 +485,12 @@ def _fall_back(reason: str) -> None:
 def _ollama_open(messages: List[dict], max_new_tokens: int,
                  sampling: Optional[dict], stream: bool):
     """
-    Send the same messages the transformers path would build to the model
+    Post the same messages the transformers path would build to the model
     Ollama is serving, and return the open response.
 
-    think=False suppresses the reasoning block Qwen3 emits by default, which
-    would otherwise arrive wrapped around every answer.
+    Sampling settings are mapped onto Ollama's options; with none given,
+    decoding is greedy, as it is in process. think=False suppresses the
+    reasoning block Qwen3 emits by default.
     """
     import json as _json
     import urllib.request
@@ -595,11 +526,9 @@ def _ollama_reply(messages: List[dict], max_new_tokens: int,
 def _ollama_stream(messages: List[dict], max_new_tokens: int,
                    sampling: Optional[dict] = None) -> Iterator[str]:
     """
-    A reply from Ollama piece by piece. With stream on, Ollama sends one JSON
-    object per line, each carrying the next piece of the message, and a last
-    one marked done. At 7 tokens a second a paragraph from the 14B takes
-    fifteen seconds or more, so a student sees it being written rather than
-    waiting on an empty answer.
+    A reply from Ollama piece by piece. With streaming on, Ollama sends one
+    JSON object per line, each carrying the next piece of the message, and a
+    final one marked done.
     """
     import json as _json
 
@@ -780,35 +709,29 @@ def explain_stream(query: str, context_chunks: List[str]) -> Iterator[str]:
                              CHAT_MAX_TOKENS, settings)
 
 
-# The budget shared out among the retrieved passages. Qwen2.5 could take far
-# more, but keeping the figure means the trimming behaviour Chapter 5
-# describes is unchanged, and a short prompt is a fast prompt on a laptop.
+# The token budget shared out among the retrieved passages.
 MAX_INPUT_TOKENS = 1024
-# A hard ceiling on the whole prompt, including the system message and the
-# chat template around it.
+# A ceiling on the whole prompt, including the system message and the chat
+# template around it; _prompt_inputs truncates to it.
 MAX_PROMPT_TOKENS = 2048
+# Slack left in the budget for tokens that merge across a join (see
+# _budget_context).
 _CONTEXT_SAFETY_MARGIN = 10
 
-
+# How much of the budget each rank gets relative to the one above it.
 _RANK_DECAY = 0.85
 
 
 def _allocate_budget(lengths: List[int], budget: int) -> List[int]:
     """
     Split `budget` tokens across chunks whose lengths are given in retrieval
-    order (most similar first).
+    order, most similar first.
 
-    Each chunk's share is weighted by _RANK_DECAY ** rank, and any surplus from
-    a chunk shorter than its share is redistributed to the rest (water-filling).
-    Two things matter here:
-
-      - every chunk gets a share, so none is dropped outright for being last;
-      - the weighting keeps that from being paid for entirely by the top-ranked
-        chunk, which retrieval says is the most likely to hold the answer.
-
-    An even split does the first but not the second: with 8 chunks over budget
-    it cut the top-ranked chunk to roughly half, which can remove the answer
-    span from the very chunk retrieval ranked first.
+    Each chunk's share is weighted by _RANK_DECAY ** rank, so a higher-ranked
+    chunk keeps more of its text, and the surplus from a chunk shorter than
+    its share is redistributed to the rest (water-filling). Every chunk gets
+    a share, so none is dropped outright for coming last. Returns one token
+    count per chunk, in the same order.
     """
     n = len(lengths)
     allocation = [0] * n
@@ -830,7 +753,7 @@ def _allocate_budget(lengths: List[int], budget: int) -> List[int]:
             if allocation[i] >= lengths[i]:
                 active.remove(i)
         if not progressed:
-            # Shares have rounded down to zero — hand what's left to the
+            # Every share has rounded down to zero: hand what is left to the
             # highest-ranked chunks still short of their full length.
             for i in active[:remaining]:
                 allocation[i] += 1
@@ -841,21 +764,18 @@ def _allocate_budget(lengths: List[int], budget: int) -> List[int]:
 
 def _budget_context(tokenizer, query: str, context_chunks: List[str]) -> str:
     """
-    Fit the retrieved chunks into the token budget left over after the prompt
-    template, and return them as one context string.
+    Fit the retrieved chunks into the token budget left over after the
+    prompt template, and return them as one context string.
 
-    When everything fits, the chunks are joined unchanged. When it doesn't, the
-    budget is shared out across chunks (see _allocate_budget) so every retrieved
-    chunk is still represented. The earlier version concatenated the chunks
-    first and then cut the tail off the combined string, which silently deleted
-    whole low-ranked chunks — the chunk holding the answer could disappear from
-    the prompt entirely while the model still produced a confident-looking
-    answer from the chunks that survived.
+    When everything fits, the chunks are joined unchanged. When it does not,
+    the budget is shared across the chunks by _allocate_budget and each is
+    trimmed to its share, so every retrieved chunk is still represented
+    rather than the last ones being cut away entirely.
     """
     if isinstance(context_chunks, str):
         context_chunks = [context_chunks]
 
-    # Tokens consumed by the fixed parts of the template (question + answer tag)
+    # What the fixed parts of the template cost: the question and the tags
     shell = f"Question: {query}\nContext: \nAnswer:"
     shell_tokens = len(tokenizer.encode(shell, add_special_tokens=True))
     budget = MAX_INPUT_TOKENS - shell_tokens - _CONTEXT_SAFETY_MARGIN
@@ -864,15 +784,12 @@ def _budget_context(tokenizer, query: str, context_chunks: List[str]) -> str:
 
     chunk_ids = [tokenizer.encode(c, add_special_tokens=False) for c in context_chunks]
     lengths = [len(ids) for ids in chunk_ids]
-    # One token reserved per " " joining two chunks together.
+    # One token reserved for each space joining two chunks.
     separator_cost = max(0, len(chunk_ids) - 1)
 
     if sum(lengths) + separator_cost <= budget:
-        # Nothing to trim. The encode/decode round trip is redundant here, but
-        # it is what the previous implementation did to every context, and it
-        # normalises some OCR artefacts — keeping it means this function is a
-        # byte-for-byte no-op versus the old behaviour whenever the context
-        # fits, so previously recorded eval results remain comparable.
+        # Nothing to trim. The encode/decode round trip normalises some OCR
+        # artefacts, so it is applied to a context that fits as well.
         joined = " ".join(context_chunks)
         return tokenizer.decode(
             tokenizer.encode(joined, add_special_tokens=False),
@@ -892,9 +809,9 @@ def _budget_context(tokenizer, query: str, context_chunks: List[str]) -> str:
         for ids, n in zip(chunk_ids, allocation) if n > 0
     )
 
-    # Sentencepiece can merge tokens across the join boundaries, so the
-    # reassembled string may re-tokenize a few tokens longer than the sum of
-    # its parts. Verify against the budget and hard-trim as a last resort.
+    # Sentencepiece can merge tokens across a join, so the reassembled string
+    # may re-tokenize a few tokens longer than the sum of its parts. Measure
+    # it again and cut to the budget if it did.
     context_ids = tokenizer.encode(context, add_special_tokens=False)
     if len(context_ids) > budget:
         context = tokenizer.decode(context_ids[:budget], skip_special_tokens=True)
@@ -904,12 +821,13 @@ def _budget_context(tokenizer, query: str, context_chunks: List[str]) -> str:
 
 def _fix_number_spacing(text: str) -> str:
     """
-    A sentencepiece tokenizer splits digits into subword pieces, and decoding
-    those back can leave stray spaces around punctuation inside numbers and
-    times (e.g. "0. 28", "11 : 39 a. m.", "$ 975. 00"). Collapse spacing
-    immediately around '.', ',', and ':' when both sides are digits. Qwen's
-    tokenizer does not do this, but chunk text decoded elsewhere in the
-    pipeline can still reach an answer through the passages.
+    Close up the spaces a sentencepiece decode leaves inside numbers and
+    times ("0. 28", "11 : 39 a. m.", "$ 975. 00").
+
+    Spacing around '.', ',' and ':' is removed when both sides are digits,
+    and after '$' or '#' before one. Qwen's tokenizer does not produce this,
+    but chunk text decoded elsewhere in the pipeline can carry it into an
+    answer through the passages.
     """
     text = re.sub(r'(\d)\s*([.,:])\s*(\d)', r'\1\2\3', text)
     text = re.sub(r'([$#])\s+(\d)', r'\1\2', text)
@@ -918,14 +836,11 @@ def _fix_number_spacing(text: str) -> str:
 
 # Chunk text is wordpiece-decoded, which puts spaces around punctuation:
 # "ilur . am", "bleu - 4", "pubmed + pmc", "vendor lock - in". A span copied
-# out of a passage carries the damage with it, and a student is shown an
-# answer that is right but looks broken. On QASPER these scored zero against
-# the very strings they were copied from.
+# out of a passage carries that spacing into the answer.
 #
-# Only short answers are repaired. A paragraph is the model's own prose, and
-# joining across a full stop there would run two sentences together, so the
-# dot rule requires a lower-case or digit after it — the shape of a decoded
-# name, not of a sentence boundary.
+# fix_decoded_spacing is applied to short answers only. The dot rule requires
+# a lower-case letter or digit after the dot — the shape of a decoded name
+# rather than a sentence boundary — so it cannot run two sentences together.
 _DECODED_HYPHEN = re.compile(r"(?<=[A-Za-z0-9])\s+-\s+(?=[A-Za-z0-9])")
 _DECODED_DOT = re.compile(r"(?<=[A-Za-z0-9])\s*\.\s*(?=[a-z0-9])")
 _DECODED_JOINER = re.compile(r"(?<=[A-Za-z0-9])\s*([+/_])\s*(?=[A-Za-z0-9])")
@@ -945,11 +860,10 @@ def fix_decoded_spacing(text: str) -> str:
 def complete(prompt: str, max_new_tokens: int = 128,
              system: str = INSTRUCTION_SYSTEM) -> str:
     """
-    Run the model on an arbitrary instruction (greedy decoding) and return
-    what it replied. Shared by answer_short() and the quiz layer, which
-    prompts the same model to write questions. Prompts longer than the input
-    limit are truncated from the end, so callers should keep their passage
-    short.
+    Run the model on an arbitrary instruction, decoded greedily, and return
+    the reply. Used by the quiz layer to write questions. A prompt longer
+    than MAX_PROMPT_TOKENS is truncated from the end, so a caller should keep
+    its passage short.
     """
     return _reply([{"role": "system", "content": system},
                    {"role": "user", "content": prompt}], max_new_tokens)
@@ -957,15 +871,15 @@ def complete(prompt: str, max_new_tokens: int = 128,
 
 def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
     """
-    Same prompt and decoding as generate(), but yields the answer piece by
-    piece as the model produces it, for the web interface. Joining the pieces
-    and passing them through _fix_number_spacing gives generate()'s output.
+    generate(), yielded piece by piece as the model produces it, for the web
+    interface. Joining the pieces and passing them through
+    _fix_number_spacing gives generate()'s output.
     """
     if ANSWER_STYLE == "explain":
         yield from explain_stream(query, context_chunks)
         return
     if _use_ollama():
-        # A short answer is a few words, so it arrives whole.
+        # A short answer is a few words, so it is yielded whole.
         yield answer_short(query, context_chunks)
         return
 
@@ -984,15 +898,15 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
                            do_sample=False, streamer=streamer)
         except Exception as exc:
             failure.append(exc)
-            streamer.end()   # otherwise the loop below waits forever
+            streamer.end()   # or the loop below waits forever
 
     worker = threading.Thread(target=run, daemon=True)
     worker.start()
     try:
         yield from streamer
     finally:
-        # Also reached when the caller stops early (e.g. the browser tab was
-        # closed): wait for the model to finish before anyone else uses it.
+        # Also reached when the caller stops early, as it does when a browser
+        # tab closes mid-answer: wait for the model before releasing it.
         worker.join()
     if failure:
         raise failure[0]
@@ -1001,7 +915,7 @@ def stream(query: str, context_chunks: List[str]) -> Iterator[str]:
 def generate(query: str, context_chunks: List[str]) -> str:
     """
     Answer the query from the retrieved chunks, in whichever style
-    SA_ANSWER_STYLE selects (see ANSWER_STYLE above).
+    SA_ANSWER_STYLE selects (see ANSWER_STYLE).
     """
     if ANSWER_STYLE == "explain":
         return explain(query, context_chunks)
@@ -1010,10 +924,9 @@ def generate(query: str, context_chunks: List[str]) -> str:
 
 def _short_messages(query: str, context_chunks: List[str]) -> List[dict]:
     """
-    The extractive prompt: the same "Question / Context / Answer" wording
-    flan-t5 was given, now carried as the user turn of a chat prompt under
-    SHORT_SYSTEM, which is what keeps an instruction-tuned model from
-    answering in a sentence.
+    The extractive prompt: "Question / Context / Answer" as the user turn,
+    under the system prompt question_shape() selects, with the passages
+    trimmed to the token budget by _budget_context.
     """
     context = _budget_context(_budget_tokenizer(), query, context_chunks)
     prompt = f"Question: {query}\nContext: {context}\nAnswer:"
@@ -1034,35 +947,34 @@ def _short_inputs(tokenizer, model, query: str, context_chunks: List[str]):
 
 def passages_answer(query: str, context_chunks: List[str]) -> bool:
     """
-    Whether the passages contain the answer, asked as its own yes/no question.
-
-    Used by answer_short under SA_ABSTAIN=check. The model is far readier to
-    say "no" here than to abstain while also being asked for an answer, which
-    is the whole point of separating the two.
+    Whether the passages contain the answer, asked as its own yes/no
+    question under SUPPORT_SYSTEM. Used by answer_short when
+    SA_ABSTAIN=check.
     """
     context = _budget_context(_budget_tokenizer(), query, context_chunks)
     reply = _reply(
         [{"role": "system", "content": SUPPORT_SYSTEM},
          {"role": "user", "content": f"Passages: {context}\n\nQuestion: {query}"}],
         SUPPORT_MAX_TOKENS).strip().lower()
-    # Anything that is not a clear "no" is treated as support, so the cost of
-    # an unparseable reply is the old behaviour rather than a lost answer.
+    # Anything but a clear "no" counts as support, so an unparseable reply
+    # leaves the question to be answered normally.
     return not reply.startswith("no")
 
 
 def answer_short(query: str, context_chunks: List[str]) -> str:
     """
-    The extractive answer: greedy decoding, a span or a few words. Used by the
-    quiz layer, which compares a reference answer with a student's, and by the
-    evaluation scripts, whose numbers describe it.
+    The extractive answer: greedy decoding, a span or a few words. Used by
+    the quiz layer, which compares it with what the student typed.
+
+    The answer's length and system prompt follow question_shape(), and the
+    text is tidied of the label, quotes and decoding spacing a model leaves
+    on it.
     """
     shape = question_shape(query)
-    # The support gate is skipped for a yes or no question. It guards against
-    # invented facts, and a yes or no is not a fact to invent — it is one bit,
-    # read off the passages, and BOOLEAN_SYSTEM carries its own way to
-    # decline. Left in, the gate declines almost every boolean question,
-    # because a passage says what a model does rather than saying "yes":
-    # on QASPER it took boolean answers from 0.50 to 0.00.
+    # The support gate is skipped for a yes or no question: BOOLEAN_SYSTEM
+    # carries its own way to decline, and a passage states what a model does
+    # rather than stating "yes", so the gate reads almost every boolean
+    # question as unsupported.
     if (ABSTAIN == "check" and shape != "boolean"
             and not passages_answer(query, context_chunks)):
         return ABSTAIN_ANSWER
@@ -1074,8 +986,8 @@ def answer_short(query: str, context_chunks: List[str]) -> str:
 
 def _tidy_short(answer: str) -> str:
     """
-    Drop the wrapping an instruction-tuned model adds to a short answer: a
-    repeated "Answer:" label, surrounding quotes, a trailing full stop.
+    Drop the wrapping an instruction-tuned model puts around a short answer:
+    an "Answer:" label, surrounding quotes, and a lone trailing full stop.
     """
     answer = re.sub(r"^\s*(answer|a)\s*[:\-]\s*", "", answer, flags=re.IGNORECASE)
     answer = answer.strip().strip('"“”')

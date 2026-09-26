@@ -1,6 +1,7 @@
-/* Study Assistant — "calm study desk".
-   Warm paper, ink, and one deep green. System fonts only: the page loads
-   nothing from the internet. */
+/* Study Assistant — the "calm study desk" theme.
+   Warm paper, ink, and one deep green, all defined as custom properties on
+   :root and redefined under [data-theme="dark"]. System fonts only: the page
+   loads nothing from the internet. */
 
 :root {
   --paper: #f6f1e7;
@@ -115,16 +116,15 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em
 
 /* Layout */
 .shell { display: grid; grid-template-columns: var(--sidebar) 1fr; height: 100%; }
-/* Put the sidebar away entirely: on a wide screen it is a grid column, so the
-   column goes rather than the sidebar sliding out of view. The narrow-screen
-   rules below own the same sidebar, and only one set applies at a time. */
+/* Hiding the sidebar on a wide screen: the grid drops to one column and the
+   sidebar is removed, rather than sliding out of view and leaving an empty
+   column behind. The narrow-screen rules further down style the same sidebar,
+   and only one set applies at a time. */
 @media (min-width: 861px) {
-  /* The sidebar leaves the grid entirely, so the column count goes with it;
-     leaving a zero-width column behind would hand it to the main pane. */
   .shell.nav-hidden { grid-template-columns: 1fr; }
   .shell.nav-hidden .sidebar { display: none; }
-  /* With the sidebar there, the topbar button would only hide what is
-     already visible next to it; the sidebar's own control does that. */
+  /* The topbar's button only appears once the sidebar is away; while it is
+     open, its own close button is the control. */
   .shell:not(.nav-hidden) #open-sidebar { display: none; }
 }
 
@@ -392,9 +392,9 @@ button.crumb:hover { color: var(--ink); background: var(--paper-2); }
   background: var(--accent-soft); color: var(--accent); font-size: 11px;
 }
 .source-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
-/* A follow-up cites nothing because nothing was fetched, and a rewritten
-   question was looked up as something other than what was typed. Both are
-   said plainly, in the place sources would otherwise sit. */
+/* The two lines that stand in for the sources row: a follow-up, which
+   retrieved nothing, and a rewritten question, which was looked up as
+   something other than what was typed. */
 .sources.from-conversation, .sources.looked-up {
   gap: 7px; font-size: 12.5px; color: var(--ink-3);
 }
@@ -665,7 +665,7 @@ button.crumb:hover { color: var(--ink); background: var(--paper-2); }
     position: fixed; inset: 0 auto 0 0; width: min(300px, 86vw); z-index: 40;
     transform: translateX(-102%); transition: transform .25s ease; box-shadow: var(--shadow-lg);
   }
-  /* nav-hidden is a wide-screen state; a narrow screen ignores it. */
+  /* nav-hidden is a wide-screen state, so it is ignored here. */
   .shell.nav-hidden .sidebar { display: flex; }
   .shell.nav-open .sidebar { transform: none; }
   .shell.nav-open .scrim { display: block; position: fixed; inset: 0; background: rgba(30, 22, 10, .3); z-index: 35; }
@@ -698,7 +698,7 @@ button.crumb:hover { color: var(--ink); background: var(--paper-2); }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* An empty subject: one thing to do, and it is the largest thing on the page. */
+/* The panel an empty subject shows in place of the composer. */
 .onboard { text-align: center; padding: 6vh 20px 4vh; color: var(--ink-2); }
 .onboard h2 { font-size: 26px; color: var(--ink); margin-bottom: 8px; }
 .onboard p { max-width: 460px; margin: 0 auto; }
@@ -715,14 +715,14 @@ button.crumb:hover { color: var(--ink); background: var(--paper-2); }
 .onboard-formats { font-size: 13px; }
 .quiz-empty-go { margin-top: 18px; }
 
-/* Renaming a subject, from its own page. The pencil stays quiet until the
-   heading is hovered, so the page still opens on the name and not a control. */
+/* Renaming a subject from its own page: the pencil appears when the heading
+   is hovered or the button is focused. */
 .subject-main h1 { display: flex; align-items: center; gap: 8px; }
 .icon-btn.rename { opacity: 0; transition: opacity .15s ease; }
 .subject-main h1:hover .icon-btn.rename,
 .icon-btn.rename:focus-visible { opacity: 1; }
 
-/* The name dialog: one field, and it is the thing the dialog is for. */
+/* The single field of the name dialog. */
 #name-input {
   width: 100%; margin: 0 0 20px; padding: 11px 13px; font: inherit;
   color: var(--ink); background: var(--paper); border: 1px solid var(--line);
